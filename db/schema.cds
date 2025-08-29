@@ -7,4 +7,9 @@ entity CashFlow {
     typesOfInterest:String;
     loanAmount:String;
     loanTerm :String;  
+    dueDate:String;
+    patmentDate:String;
+    fType:String;
+    name:String;
+    SettlementAmount:String;
 }

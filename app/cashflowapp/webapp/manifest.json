@@ -100,11 +100,6 @@
           "pattern": ":?query:",
           "name": "CashFlowList",
           "target": "CashFlowList"
-        },
-        {
-          "pattern": "CashFlow({key}):?query:",
-          "name": "CashFlowObjectPage",
-          "target": "CashFlowObjectPage"
         }
       ],
       "targets": {
@@ -116,31 +111,15 @@
             "settings": {
               "contextPath": "/CashFlow",
               "variantManagement": "Page",
-              "navigation": {
-                "CashFlow": {
-                  "detail": {
-                    "route": "CashFlowObjectPage"
-                  }
-                }
-              },
+              "navigation": {},
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "GridTable"
                   }
                 }
-              }
-            }
-          }
-        },
-        "CashFlowObjectPage": {
-          "type": "Component",
-          "id": "CashFlowObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "editableHeaderContent": false,
-              "contextPath": "/CashFlow"
+              },
+              "initialLoad": "Enabled"
             }
           }
         }

@@ -41,29 +41,56 @@ annotate service.CashFlow with @(
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
-            Label : 'productType',
-            Value : productType,
+            Value : dueDate,
+            Label : 'dueDate',
         },
         {
             $Type : 'UI.DataField',
-            Label : 'businessPartner',
-            Value : businessPartner,
+            Value : patmentDate,
+            Label : 'patmentDate',
         },
         {
             $Type : 'UI.DataField',
-            Label : 'typesOfInterest',
-            Value : typesOfInterest,
+            Value : fType,
+            Label : 'fType',
         },
         {
             $Type : 'UI.DataField',
-            Label : 'loanAmount',
-            Value : loanAmount,
+            Value : name,
+            Label : 'name',
         },
         {
             $Type : 'UI.DataField',
-            Label : 'loanTerm',
-            Value : loanTerm,
+            Value : SettlementAmount,
+            Label : 'SettlementAmount',
         },
     ],
+    UI.SelectionFields : [
+        productType,
+        businessPartner,
+        typesOfInterest,
+        loanAmount,
+        loanTerm,
+    ],
 );
+
+annotate service.CashFlow with {
+    productType @Common.Label : 'Product Type'
+};
+
+annotate service.CashFlow with {
+    businessPartner @Common.Label : 'Business Partner'
+};
+
+annotate service.CashFlow with {
+    typesOfInterest @Common.Label : 'Types of Interest'
+};
+
+annotate service.CashFlow with {
+    loanAmount @Common.Label : 'Loan Amount'
+};
+
+annotate service.CashFlow with {
+    loanTerm @Common.Label : 'loanTerm'
+};
 

@@ -1,6 +1,6 @@
-ID,productType,businessPartner,typesOfInterest,loanAmount,loanTerm
-550e8400-e29b-41d4-a716-446655440000,Home Loan,BP1001,Fixed,500000,20 years
-550e8400-e29b-41d4-a716-446655440001,Car Loan,BP1002,Floating,30000,5 years
-550e8400-e29b-41d4-a716-446655440002,Education Loan,BP1003,Fixed,20000,10 years
-550e8400-e29b-41d4-a716-446655440003,Personal Loan,BP1004,Floating,15000,3 years
-550e8400-e29b-41d4-a716-446655440004,Business Loan,BP1005,Fixed,100000,15 years
+ID,productType,businessPartner,typesOfInterest,loanAmount,loanTerm,dueDate,patmentDate,fType,name,SettlementAmount
+550e8400-e29b-41d4-a716-446655440000,Home Loan,BP1001,Fixed,500000,20 years,03/26/2020,01/26/2020,0699,Grant Fe,3000000
+550e8400-e29b-41d4-a716-446655440001,Car Loan,BP1002,Floating,30000,5 years,03/26/2020,01/26/2020,0699,Grant Fe,3000000
+550e8400-e29b-41d4-a716-446655440002,Education Loan,BP1003,Fixed,20000,10 years,03/26/2020,01/26/2020,0699,Grant Fe,3000000
+550e8400-e29b-41d4-a716-446655440003,Personal Loan,BP1004,Floating,15000,3 years,03/26/2020,01/26/2020,0699,Grant Fe,3000000
+550e8400-e29b-41d4-a716-446655440004,Business Loan,BP1005,Fixed,100000,15 years,03/26/2020,01/26/2020,0699,Grant Fe,3000000
