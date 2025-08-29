@@ -42,27 +42,27 @@ annotate service.CashFlow with @(
         {
             $Type : 'UI.DataField',
             Value : dueDate,
-            Label : 'dueDate',
+            Label : 'Due Date',
         },
         {
             $Type : 'UI.DataField',
             Value : patmentDate,
-            Label : 'patmentDate',
+            Label : 'Payment Date',
         },
         {
             $Type : 'UI.DataField',
             Value : fType,
-            Label : 'fType',
+            Label : 'FType',
         },
         {
             $Type : 'UI.DataField',
             Value : name,
-            Label : 'name',
+            Label : 'Name',
         },
         {
             $Type : 'UI.DataField',
             Value : SettlementAmount,
-            Label : 'SettlementAmount',
+            Label : 'Settlement Amount',
         },
     ],
     UI.SelectionFields : [
@@ -91,6 +91,6 @@ annotate service.CashFlow with {
 };
 
 annotate service.CashFlow with {
-    loanTerm @Common.Label : 'loanTerm'
+    loanTerm @Common.Label : 'Loan Term'
 };
 
