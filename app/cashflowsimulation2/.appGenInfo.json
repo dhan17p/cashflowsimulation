@@ -1,0 +1,33 @@
+{
+  "generationParameters": {
+    "generationDate": "Fri Aug 29 2025 07:34:45 GMT+0000 (Coordinated Universal Time)",
+    "generatorPlatform": "SAP Business Application Studio",
+    "serviceType": "Local CAP",
+    "metadataFilename": "",
+    "serviceUrl": "http://localhost:4004/odata/v4/cash-flow/",
+    "appName": "cashflowsimulation2",
+    "appTitle": "Cash Flow Simulation",
+    "appDescription": "",
+    "appNamespace": "",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.139.0",
+    "enableCodeAssist": false,
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": false,
+    "generatorVersion": "1.18.5",
+    "template": "List Report Page V4",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [
+      {
+        "type": "Main Entity",
+        "value": "CashFlow2"
+      },
+      {
+        "type": "Navigation Entity",
+        "value": "cashflow2toItem"
+      }
+    ],
+    "launchText": "To launch the generated app, start your CAP project:  and navigate to the following location in your browser:\n\nhttp://localhost:4004/cashflowsimulation2/webapp/index.html"
+  }
+}

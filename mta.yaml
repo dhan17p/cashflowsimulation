@@ -69,9 +69,23 @@ modules:
       - cashflowapp.zip
       name: cashflowapp
       target-path: resources/
+    - artifacts:
+      - cashflowsimulation2.zip
+      name: cashflowsimulation2
+      target-path: resources/
 - name: cashflowapp
   type: html5
   path: app/cashflowapp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: cashflowsimulation2
+  type: html5
+  path: app/cashflowsimulation2
   build-parameters:
     build-result: dist
     builder: custom
