@@ -1,0 +1,136 @@
+_schema-version: 3.3.0
+ID: cashFlowSim
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: cashFlowSim-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: cashFlowSim-db
+  - name: uaa_cashFlowSim
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: cashFlowSim-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: cashFlowSim-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: cashFlowSim-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: cashFlowSim-destination-service
+    parameters:
+      content-target: true
+  - name: cashFlowSim_html_repo_host
+    parameters:
+      service-key:
+        name: cashFlowSim_html_repo_host-key
+  - name: uaa_cashFlowSim
+    parameters:
+      service-key:
+        name: uaa_cashFlowSim-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: cashFlowapprouter_cashFlowSim_html_repo_host
+          ServiceInstanceName: cashFlowSim-html5-app-host-service
+          ServiceKeyName: cashFlowSim_html_repo_host-key
+          sap.cloud.service: cashFlowapprouter
+        - Authentication: OAuth2UserTokenExchange
+          Name: cashFlowapprouter_uaa_cashFlowSim
+          ServiceInstanceName: cashFlowSim-xsuaa-service
+          ServiceKeyName: uaa_cashFlowSim-key
+          sap.cloud.service: cashFlowapprouter
+        existing_destinations_policy: ignore
+  build-parameters:
+    no-source: true
+- name: cashFlowSim-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: cashFlowSim_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - cashflowapp.zip
+      name: cashflowapp
+      target-path: resources/
+- name: cashflowapp
+  type: html5
+  path: app/cashflowapp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: cashFlowSim-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: cashFlowSim-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: srv-api
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: cashFlowSim-destination-service
+    service-plan: lite
+  requires:
+  - name: srv-api
+- name: cashFlowSim_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: cashFlowSim-html5-app-host-service
+    service-plan: app-host
+- name: uaa_cashFlowSim
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: cashFlowSim-xsuaa-service
+    service-plan: application
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
