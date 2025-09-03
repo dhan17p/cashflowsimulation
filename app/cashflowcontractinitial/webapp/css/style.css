@@ -1,0 +1,36 @@
+#CreateDialog\:\:Contract-title-inner {
+    visibility: hidden; /* hide original text */
+}
+
+#CreateDialog\:\:Contract-title-inner::after {
+    content: "Loan Creation"; /* new text visually */
+    visibility: visible;
+}
+
+
+
+/* //dialog */
+.conditionTableCls {
+    width: 110% !important;
+    /* overflow-x: scroll; */
+}
+ 
+.dialogVBox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+ 
+.fixedForm {
+  flex: 0 0 auto; /* fixed size, no grow */
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
+ 
+.tableScroll {
+  flex: 1 1 auto;   /* allow table to grow and take remaining space */
+  overflow-x: auto; /* horizontal scroll */
+  overflow-y: auto; /* vertical scroll if needed */
+}
+ 
+ 

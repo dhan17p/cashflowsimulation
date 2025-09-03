@@ -1,18 +1,18 @@
 namespace cfs;
 
 entity CashFlow {
-    key ID:UUID;
-    productType:String;
-    businessPartner:String;
-    typesOfInterest:String;
-    loanAmount:String;
-    loanTerm :String;  
-    loanTermEnd:String;
-    dueDate:String;
-    patmentDate:String;
-    fType:String;
-    name:String;
-    SettlementAmount:String;
+    key ID               : UUID;
+        productType      : String;
+        businessPartner  : String;
+        typesOfInterest  : String;
+        loanAmount       : String;
+        loanTerm         : String;
+        loanTermEnd      : String;
+        dueDate          : String;
+        patmentDate      : String;
+        fType            : String;
+        name             : String;
+        SettlementAmount : String;
 }
 
 entity CashFlow2 {
@@ -38,10 +38,48 @@ entity cashFlowLineItem {
 }
 
 entity contract {
-    key ID          : UUID;
-        companyCode : String;
-        loanNumber  : String;
-        productType : String;
-        loanType    : String;
-        loanPartner : String;
+    key ID                 : UUID;
+    key companyCode        : String @Common.Label: 'Company Code';
+    key loanNumber         : String @Common.Label: 'Loan Number';
+    key productType        : String @Common.Label: 'Product Type';
+    key loanType           : String @Common.Label: 'Loan Type';
+    key loanPartner        : String @Common.Label: 'Loan Partner';
+        status             : String;
+        disbursementStatus : String;
+
+        //basic data
+        pledgedStatus      : String;
+        //analysis
+        purposeOfLoan      : String;
+        arBillingJob       : String;
+        //conditions
+        commitCapital      : String;
+        repaymentType      : String;
+
+        //term/fixed Period
+        fixedFrom        : String;
+        fixedUntil         : String;
+        include            : Boolean;
+
+        //Interest Calculation
+        intCalMt:String;
+        contractToCondition:Composition of many ConditionItems on contractToCondition.contractId= ID;
+
+        
+
+}
+
+entity ConditionItems{
+   key conditionId:UUID;
+    contractId:UUID;
+    conditionTypeText:String;
+    effectiveFrom:Date;
+    percentage:String;
+    conditionAmt:String;
+    paymentFromExactDay:String;
+    frequencyInMonths:String;
+    dueDate:String;
+    calculationDate:String;
+    conditionToContract:Association to contract;
+
 }

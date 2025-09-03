@@ -77,6 +77,10 @@ modules:
       - cashflowcontract.zip
       name: cashflowcontract
       target-path: resources/
+    - artifacts:
+      - cashflowcontractinitial.zip
+      name: cashflowcontractinitial
+      target-path: resources/
 - name: cashflowapp
   type: html5
   path: app/cashflowapp
@@ -100,6 +104,16 @@ modules:
 - name: cashflowcontract
   type: html5
   path: app/cashflowcontract
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: cashflowcontractinitial
+  type: html5
+  path: app/cashflowcontractinitial
   build-parameters:
     build-result: dist
     builder: custom

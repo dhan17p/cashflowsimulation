@@ -30,17 +30,20 @@
     "build": "rimraf resources mta_archives && mbt build --mtar archive",
     "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
     "watch-cashflowsimulation2": "cds watch --open cashflowsimulation2/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-cashflowcontract": "cds watch --open cashflowcontract/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-cashflowcontract": "cds watch --open cashflowcontract/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-cashflowcontractinitial": "cds watch --open cashflowcontractinitial/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "cds": {
     "requires": {
-      "auth": "dummy"
+      "auth": "dummy",
+      "db":"hana"
     }
   },
   "sapux": [
     "app/cashflowapp",
     "app/cashflowsimulation2",
-    "app/cashflowcontract"
+    "app/cashflowcontract",
+    "app/cashflowcontractinitial"
   ],
   "workspaces": [
     "app/*"
