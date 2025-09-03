@@ -71,6 +71,7 @@ annotate service.CashFlow with @(
         typesOfInterest,
         loanAmount,
         loanTerm,
+        loanTermEnd,
     ],
 );
 
@@ -79,7 +80,9 @@ annotate service.CashFlow with {
 };
 
 annotate service.CashFlow with {
-    businessPartner @Common.Label : 'Business Partner'
+    businessPartner @(
+        Common.Label : 'Business Partner',
+        )
 };
 
 annotate service.CashFlow with {
@@ -91,6 +94,13 @@ annotate service.CashFlow with {
 };
 
 annotate service.CashFlow with {
-    loanTerm @Common.Label : 'Loan Term'
+    loanTerm @Common.Label : 'Loan Term Start Date'
+};
+annotate service.CashFlow with @UI.DeleteHidden:true;
+
+
+
+annotate service.CashFlow with {
+    loanTermEnd @Common.Label : 'Loan Term End Date'
 };
 

@@ -1,17 +1,18 @@
 namespace cfs;
 
 entity CashFlow {
-    key ID               : UUID;
-        productType      : String;
-        businessPartner  : String;
-        typesOfInterest  : String;
-        loanAmount       : String;
-        loanTerm         : String;
-        dueDate          : String;
-        patmentDate      : String;
-        fType            : String;
-        name             : String;
-        SettlementAmount : String;
+    key ID:UUID;
+    productType:String;
+    businessPartner:String;
+    typesOfInterest:String;
+    loanAmount:String;
+    loanTerm :String;  
+    loanTermEnd:String;
+    dueDate:String;
+    patmentDate:String;
+    fType:String;
+    name:String;
+    SettlementAmount:String;
 }
 
 entity CashFlow2 {
