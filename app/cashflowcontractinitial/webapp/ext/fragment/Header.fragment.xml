@@ -74,6 +74,18 @@
                             </Text>
                         </f:fields>
                     </f:FormElement>
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Loan Type" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{loanType}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
  
                 </f:formElements>
             </f:FormContainer>

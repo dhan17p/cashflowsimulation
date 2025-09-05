@@ -2,7 +2,7 @@
     xmlns:core="sap.ui.core"
     xmlns:f="sap.ui.layout.form">
 
-    <Dialog id="CashFlowDialog" core:require="{handler:'cashflowcontractinitial/ext/controller/CalCashFLow'}" title="Cash Flow Details" contentWidth="80%" contentHeight="50%" resizable="true">
+    <Dialog id="CashFlowDialog"  core:require="{handler:'cashflowcontractinitial/ext/controller/CalCashFLow'}" title="Cash Flow Details" afterOpen="handler.onDialogAfterOpen" contentWidth="80%" contentHeight="50%" resizable="true">
 
         <content>
             <VBox renderType="Bare" class="dialogVBox">
@@ -29,51 +29,47 @@
 
                 <!-- Table Section -->
                 <ScrollContainer horizontal="true" vertical="true" height="100%" width="100%" class="tableScroll">
-                    <Table headerText="Cash Flow" inset="false" growing="true" growingScrollToLoad="true" class="conditionTableCls">
+                    <Table headerText="Loan Amortization" items="{/LoanAmortization}" inset="false" growing="true" growingScrollToLoad="true" class="conditionTableCls">
+
                         <columns>
                             <Column>
                                 <header>
-                                    <Label text="Due Date" />
+                                    <Label text="Period Start" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Pmnt Date" />
+                                    <Label text="Period End" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="FTyp" />
+                                    <Label text="Payment Date" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Name" />
+                                    <Label text="Opening Balance" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Settlement Amount" />
+                                    <Label text="Principal Payment" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Settlement Currency" />
+                                    <Label text="Interest Payment" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Calc. from" />
+                                    <Label text="Total Payment" />
                                 </header>
                             </Column>
                             <Column>
                                 <header>
-                                    <Label text="Percent" />
-                                </header>
-                            </Column>
-                            <Column>
-                                <header>
-                                    <Label text="Base amnt" />
+                                    <Label text="Closing Balance" />
                                 </header>
                             </Column>
                         </columns>
@@ -81,33 +77,20 @@
                         <items>
                             <ColumnListItem>
                                 <cells>
-                                    <Text text="04/09/2020" />
-                                    <Text text="04/09/2020" />
-                                    <Text text="A_Grant" />
-                                    <Text text="Grant PI Refund/Offsetting Flow" />
-                                    <Text text="390,628.72" />
-                                    <Text text="USD" />
-                                    <Text text="04/09/2020" />
-                                    <Text text="1.00000000" />
-                                    <Text text="390,628.72" />
-                                </cells>
-                            </ColumnListItem>
-
-                            <ColumnListItem>
-                                <cells>
-                                    <Text text="05/01/2020" />
-                                    <Text text="05/01/2020" />
-                                    <Text text="A_Interest" />
-                                    <Text text="Interest debt pos." />
-                                    <Text text="488,191.19" />
-                                    <Text text="USD" />
-                                    <Text text="05/01/2020" />
-                                    <Text text="1.00000000" />
-                                    <Text text="488,191.19" />
+                                    <Text text="{periodStart}" />
+                                    <Text text="{periodEnd}" />
+                                    <Text text="{paymentDate}" />
+                                    <Text text="{openingBalance}" />
+                                    <Text text="{principalPayment}" />
+                                    <Text text="{interestPayment}" />
+                                    <Text text="{totalPayment}" />
+                                    <Text text="{closingBalance}" />
                                 </cells>
                             </ColumnListItem>
                         </items>
                     </Table>
+
+
                 </ScrollContainer>
             </VBox>
         </content>

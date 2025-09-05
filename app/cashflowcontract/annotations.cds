@@ -69,3 +69,20 @@ using CashFlowService as service from '../../srv/service';
 //     ],
 // );
 
+annotate service.Contract with {
+    intCalMt @(
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'InterestCalSearchHelp',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : intCalMt,
+                    ValueListProperty : 'value',
+                },
+            ],
+            Label : 'Interest Calculation Search Help',
+        },
+        Common.ValueListWithFixedValues : true,
+)};
+

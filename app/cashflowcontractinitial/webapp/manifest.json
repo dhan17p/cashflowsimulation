@@ -91,9 +91,11 @@
       }
     },
     "resources": {
-      "css": [{
-        "uri": "css/style.css"
-      }]
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
     },
     "routing": {
       "config": {},
@@ -144,15 +146,6 @@
               "editableHeaderContent": false,
               "contextPath": "/Contract",
               "controlConfiguration": {
-                "@com.sap.vocabularies.UI.v1.HeaderFacets": {
-                  "facets": {
-                    "HeaderSection": {
-                      "flexSettings": {
-                        "designtime": "not-adaptable-tree"
-                      }
-                    }
-                  }
-                },
                 "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems1": {
                   "tableSettings": {
                     "type": "GridTable",
@@ -163,6 +156,16 @@
                     "personalization": {
                       "column": false
                     }
+                  }
+                },
+                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems3": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                },
+                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
+                  "tableSettings": {
+                    "type": "GridTable"
                   }
                 }
               },

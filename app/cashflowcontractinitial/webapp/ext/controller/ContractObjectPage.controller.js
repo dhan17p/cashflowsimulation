@@ -15,7 +15,15 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			},
 			routing: {
 				onBeforeBinding: function () {
+					debugger
+					try {
+						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
+						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
+						sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::Form::Conditions1::Content").mAggregations.formContainers[0].getTitle().destroy()
 
+					} catch (error) {
+						console.log(error);
+					}
 					// sap.ui.getCore().byId("CreateDialog::Contract")?.setTitle("false");
 				}
 			}

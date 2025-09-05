@@ -1,0 +1,6 @@
+id,value,description
+550e8400-e29b-41d4-a716-446655440100,LM,Monthly end of mo due next day
+550e8400-e29b-41d4-a716-446655440101,LQ,Quartly end of pd due nxt day
+550e8400-e29b-41d4-a716-446655440102,LS,Semiannual end od pd nu next day
+550e8400-e29b-41d4-a716-446655440103,MN,Monthly at end of period
+550e8400-e29b-41d4-a716-446655440104,,
