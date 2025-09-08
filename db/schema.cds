@@ -64,16 +64,18 @@ entity contract {
         repaymentType              : String;
 
         //term/fixed Period
-        fixedFrom                  : Date  @mandatory;
-        fixedUntil                 : Date  @mandatory;
-        include                    : Boolean ;
+        fixedFrom                  : Date    @mandatory;
+        fixedUntil                 : Date    @mandatory;
+        include                    : Boolean;
 
         //Interest Calculation
         intCalMt                   : String  @mandatory;
         contractToCondition        : Composition of many ConditionItems
                                          on contractToCondition.contractId = ID;
-        contractToLoanAmortization : Association to  many LoanAmortization
-                                         on contractToLoanAmortization.contractId=ID;
+        contractToLoanAmortization : Association to many LoanAmortization
+                                         on contractToLoanAmortization.contractId = ID;
+        contractToLoanAmortizationSchedule : Association to many AmortizationSchedule
+                                         on contractToLoanAmortizationSchedule.contractId = ID;
 
 
 }
@@ -87,8 +89,8 @@ entity ConditionItems : managed {
         conditionAmt        : String;
         paymentFromExactDay : String;
         frequencyInMonths   : String;
-        dueDate             : Date ;
-        calculationDate     : Date ;
+        dueDate             : Date;
+        calculationDate     : Date;
         sequence            : Integer;
         conditionToContract : Association to contract;
 
@@ -96,19 +98,50 @@ entity ConditionItems : managed {
 }
 
 entity LoanAmortization {
-    key ID               : UUID;
-        contractId       : UUID;
-        periodStart      : String;
-        periodEnd        : String;
-        paymentDate      : String;
-        principalPayment : String;
-        interestPayment  : String;
-        totalPayment     : String;
-        openingBalance : String;
-        closingBalance : String;
-        LoanAmortizationToContract:Association to contract;
+    key ID                         : UUID;
+        contractId                 : UUID;
+        periodStart                : String;
+        periodEnd                  : String;
+        paymentDate                : String;
+        principalPayment           : String;
+        interestPayment            : String;
+        totalPayment               : String;
+        openingBalance             : String;
+        closingBalance             : String;
+        LoanAmortizationToContract : Association to contract;
 
 }
+
+entity AmortizationSchedule {
+    key ID           : UUID           @title: 'Unique row ID';
+        contractId   : UUID;
+        index        : Integer        @title: 'Index in schedule';
+        paymentDate  : Date           @title: 'Payment date';
+        name         : String(100)    @title: 'Description of the entry';
+        settleAmount : Decimal(12, 2) @title: 'Amount for principal or interest';
+        currency     : String(3)      @title: 'Currency code';
+          LoanAmortizationScheduleToContract : Association to contract;
+
+}
+entity AmortizationSchedule2 {
+
+key ID:UUID;   
+dueDate:String;
+flowType:String;
+name:String;
+planActualRec:String;
+settlementAmount:String;
+settlementCurrency:String;
+baseAmount:String;
+percentageRate:String;
+calculationFrom:String;
+calculationDate:String;
+numberOfDays:String;
+index:Integer;
+
+
+}
+
 
 entity InterestCalSearchHelp {
     key ID    : UUID;
@@ -123,9 +156,9 @@ entity PledgedStatusSearchHelp {
 }
 
 entity purposeOfLoanSearchHelp {
-   Key ID          : UUID;
-    value       : String;
-    description : String;
+    key ID          : UUID;
+        value       : String;
+        description : String;
 }
 
 entity paymentFromExactDaySearchHepl {

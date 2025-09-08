@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/ControllerExtension"],function(t){"use strict";return t.extend("cashflowcontractinitial.ext.controller.Contactlist",{override:{onInit:function(){var t=this.base.getExtensionAPI().getModel()},routing:{onBeforeBinding:function(){sap.ui.getCore().byId("cashflowcontractinitial::ContractList--fe::FilterBar::Contract::BasicSearchField").setVisible(false);sap.ui.getCore().byId("cashflowcontractinitial::ContractList--fe::FilterBar::Contract-btnSearch").setText("Search")}}}})});
+//# sourceMappingURL=Contactlist.controller.js.map

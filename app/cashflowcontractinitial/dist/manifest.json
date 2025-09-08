@@ -1,0 +1,242 @@
+{
+  "_version": "1.76.0",
+  "sap.app": {
+    "id": "cashflowcontractinitial",
+    "type": "application",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        ""
+      ]
+    },
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.18.6",
+      "toolsId": "79d2be2a-3725-4967-878f-32a0a46f5891"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/cash-flow/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "cashflowcontractsem-display": {
+          "semanticObject": "cashflowcontractsem",
+          "action": "display",
+          "title": "{{cashflowcontractsem-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.139.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "cashflowcontractinitial.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ]
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties",
+        "settings": {
+          "supportedLocales": [
+            ""
+          ]
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {},
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "ContractList",
+          "target": "ContractList"
+        },
+        {
+          "pattern": "Contract({key}):?query:",
+          "name": "ContractObjectPage",
+          "target": "ContractObjectPage"
+        }
+      ],
+      "targets": {
+        "ContractList": {
+          "type": "Component",
+          "id": "ContractList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/Contract",
+              "variantManagement": "Page",
+              "navigation": {
+                "Contract": {
+                  "detail": {
+                    "route": "ContractObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ContractObjectPage": {
+          "type": "Component",
+          "id": "ContractObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/Contract",
+              "controlConfiguration": {
+                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems1": {
+                  "tableSettings": {
+                    "type": "GridTable",
+                    "enableExport": false,
+                    "disableCopyToClipboard": false,
+                    "enablePaste": false,
+                    "selectAll": false,
+                    "personalization": {
+                      "column": false
+                    }
+                  }
+                },
+                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems3": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                },
+                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                }
+              },
+              "content": {
+                "header": {
+                  "facets": {
+                    "Header": {
+                      "template": "cashflowcontractinitial.ext.fragment.Header",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "HeaderSection"
+                      },
+                      "title": "Header Details",
+                      "stashed": false,
+                      "requestGroupId": "Heroes",
+                      "flexSettings": {
+                        "designtime": "Default"
+                      }
+                    }
+                  },
+                  "actions": {
+                    "calCashFlow": {
+                      "press": "cashflowcontractinitial.ext.controller.CalCashFLow.onCalCashFlow",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Calculate Cash Flow",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "EditAction"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController#cashflowcontractinitial::ContractObjectPage": {
+            "controllerName": "cashflowcontractinitial.ext.controller.ContractObjectPage"
+          },
+          "sap.fe.templates.ListReport.ListReportController#cashflowcontractinitial::ContractList": {
+            "controllerName": "cashflowcontractinitial.ext.controller.Contactlist"
+          }
+        }
+      }
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "cashFlowapprouter"
+  }
+}

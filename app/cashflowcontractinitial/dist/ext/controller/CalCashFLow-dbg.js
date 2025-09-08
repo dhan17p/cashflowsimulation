@@ -119,70 +119,29 @@ sap.ui.define([
         onCalCashFlow: async function (oEvent) {
             debugger
             try {
-
-                var tablerows = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.getRows();
-
-                var nominaleffectivefrom1 = tablerows[0].getBindingContext().getObject().effectiveFrom;
-                var nominaleffectivefrom2 = tablerows[1].getBindingContext().getObject().effectiveFrom;
-
-                var nominalpercentage1 = tablerows[0].getBindingContext().getObject().percentage;
-                var nominalpercentage2 = tablerows[1].getBindingContext().getObject().percentage;
-
-
-                var annuityamount1 = tablerows[2].getBindingContext().getObject().conditionAmt;
-                var annuityamount2 = tablerows[3].getBindingContext().getObject().conditionAmt;
-
-                var finalRepaymentDate = tablerows[4].getBindingContext().getObject().effectiveFrom;
-                let rowObjects = tablerows.map(row => row.getBindingContext().getObject());
-                let loanData = {
-                    nominaleffectivefrom1: rowObjects[0].effectiveFrom,
-                    nominaleffectivefrom2: rowObjects[1].effectiveFrom,
-                    nominalpercentage1: rowObjects[0].percentage,
-                    nominalpercentage2: rowObjects[1].percentage,
-
-                    anuityeffectivefrom1:rowObjects[2].effectiveFrom,
-                    anuityeffectivefrom2:rowObjects[3].effectiveFrom,
-                    annuityamount1: rowObjects[2].conditionAmt,
-                    annuityamount2: rowObjects[3].conditionAmt,
-                    finalRepaymentDate: rowObjects[4].effectiveFrom
-                };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                // let effectiveDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().effectiveFrom;
-                // let percentage = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().percentage;
-                // let dueDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().dueDate;
-                // let calculationDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().calculationDate;
-                // let conditionAmt = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[2].getBindingContext().getObject().conditionAmt;
-                // let efffectiveDatefinalRepayment = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[3].getBindingContext().getObject().effectiveFrom;
+                let effectiveDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().effectiveFrom;
+                let percentage = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().percentage;
+                let dueDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().dueDate;
+                let calculationDate = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[0].getBindingContext().getObject().calculationDate;
+                let conditionAmt = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[2].getBindingContext().getObject().conditionAmt;
+                let efffectiveDatefinalRepayment = this._view.getContent()[0].getSections()[2].getSubSections()[3].mAggregations._grid.mAggregations.content[0].mAggregations.content.mAggregations.content.mAggregations._content.mAggregations.rows[3].getBindingContext().getObject().effectiveFrom;
                 let data = this._view.getContent()[0].getBindingContext().getObject();
 
 
-                // if (
-                //     !data.commitCapital ||
-                //     !data.fixedFrom ||
-                //     !data.fixedUntil ||
-                //     !effectiveDate ||
-                //     !data.ID ||
-                //     !data.intCalMt ||
-                //     !efffectiveDatefinalRepayment
-                // ) {
-                //     sap.m.MessageBox.error(
-                //         "All mandatory fields must be filled before calculating cash flow."
-                //     );
-                //     return; // 🔥 Stop execution
-                // }
+                if (
+                    !data.commitCapital ||
+                    !data.fixedFrom ||
+                    !data.fixedUntil ||
+                    !effectiveDate ||
+                    !data.ID ||
+                    !data.intCalMt ||
+                    !efffectiveDatefinalRepayment
+                ) {
+                    sap.m.MessageBox.error(
+                        "All mandatory fields must be filled before calculating cash flow."
+                    );
+                    return; // 🔥 Stop execution
+                }
 
                 let oFunction = this._view.getModel().bindContext("/loadAmortizationFunc(...)");
 
@@ -190,17 +149,15 @@ sap.ui.define([
                 oFunction.setParameter("annualRate", '0.04');
                 oFunction.setParameter("startDate", String(data.fixedFrom));
                 oFunction.setParameter("endDate", String(data.fixedUntil));
-                // oFunction.setParameter("interestFixedDate", effectiveDate);
+                oFunction.setParameter("interestFixedDate", effectiveDate);
                 oFunction.setParameter("inclusiveIndicator", String(data.include));
                 oFunction.setParameter("contractId", String(data.ID));
                 oFunction.setParameter("intCalMt", String(data.intCalMt))
-                oFunction.setParameter("loanData", JSON.stringify(loanData));
-
-                // oFunction.setParameter("dueDate", dueDate);
-                // oFunction.setParameter("percentage", percentage);
-                // oFunction.setParameter("calculationDate", calculationDate);
-                // oFunction.setParameter("conditionAmt", conditionAmt);
-                // oFunction.setParameter("efffectiveDatefinalRepayment", efffectiveDatefinalRepayment);
+                oFunction.setParameter("dueDate", dueDate);
+                oFunction.setParameter("percentage", percentage);
+                oFunction.setParameter("calculationDate", calculationDate);
+                oFunction.setParameter("conditionAmt", conditionAmt);
+                oFunction.setParameter("efffectiveDatefinalRepayment", efffectiveDatefinalRepayment);
 
                 await oFunction.execute();
                 // --- 🔥 Destroy the old dialog if it exists

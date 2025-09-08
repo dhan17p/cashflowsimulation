@@ -13,6 +13,8 @@ service CashFlowService {
     entity purposeOfLoanSearchHelp       as projection on cfs.purposeOfLoanSearchHelp;
     entity paymentFromExactDaySearchHepl as projection on cfs.paymentFromExactDaySearchHepl;
     entity LoanAmortization as projection on cfs.LoanAmortization;
+    entity AmortizationSchedule as projection on cfs.AmortizationSchedule;
+    entity AmortizationSchedule2 as projection on cfs.AmortizationSchedule2;
 
 
     function loadAmortizationFunc(principal: String,
@@ -23,7 +25,14 @@ service CashFlowService {
                               inclusiveIndicator: String,
                            
                               contractId: String,
-                                 intCalMt:String) returns String;
+                                 intCalMt:String,
+                                 calculationDate:String,
+                                 dueDate:String,
+                                 percentage:String,
+                                 conditionAmt:String,
+                                 efffectiveDatefinalRepayment:String,
+                                 loanData:LargeString
+                                 ) returns String;
 
 
 }

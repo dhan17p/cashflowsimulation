@@ -1,0 +1,130 @@
+<core:FragmentDefinition xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:uxap="sap.uxap"
+    xmlns:ui="sap.ui.table"
+    xmlns:uirm="sap.ui.table.rowmodes">
+
+    <Dialog id="CashFlowDialog" core:require="{handler:'cashflowcontractinitial/ext/controller/CalCashFLow'}" title="Cash Flow Details" afterOpen="handler.onDialogAfterOpen" contentWidth="80%" contentHeight="70%" resizable="true">
+
+        <content>
+            <uxap:ObjectPageLayout id="ObjectPageLayout" showTitleInHeaderContent="false" useIconTabBar="true" upperCaseAnchorBar="false" height="100%">
+
+                <!-- 👇 Header is mandatory -->
+
+                <!-- Sections -->
+                <uxap:sections>
+
+                    <!-- General Info Section -->
+                    <uxap:ObjectPageSection title="General Information">
+                        <uxap:subSections>
+                            <uxap:ObjectPageSubSection isSubSectionExpanded="true">
+                                <uxap:blocks>
+                                    <f:SimpleForm editable="false" layout="ResponsiveGridLayout" class="fixedForm">
+                                        <f:content>
+                                            <Label text="Loan Number" design="Bold" />
+                                            <Text text="{loanNumber}" />
+
+                                            <Label text="Product Type" design="Bold" />
+                                            <Text text="{productType}" />
+
+                                            <Label text="Status" design="Bold" />
+                                            <Text text="{status}" />
+
+                                            <Label text="Disb.Status" design="Bold" />
+                                            <Text text="{disbursementStatus}" />
+
+                                            <Label text="Loan Partner" design="Bold" />
+                                            <Text text="{loanPartner}" />
+                                        </f:content>
+                                    </f:SimpleForm>
+                                </uxap:blocks>
+                            </uxap:ObjectPageSubSection>
+                        </uxap:subSections>
+                    </uxap:ObjectPageSection>
+
+                    <!-- Table Section -->
+                    <uxap:ObjectPageSection title="Cash Flow">
+                        <uxap:subSections>
+                            <uxap:ObjectPageSubSection title="Payment Schedule" isSubSectionExpanded="true" id="paymentSubSection">
+                                <uxap:blocks>
+
+                                    <ui:Table id="ConditionTable" rows="{/AmortizationSchedule2}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" ariaLabelledBy="title">
+                                        <ui:rowMode>
+                                            <uirm:Fixed rowCount="8"/>
+                                        </ui:rowMode>
+
+                                        <ui:columns>
+                                            <ui:Column label="Due Date" width="100px">
+                                                <ui:template>
+                                                    <Text text="{dueDate}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Flow Type" width="100px">
+                                                <ui:template>
+                                                    <Text text="{flowType}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Name" width="250px">
+                                                <ui:template>
+                                                    <Text text="{name}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Plan/actual rec" width="100px">
+                                                <ui:template>
+                                                    <Text text="{planActualRec}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Settlement Amount" width="100px">
+                                                <ui:template>
+                                                    <Text text="{settlementAmount}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Base amount" width="100px" >
+                                                <ui:template>
+                                                    <Text text="{baseAmount}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Percentage Rate" width="100px">
+                                                <ui:template>
+                                                    <Text text="{percentageRate}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Calculation From" width="100px">
+                                                <ui:template>
+                                                    <Text text="{calculationFrom}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Calculation Date" width="100px">
+                                                <ui:template>
+                                                    <Text text="{calculationDate}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <ui:Column label="Number of Days" width="100px">
+                                                <ui:template>
+                                                    <Text text="{numberOfDays}"/>
+                                                </ui:template>
+                                            </ui:Column>
+                                            <!-- add other columns -->
+                                        </ui:columns>
+                                    </ui:Table>
+                                </uxap:blocks>
+                            </uxap:ObjectPageSubSection>
+                        </uxap:subSections>
+                    </uxap:ObjectPageSection>
+
+
+
+
+
+                </uxap:sections>
+            </uxap:ObjectPageLayout>
+
+
+        </content>
+
+        <beginButton>
+            <Button text="Close" press="handler.onClosePress"/>
+        </beginButton>
+    </Dialog>
+</core:FragmentDefinition>

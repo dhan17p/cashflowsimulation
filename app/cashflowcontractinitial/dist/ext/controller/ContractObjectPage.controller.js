@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/ControllerExtension"],function(t){"use strict";return t.extend("cashflowcontractinitial.ext.controller.ContractObjectPage",{override:{onInit:function(){var t=this.base.getExtensionAPI().getModel()},routing:{onBeforeBinding:function(){debugger;try{sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::Form::Conditions1::Content").mAggregations.formContainers[0].getTitle().destroy()}catch(t){console.log(t)}}}}})});
+//# sourceMappingURL=ContractObjectPage.controller.js.map

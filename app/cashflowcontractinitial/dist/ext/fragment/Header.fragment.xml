@@ -1,0 +1,94 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"  xmlns:macros="sap.fe.macros">
+
+   <f:Form id="FormChangeColumn_oneGroup234" editable="false">
+        <f:layout>
+            <f:ColumnLayout columnsM="2" columnsL="3" columnsXL="4" />
+        </f:layout>
+        <f:formContainers>
+            <f:FormContainer>
+                <f:formElements>
+ 
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Loan Number" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{loanNumber}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+ 
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Product Type" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{productType}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+ 
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Status" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{status}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+ 
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Disb. Status" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{disbursementStatus}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+ 
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Loan Partner" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{loanPartner}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+                    <f:FormElement>
+                        <f:label>
+                            <Label text="Loan Type" design="Bold"/>
+                        </f:label>
+                        <f:fields>
+                            <Text text="{loanType}⠀⠀⠀⠀">
+                                <layoutData>
+                                    <f:ColumnElementData cellsLarge="1"/>
+                                </layoutData>
+                            </Text>
+                        </f:fields>
+                    </f:FormElement>
+ 
+                </f:formElements>
+            </f:FormContainer>
+        </f:formContainers>
+    </f:Form>
+</core:FragmentDefinition>
