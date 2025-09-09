@@ -62,7 +62,8 @@
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "sap.fe.templates": {}
+        "sap.fe.templates": {},
+        "sap.fe.core": {}
       }
     },
     "contentDensities": {
@@ -109,6 +110,11 @@
           "pattern": "Contract({key}):?query:",
           "name": "ContractObjectPage",
           "target": "ContractObjectPage"
+        },
+        {
+          "name": "AmortizationScheduleCashFlowPopupPage",
+          "pattern": "Contract({key})/popup",
+          "target": "AmortizationScheduleCashFlowPopupPage"
         }
       ],
       "targets": {
@@ -199,7 +205,26 @@
                     }
                   }
                 }
+              },
+              "navigation": {
+                "contractToLoanAmortizationSchedule": {
+                  "detail": {
+                    "route": "AmortizationScheduleCashFlowPopupPage"
+                  }
+                }
               }
+            }
+          }
+        },
+        "AmortizationScheduleCashFlowPopupPage": {
+          "type": "Component",
+          "id": "AmortizationScheduleCashFlowPopupPage",
+          "name": "sap.fe.core.fpm",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/Contract/contractToLoanAmortizationSchedule",
+              "viewName": "cashflowcontractinitial.ext.view.CashFlowPopup"
             }
           }
         }

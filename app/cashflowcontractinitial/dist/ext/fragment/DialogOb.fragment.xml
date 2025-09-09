@@ -75,14 +75,14 @@
                                                     <Text text="{planActualRec}"/>
                                                 </ui:template>
                                             </ui:Column>
-                                            <ui:Column label="Settlement Amount" width="100px">
+                                            <ui:Column label="Settlement Amount" width="100px" hAlign="End">
                                                 <ui:template>
                                                     <Text text="{settlementAmount}"/>
                                                 </ui:template>
                                             </ui:Column>
-                                            <ui:Column label="Base amount" width="100px" >
+                                            <ui:Column label="Base amount" width="100px" hAlign="End" >
                                                 <ui:template>
-                                                    <Text text="{baseAmount}"/>
+                                                    <Text text="{baseAmount}" />
                                                 </ui:template>
                                             </ui:Column>
                                             <ui:Column label="Percentage Rate" width="100px">

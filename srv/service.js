@@ -8,10 +8,10 @@ module.exports = cds.service.impl(async function () {
 
         var data = [
             { sequence: 1, contractId: req.ID, conditionTypeText: "Nominal Interest Fixed", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID },
-            { sequence: 2, contractId: req.ID, conditionTypeText: "Nominal Interest Fixed", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID },
-            { sequence: 3, contractId: req.ID, conditionTypeText: "Annuity repayment", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID },
-            { sequence: 4, contractId: req.ID, conditionTypeText: "Annuity repayment", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID },
-            { sequence: 5, contractId: req.ID, conditionTypeText: "Final Repayment", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID }
+
+            { sequence: 2, contractId: req.ID, conditionTypeText: "Annuity repayment", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID },
+
+            { sequence: 3, contractId: req.ID, conditionTypeText: "Final Repayment", DraftAdministrativeData_DraftUUID: req.DraftAdministrativeData_DraftUUID }
         ]
         for (let i = 0; i < data.length; i++) {
             await INSERT.into(ConditionItems.drafts).entries(data[i])
@@ -35,6 +35,14 @@ module.exports = cds.service.impl(async function () {
         interestCalcMethod = "360/360", // Accepts "360/360" or "act/360",
         inclusive
     }) {
+        // --- Ensure dynamic inputs are sorted by start date ---
+        interestPeriods.sort((a, b) =>
+            moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
+        );
+        repaymentChanges.sort((a, b) =>
+            moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
+        );
+
         // Days calculation
         const getDays = (start, end) => {
             if (interestCalcMethod === "360/360") {
@@ -64,7 +72,9 @@ module.exports = cds.service.impl(async function () {
         const getAnnuityAmount = (date) => {
             let annuity = 0;
             for (const rep of repaymentChanges) {
-                if (date.isSameOrAfter(moment(rep.start, 'DD/MM/YYYY'))) annuity = rep.amount;
+                if (date.isSameOrAfter(moment(rep.start, 'DD/MM/YYYY'))) {
+                    annuity = rep.amount;
+                }
             }
             return annuity;
         };
@@ -78,13 +88,6 @@ module.exports = cds.service.impl(async function () {
         let index = 1; // Start index at 1
 
         while (currentDate.isBefore(finalDate)) {
-
-
-            if (index > 45) {
-                debugger
-            }
-
-
             let nextDate = currentDate.clone().add(paymentFrequencyMonths, 'months');
             let days = getDays(currentDate, nextDate);
             let interestRate = getInterestRate(currentDate);
@@ -96,27 +99,23 @@ module.exports = cds.service.impl(async function () {
             let principalRepayment = Math.max(0, Math.min(scheduledAnnuity - interest, outstandingPrincipal));
             let repayment = principalRepayment + interest;
 
-            // let principalRepayment, repayment;
-
             // Determine if last period
             const isLastPeriod = inclusive
                 ? nextDate.isSameOrAfter(finalRepDate)
                 : nextDate.isAfter(finalRepDate);
 
             if (isLastPeriod) {
-                // Pay off remaining principal completely
                 principalRepayment = outstandingPrincipal;
                 repayment = principalRepayment + interest;
                 outstandingPrincipal = 0;
             } else {
-                // Normal principal repayment
-                principalRepayment = Math.max(0, Math.min(scheduledAnnuity - interest, outstandingPrincipal));
-                repayment = principalRepayment + interest;
                 outstandingPrincipal -= principalRepayment;
             }
 
             let calculationDate = nextDate.clone().subtract(1, 'days');
-            if (interestCalcMethod === "360/360" && calculationDate.date() === 31) calculationDate.date(30);
+            if (interestCalcMethod === "360/360" && calculationDate.date() === 31) {
+                calculationDate.date(30);
+            }
 
             // Interest row
             schedule.push({
@@ -143,7 +142,8 @@ module.exports = cds.service.impl(async function () {
                 "Calculation From": currentDate.format('DD/MM/YYYY'),
                 "Due Date": nextDate.format('DD/MM/YYYY'),
                 "Calculation Date": calculationDate.format('DD/MM/YYYY'),
-                "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
+                // "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
+                "Outstanding Principal Start": 0,
                 "Interest Rate (%)": parseFloat((interestRate * 100).toFixed(2)),
                 "Days": days,
                 "Name": "A_Annuity rep. debit pos. rec.",
@@ -151,7 +151,8 @@ module.exports = cds.service.impl(async function () {
                 "Repayment Amount": parseFloat(repayment.toFixed(2)),
                 "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
                 "Interest Amount": 0,
-                "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2))
+                "Outstanding Principal End": 0
+                // "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2))
             });
 
             currentDate = nextDate.clone();
@@ -161,7 +162,7 @@ module.exports = cds.service.impl(async function () {
     }
 
 
-    // Example usage
+    // Example usage for more than one items
     const scheduleACT = calculateLoanScheduleFlexible({
         commitCapital: 100000,
         startDate: '01/01/2025',
@@ -180,7 +181,6 @@ module.exports = cds.service.impl(async function () {
         inclusive: false
     });
 
-    console.table(scheduleACT);
 
     // // --- Inputs ---
     // const commitmentCapital = 200000;
@@ -247,12 +247,13 @@ module.exports = cds.service.impl(async function () {
             calculationDate,
             conditionAmt,
             efffectiveDatefinalRepayment,
-            loanData
+            loanData,
+            isActiveEntity
         } = req.data;
 
         console.log("paramssss", req.data)
-        loanData = JSON.parse(loanData);
-        console.log("loan data", loanData)
+        // loanData = JSON.parse(loanData);
+        // console.log("loan data", loanData)
         // ✅ Convert to proper datatypes
         // // Normalize values with safe conversion
         // const principalVal = Number(principal) || 200000;
@@ -390,19 +391,77 @@ module.exports = cds.service.impl(async function () {
         // console.table(formattedSchedule);
 
 
+
+        async function buildContractData(contractId) {
+            // Fetch rows from DB
+            if (isActiveEntity === "true") {
+                var data = await SELECT.from(ConditionItems).where({ contractId: contractId });
+
+            }
+            else {
+                var data = await SELECT.from(ConditionItems.drafts).where({ contractId: contractId });
+            }
+
+            const result = {
+                interestPeriods: [],
+                repaymentChanges: [],
+                finalRepaymentDate: null
+            };
+
+            data.forEach(oData => {
+                switch (oData.conditionTypeText) {
+                    case "Nominal Interest Fixed":
+                        result.interestPeriods.push({
+                            start: formatDate(oData.effectiveFrom),
+                            rate: parseFloat(oData.percentage) / 100 || 0
+                        });
+                        break;
+
+                    case "Annuity repayment":
+                        result.repaymentChanges.push({
+                            start: formatDate(oData.effectiveFrom),
+                            amount: parseFloat(oData.conditionAmt) || 0
+                        });
+                        break;
+
+                    case "Final Repayment":
+                        result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+                        break;
+                }
+            });
+
+            return result;
+        }
+        var data_items = await buildContractData(contractId);
+        console.log("backend data", data_items)
+
+        // Helper: format date from JS Date or string → dd/MM/yyyy
+        function formatDate(dateValue) {
+            if (!dateValue) return null;
+
+            const oDate = new Date(dateValue);
+            if (isNaN(oDate.getTime())) return null;
+
+            const dd = String(oDate.getDate()).padStart(2, "0");
+            const mm = String(oDate.getMonth() + 1).padStart(2, "0");
+            const yyyy = oDate.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        function formatToDDMMYYYY(dateStr) {
+            if (!dateStr) return dateStr;
+            const [year, month, day] = dateStr.split("-");
+            return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+        }
+
+
         const formattedSchedule = calculateLoanScheduleFlexible({
             commitCapital: Number(principal),
-            startDate: moment(startDate, "DD/MM/YYYY"),
-            endDate: moment(endDate, "DD/MM/YYYY"),
-            interestPeriods: [
-                { start: moment(loanData.nominaleffectivefrom1, "DD/MM/YYYY"), rate: Number(loanData.nominalpercentage1) / 100 },
-                { start: moment(loanData.nominaleffectivefrom2, "DD/MM/YYYY"), rate: Number(loanData.nominalpercentage2) / 100 }
-            ],
-            repaymentChanges: [
-                { start: moment(loanData.anuityeffectivefrom1, "DD/MM/YYYY"), amount: Number(loanData.annuityamount1) },
-                { start: moment(loanData.anuityeffectivefrom2, "DD/MM/YYYY"), amount: Number(loanData.annuityamount2) }
-            ],
-            finalRepaymentDate: moment(loanData.finalRepaymentDate, "DD/MM/YYYY"),
+            startDate: formatToDDMMYYYY(startDate),
+            endDate: formatToDDMMYYYY(endDate),
+            interestPeriods: data_items.interestPeriods,
+            repaymentChanges: data_items.repaymentChanges,
+            finalRepaymentDate: data_items.finalRepaymentDate,
             paymentFrequencyMonths: 1,
             interestCalcMethod: intCalMt,
             inclusive: inclusiveIndicator == 'true' ? true : false
@@ -413,24 +472,30 @@ module.exports = cds.service.impl(async function () {
         let formattedData = formattedSchedule.map(item => {
             // safely get "Due Date" (with space in key)
             let [day, month, year] = item["Due Date"].split("/");
-            let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+            // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+            function convertDateToUSFormat(dateStr) {
+                if (!dateStr) return null;
+                let [day, month, year] = dateStr.split("/");
+                let shortYear = year.slice(-2);
+                return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+            }
+
 
             return {
                 index: item.Index,
                 flowType: item.flowType,
-                calculationFrom: item["Calculation From"],
-                dueDate: formattedDate,            // normalized field
-                calculationDate: item["Calculation Date"],
-                outstandingPrincipalStart: item["Outstanding Principal Start"],
-                interestRate: item["Interest Rate (%)"],
-                days: item.Days,
+                calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                baseAmount: item["Outstanding Principal Start"],
+                percentageRate: item["Interest Rate (%)"],
+                numberOfDays: item.Days,
                 name: item.Name,
-                settleAmount: item.Amount,         // renamed
+                settlementAmount: item.Amount,         // renamed
                 repaymentAmount: item["Repayment Amount"],
                 principalRepayment: item["Principal Repayment"],
                 interestAmount: item["Interest Amount"],
                 outstandingPrincipalEnd: item["Outstanding Principal End"],
-                paymentDate: formattedDate,
                 contractId: contractId,
                 settlementCurrency: "USD"
             };

@@ -1,36 +1,99 @@
 #CreateDialog\:\:Contract-title-inner {
-    visibility: hidden; /* hide original text */
+  visibility: hidden;
+  /* hide original text */
 }
 
 #CreateDialog\:\:Contract-title-inner::after {
-    content: "Loan Creation"; /* new text visually */
-    visibility: visible;
+  content: "Loan Creation";
+  /* new text visually */
+  visibility: visible;
 }
 
 
 
 /* //dialog */
 .conditionTableCls {
-    width: 110% !important;
-    /* overflow-x: scroll; */
+  width: 110% !important;
+  /* overflow-x: scroll; */
 }
- 
+
 .dialogVBox {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
- 
+
 .fixedForm {
-  flex: 0 0 auto; /* fixed size, no grow */
+  flex: 0 0 auto;
+  /* fixed size, no grow */
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
 }
- 
+
 .tableScroll {
-  flex: 1 1 auto;   /* allow table to grow and take remaining space */
-  overflow-x: auto; /* horizontal scroll */
-  overflow-y: auto; /* vertical scroll if needed */
+  flex: 1 1 auto;
+  /* allow table to grow and take remaining space */
+  overflow-x: auto;
+  /* horizontal scroll */
+  overflow-y: auto;
+  /* vertical scroll if needed */
 }
- 
- 
+
+
+
+
+/* Page background and padding */
+.customPage {
+  background-color: #f9fafb;
+  /* light gray */
+  padding: 1rem;
+}
+
+/* Header Form Styling */
+.loanHeaderForm {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.loanHeaderForm .sapMLabel {
+  color: #2c3e50;
+  /* font-weight: 600; */
+}
+
+.valueText {
+  color: #34495e;
+  font-size: 1rem;
+}
+
+/* Table Styling */
+.customTable {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.customTable .sapUiTableColHdrCnt {
+  background-color: #2c3e50;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tableText {
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.amountText {
+  /* color: #16a085; */
+  /* font-weight: bold; */
+  font-size: 0.9rem;
+}
+
+/* Zebra striping for rows
+.customTable .sapUiTableTr:nth-child(even) {
+  background-color: #f4f6f7;
+} */

@@ -12,27 +12,28 @@ service CashFlowService {
     entity PledgedStatusSearchHelp       as projection on cfs.PledgedStatusSearchHelp;
     entity purposeOfLoanSearchHelp       as projection on cfs.purposeOfLoanSearchHelp;
     entity paymentFromExactDaySearchHepl as projection on cfs.paymentFromExactDaySearchHepl;
-    entity LoanAmortization as projection on cfs.LoanAmortization;
-    entity AmortizationSchedule as projection on cfs.AmortizationSchedule;
-    entity AmortizationSchedule2 as projection on cfs.AmortizationSchedule2;
+    entity LoanAmortization              as projection on cfs.LoanAmortization;
+    entity AmortizationSchedule          as projection on cfs.AmortizationSchedule;
+    entity AmortizationSchedule2         as projection on cfs.AmortizationSchedule2;
+    entity ConditionTypeTextSearchHelp   as projection on cfs.ConditionTypeTextSearchHelp;
 
 
     function loadAmortizationFunc(principal: String,
-                              annualRate: String,
-                              startDate: String,
-                              endDate: String,
-                              interestFixedDate: String,
-                              inclusiveIndicator: String,
-                           
-                              contractId: String,
-                                 intCalMt:String,
-                                 calculationDate:String,
-                                 dueDate:String,
-                                 percentage:String,
-                                 conditionAmt:String,
-                                 efffectiveDatefinalRepayment:String,
-                                 loanData:LargeString
-                                 ) returns String;
+                                  annualRate: String,
+                                  startDate: String,
+                                  endDate: String,
+                                  interestFixedDate: String,
+                                  inclusiveIndicator: String,
+
+                                  contractId: String,
+                                  intCalMt: String,
+                                  calculationDate: String,
+                                  dueDate: String,
+                                  percentage: String,
+                                  conditionAmt: String,
+                                  efffectiveDatefinalRepayment: String,
+                                  isActiveEntity:String,
+                                  loanData: LargeString) returns String;
 
 
 }

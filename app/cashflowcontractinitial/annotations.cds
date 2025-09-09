@@ -54,38 +54,36 @@ annotate service.Contract with @(
         {
             $Type : 'UI.CollectionFacet',
             Label : 'Conditions',
-            ID : 'Coditions',
-            Facets : [
+            ID    : 'Coditions',
+            Facets: [
                 {
                     $Type : 'UI.CollectionFacet',
                     Label : 'Conditions',
-                    ID : 'Conditions1',
-                    Facets : [
-                        {
-                            $Type : 'UI.ReferenceFacet',
-                            Label : '   ',
-                            ID : '_',
-                            Target : '@UI.FieldGroup#_',
-                        },
-                    ],
+                    ID    : 'Conditions1',
+                    Facets: [{
+                        $Type : 'UI.ReferenceFacet',
+                        Label : '   ',
+                        ID    : '_',
+                        Target: '@UI.FieldGroup#_',
+                    }, ],
                 },
                 {
                     $Type : 'UI.ReferenceFacet',
                     Label : 'Term/Fixed Period',
-                    ID : 'Fixed',
-                    Target : '@UI.FieldGroup#Fixed',
+                    ID    : 'Fixed',
+                    Target: '@UI.FieldGroup#Fixed',
                 },
                 {
                     $Type : 'UI.ReferenceFacet',
                     Label : 'Interest Calculation',
-                    ID : 'InterestCalculation',
-                    Target : '@UI.FieldGroup#InterestCalculation2',
+                    ID    : 'InterestCalculation',
+                    Target: '@UI.FieldGroup#InterestCalculation2',
                 },
                 {
                     $Type : 'UI.ReferenceFacet',
                     Label : 'Condition Items',
-                    ID : 'ConditionItems',
-                    Target : 'contractToCondition/@UI.SelectionPresentationVariant#ConditionItems4',
+                    ID    : 'ConditionItems',
+                    Target: 'contractToCondition/@UI.SelectionPresentationVariant#ConditionItems4',
                 },
             ],
         },
@@ -290,145 +288,131 @@ annotate service.Contract with @(
             Label: 'commitCapital',
         }, ],
     },
-    UI.FieldGroup #conditions : {
-        $Type : 'UI.FieldGroupType',
+    UI.FieldGroup #conditions          : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'commitCapital',
+        }, ],
+    },
+    UI.FieldGroup #TermFixedPeriod3    : {
+        $Type: 'UI.FieldGroupType',
         Data : [
             {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'commitCapital',
+                $Type: 'UI.DataField',
+                Value: fixedFrom,
+                Label: 'fixedFrom',
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: fixedUntil,
+                Label: 'fixedUntil',
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: include,
+                Label: 'include',
             },
         ],
     },
-    UI.FieldGroup #TermFixedPeriod3 : {
-        $Type : 'UI.FieldGroupType',
+    UI.FieldGroup #Conditions3         : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'commitCapital',
+        }, ],
+    },
+    UI.FieldGroup #conditions1         : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'commitCapital',
+        }, ],
+    },
+    UI.FieldGroup #TermFixedP          : {
+        $Type: 'UI.FieldGroupType',
         Data : [
             {
-                $Type : 'UI.DataField',
-                Value : fixedFrom,
-                Label : 'fixedFrom',
+                $Type: 'UI.DataField',
+                Value: fixedFrom,
+                Label: 'fixedFrom',
             },
             {
-                $Type : 'UI.DataField',
-                Value : fixedUntil,
-                Label : 'fixedUntil',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : include,
-                Label : 'include',
+                $Type: 'UI.DataField',
+                Value: fixedUntil,
+                Label: 'fixedUntil',
             },
         ],
     },
-    UI.FieldGroup #Conditions3 : {
-        $Type : 'UI.FieldGroupType',
+    UI.FieldGroup #conditions2         : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'commitCapital',
+        }, ],
+    },
+    UI.FieldGroup #Termfixed           : {
+        $Type: 'UI.FieldGroupType',
         Data : [
             {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'commitCapital',
+                $Type: 'UI.DataField',
+                Value: fixedFrom,
+                Label: 'fixedFrom',
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: fixedUntil,
+                Label: 'fixedUntil',
             },
         ],
     },
-    UI.FieldGroup #conditions1 : {
-        $Type : 'UI.FieldGroupType',
+    UI.FieldGroup #Fixed               : {
+        $Type: 'UI.FieldGroupType',
         Data : [
             {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'commitCapital',
+                $Type: 'UI.DataField',
+                Value: fixedFrom,
+                Label: 'Fixed From',
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: fixedUntil,
+                Label: 'Fixed Until',
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: include,
+                Label: 'Inclusive Indicator',
             },
         ],
     },
-    UI.FieldGroup #TermFixedP : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : fixedFrom,
-                Label : 'fixedFrom',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : fixedUntil,
-                Label : 'fixedUntil',
-            },
-        ],
+    UI.FieldGroup #InterestCalculation2: {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: intCalMt,
+            Label: 'Int.Cal.Mt',
+        }, ],
     },
-    UI.FieldGroup #conditions2 : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'commitCapital',
-            },
-        ],
+    UI.FieldGroup #Conditions4         : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'commitCapital',
+        }, ],
     },
-    UI.FieldGroup #Termfixed : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : fixedFrom,
-                Label : 'fixedFrom',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : fixedUntil,
-                Label : 'fixedUntil',
-            },
-        ],
-    },
-    UI.FieldGroup #Fixed : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : fixedFrom,
-                Label : 'Fixed From',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : fixedUntil,
-                Label : 'Fixed Until',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : include,
-                Label : 'Inclusive Indicator',
-            },
-        ],
-    },
-    UI.FieldGroup #InterestCalculation2 : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : intCalMt,
-                Label : 'Int.Cal.Mt',
-            },
-        ],
-    },
-    UI.FieldGroup #Conditions4 : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'commitCapital',
-            },
-        ],
-    },
-    UI.FieldGroup #_ : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : commitCapital,
-                Label : 'Commit Capital',
-            },
-        ],
+    UI.FieldGroup #_                   : {
+        $Type: 'UI.FieldGroupType',
+        Data : [{
+            $Type: 'UI.DataField',
+            Value: commitCapital,
+            Label: 'Commit Capital',
+        }, ],
     },
 );
 
@@ -445,8 +429,8 @@ annotate service.Contract with {
 };
 
 annotate cfs.ConditionItems with @(
-    UI.LineItem #ConditionItems : [],
-    UI.LineItem #ConditionItems2: [
+    UI.LineItem #ConditionItems                     : [],
+    UI.LineItem #ConditionItems2                    : [
         {
             $Type: 'UI.DataField',
             Value: conditionTypeText,
@@ -488,130 +472,122 @@ annotate cfs.ConditionItems with @(
             Label: 'Calculation Date'
         }
     ],
-    UI.LineItem #ConditionItems3 : [
-           {
-    $Type: 'UI.DataField',
-    Value: conditionTypeText,
-    Label: 'Cond.Type Text'
-},
-{
-    $Type: 'UI.DataField',
-    Value: effectiveFrom,
-    Label: 'Eff. From'
-},
-{
-    $Type: 'UI.DataField',
-    Value: percentage,
-    Label: 'Percentage'
-},
-{
-    $Type: 'UI.DataField',
-    Value: conditionAmt,
-    Label: 'Condition Amnt'
-},
-{
-    $Type: 'UI.DataField',
-    Value: paymentFromExactDay,
-    Label: 'Payment From Exact Day'
-},
-{
-    $Type: 'UI.DataField',
-    Value: frequencyInMonths,
-    Label: 'Frequency in Months'
-},
-{
-    $Type: 'UI.DataField',
-    Value: dueDate,
-    Label: 'Due Date'
-},
-{
-    $Type: 'UI.DataField',
-    Value: calculationDate,
-    Label: 'Calculation Date'
-}
-    ],
-    UI.SelectionPresentationVariant #ConditionItems3 : {
-        $Type : 'UI.SelectionPresentationVariantType',
-        PresentationVariant : {
-            $Type : 'UI.PresentationVariantType',
-            Visualizations : [
-                '@UI.LineItem#ConditionItems3',
-            ],
-            SortOrder : [
-                {
-                    $Type : 'Common.SortOrderType',
-                    Property : sequence,
-                    Descending : false,
-                },
-            ],
+    UI.LineItem #ConditionItems3                    : [
+        {
+            $Type: 'UI.DataField',
+            Value: conditionTypeText,
+            Label: 'Cond.Type Text'
         },
-        SelectionVariant : {
-            $Type : 'UI.SelectionVariantType',
-            SelectOptions : [
+        {
+            $Type: 'UI.DataField',
+            Value: effectiveFrom,
+            Label: 'Eff. From'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: percentage,
+            Label: 'Percentage'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: conditionAmt,
+            Label: 'Condition Amnt'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: paymentFromExactDay,
+            Label: 'Payment From Exact Day'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: frequencyInMonths,
+            Label: 'Frequency in Months'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: dueDate,
+            Label: 'Due Date'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: calculationDate,
+            Label: 'Calculation Date'
+        }
+    ],
+    UI.SelectionPresentationVariant #ConditionItems3: {
+        $Type              : 'UI.SelectionPresentationVariantType',
+        PresentationVariant: {
+            $Type         : 'UI.PresentationVariantType',
+            Visualizations: ['@UI.LineItem#ConditionItems3',
             ],
+            SortOrder     : [{
+                $Type     : 'Common.SortOrderType',
+                Property  : sequence,
+                Descending: false,
+            }, ],
+        },
+        SelectionVariant   : {
+            $Type        : 'UI.SelectionVariantType',
+            SelectOptions: [],
         },
     },
-    UI.LineItem #ConditionItems4 : [
-               {
-    $Type: 'UI.DataField',
-    Value: conditionTypeText,
-    Label: 'Cond.Type Text'
-},
-{
-    $Type: 'UI.DataField',
-    Value: effectiveFrom,
-    Label: 'Eff. From'
-},
-{
-    $Type: 'UI.DataField',
-    Value: percentage,
-    Label: 'Percentage'
-},
-{
-    $Type: 'UI.DataField',
-    Value: conditionAmt,
-    Label: 'Condition Amnt'
-},
-{
-    $Type: 'UI.DataField',
-    Value: paymentFromExactDay,
-    Label: 'Payment From Exact Day'
-},
-{
-    $Type: 'UI.DataField',
-    Value: frequencyInMonths,
-    Label: 'Frequency in Months'
-},
-{
-    $Type: 'UI.DataField',
-    Value: dueDate,
-    Label: 'Due Date'
-},
-{
-    $Type: 'UI.DataField',
-    Value: calculationDate,
-    Label: 'Calculation Date'
-}
-    ],
-    UI.SelectionPresentationVariant #ConditionItems4 : {
-        $Type : 'UI.SelectionPresentationVariantType',
-        PresentationVariant : {
-            $Type : 'UI.PresentationVariantType',
-            Visualizations : [
-                '@UI.LineItem#ConditionItems4',
-            ],
-              SortOrder : [
-                {
-                    $Type : 'Common.SortOrderType',
-                    Property : sequence,
-                    Descending : false,
-                },
-            ],
+    UI.LineItem #ConditionItems4                    : [
+        {
+            $Type: 'UI.DataField',
+            Value: conditionTypeText,
+            Label: 'Cond.Type Text'
         },
-        SelectionVariant : {
-            $Type : 'UI.SelectionVariantType',
-            SelectOptions : [
+        {
+            $Type: 'UI.DataField',
+            Value: effectiveFrom,
+            Label: 'Eff. From'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: percentage,
+            Label: 'Percentage'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: conditionAmt,
+            Label: 'Condition Amnt'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: paymentFromExactDay,
+            Label: 'Payment From Exact Day'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: frequencyInMonths,
+            Label: 'Frequency in Months'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: dueDate,
+            Label: 'Due Date'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: calculationDate,
+            Label: 'Calculation Date'
+        }
+    ],
+    UI.SelectionPresentationVariant #ConditionItems4: {
+        $Type              : 'UI.SelectionPresentationVariantType',
+        PresentationVariant: {
+            $Type         : 'UI.PresentationVariantType',
+            Visualizations: ['@UI.LineItem#ConditionItems4',
             ],
+            SortOrder     : [{
+                $Type     : 'Common.SortOrderType',
+                Property  : sequence,
+                Descending: false,
+            }, ],
+        },
+        SelectionVariant   : {
+            $Type        : 'UI.SelectionVariantType',
+            SelectOptions: [],
         },
     },
 );
@@ -659,75 +635,93 @@ annotate service.ConditionItems with @(UI.LineItem #ConditionItems1: [
     }
 ]);
 
-annotate service.ConditionItems with {
-    conditionTypeText @Common.FieldControl: #ReadOnly
-};
+
+
 annotate service.Contract with {
     pledgedStatus @(
-        Common.ValueList : {
-            $Type : 'Common.ValueListType',
-            CollectionPath : 'PledgedStatusSearchHelp',
-            Parameters : [
-                {
-                    $Type : 'Common.ValueListParameterInOut',
-                    LocalDataProperty : pledgedStatus,
-                    ValueListProperty : 'value',
-                }
-            ],
-            Label : 'Pledges status ',
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'PledgedStatusSearchHelp',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: pledgedStatus,
+                ValueListProperty: 'value',
+            }],
+            Label         : 'Pledges status ',
         },
-        Common.ValueListWithFixedValues : true,
-)};
+        Common.ValueListWithFixedValues: true,
+    )
+};
 
 annotate service.PledgedStatusSearchHelp with {
-    value @(Common.Text : description,
-    Common.Text.@UI.TextArrangement:#TextLast
+    value @(
+        Common.Text                    : description,
+        Common.Text.@UI.TextArrangement: #TextLast
 
-)};
+    )
+};
 
 annotate service.Contract with {
     purposeOfLoan @(
-        Common.ValueList : {
-            $Type : 'Common.ValueListType',
-            CollectionPath : 'purposeOfLoanSearchHelp',
-            Parameters : [
-                {
-                    $Type : 'Common.ValueListParameterInOut',
-                    LocalDataProperty : purposeOfLoan,
-                    ValueListProperty : 'value',
-                },
-            ],
-            Label : 'Purpose of Loan Search Help',
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'purposeOfLoanSearchHelp',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: purposeOfLoan,
+                ValueListProperty: 'value',
+            }, ],
+            Label         : 'Purpose of Loan Search Help',
         },
-        Common.ValueListWithFixedValues : true,
-)};
+        Common.ValueListWithFixedValues: true,
+    )
+};
+
+
 
 annotate service.purposeOfLoanSearchHelp with {
     value @(
-        Common.Text : description,
-        Common.Text.@UI.TextArrangement : #TextLast,
-)};
+        Common.Text                    : description,
+        Common.Text.@UI.TextArrangement: #TextLast,
+    )
+};
 
 annotate service.ConditionItems with {
     paymentFromExactDay @(
-        Common.ValueList : {
-            $Type : 'Common.ValueListType',
-            CollectionPath : 'paymentFromExactDaySearchHepl',
-            Parameters : [
-                {
-                    $Type : 'Common.ValueListParameterInOut',
-                    LocalDataProperty : paymentFromExactDay,
-                    ValueListProperty : 'value',
-                },
-            ],
-            Label : 'Payment from exact day search Hepl',
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'paymentFromExactDaySearchHepl',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: paymentFromExactDay,
+                ValueListProperty: 'value',
+            }, ],
+            Label         : 'Payment from exact day search Hepl',
         },
-        Common.ValueListWithFixedValues : true,
-)};
+        Common.ValueListWithFixedValues: true,
+    )
+};
 
 annotate service.paymentFromExactDaySearchHepl with {
     value @(
-        Common.Text : description,
-        Common.Text.@UI.TextArrangement : #TextLast,
+        Common.Text                    : description,
+        Common.Text.@UI.TextArrangement: #TextLast,
+    )
+};
+annotate service.ConditionItems with {
+    conditionTypeText @(
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'ConditionTypeTextSearchHelp',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : conditionTypeText,
+                    ValueListProperty : 'value',
+                },
+            ],
+            Label : 'Condition text shelp',
+        },
+        Common.ValueListWithFixedValues : true,
 )};
 

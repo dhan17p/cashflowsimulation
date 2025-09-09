@@ -45,37 +45,37 @@ entity cashFlowLineItem {
 
 
 entity contract {
-    key ID                         : UUID;
-        companyCode                : String  @Common.Label: 'Company Code';
-    key loanNumber                 : String  @mandatory  @Common.Label: 'Loan Number';
-    key productType                : String  @mandatory  @Common.Label: 'Product Type';
-    key loanType                   : String  @mandatory  @Common.Label: 'Loan Type';
-    key loanPartner                : String  @mandatory  @Common.Label: 'Loan Partner';
-        status                     : String;
-        disbursementStatus         : String;
+    key ID                                 : UUID;
+        companyCode                        : String  @Common.Label: 'Company Code';
+    key loanNumber                         : String  @mandatory  @Common.Label: 'Loan Number';
+    key productType                        : String  @mandatory  @Common.Label: 'Product Type';
+    key loanType                           : String  @mandatory  @Common.Label: 'Loan Type';
+    key loanPartner                        : String  @mandatory  @Common.Label: 'Loan Partner';
+        status                             : String;
+        disbursementStatus                 : String;
 
         //basic data
-        pledgedStatus              : String;
+        pledgedStatus                      : String;
         //analysis
-        purposeOfLoan              : String;
-        arBillingJob               : String;
+        purposeOfLoan                      : String;
+        arBillingJob                       : String;
         //conditions
-        commitCapital              : String  @mandatory;
-        repaymentType              : String;
+        commitCapital                      : String  @mandatory;
+        repaymentType                      : String;
 
         //term/fixed Period
-        fixedFrom                  : Date    @mandatory;
-        fixedUntil                 : Date    @mandatory;
-        include                    : Boolean;
+        fixedFrom                          : Date    @mandatory;
+        fixedUntil                         : Date    @mandatory;
+        include                            : Boolean;
 
         //Interest Calculation
-        intCalMt                   : String  @mandatory;
-        contractToCondition        : Composition of many ConditionItems
-                                         on contractToCondition.contractId = ID;
-        contractToLoanAmortization : Association to many LoanAmortization
-                                         on contractToLoanAmortization.contractId = ID;
+        intCalMt                           : String  @mandatory;
+        contractToCondition                : Composition of many ConditionItems
+                                                 on contractToCondition.contractId = ID;
+        contractToLoanAmortization         : Association to many LoanAmortization
+                                                 on contractToLoanAmortization.contractId = ID;
         contractToLoanAmortizationSchedule : Association to many AmortizationSchedule
-                                         on contractToLoanAmortizationSchedule.contractId = ID;
+                                                 on contractToLoanAmortizationSchedule.contractId = ID;
 
 
 }
@@ -97,6 +97,12 @@ entity ConditionItems : managed {
 
 }
 
+entity ConditionTypeTextSearchHelp{
+   key ID:UUID;
+    value:String;
+
+}
+
 entity LoanAmortization {
     key ID                         : UUID;
         contractId                 : UUID;
@@ -113,31 +119,32 @@ entity LoanAmortization {
 }
 
 entity AmortizationSchedule {
-    key ID           : UUID           @title: 'Unique row ID';
-        contractId   : UUID;
-        index        : Integer        @title: 'Index in schedule';
-        paymentDate  : Date           @title: 'Payment date';
-        name         : String(100)    @title: 'Description of the entry';
-        settleAmount : Decimal(12, 2) @title: 'Amount for principal or interest';
-        currency     : String(3)      @title: 'Currency code';
-          LoanAmortizationScheduleToContract : Association to contract;
+    key ID                                 : UUID           @title: 'Unique row ID';
+        contractId                         : UUID;
+        index                              : Integer        @title: 'Index in schedule';
+        paymentDate                        : Date           @title: 'Payment date';
+        name                               : String(100)    @title: 'Description of the entry';
+        settleAmount                       : Decimal(12, 2) @title: 'Amount for principal or interest';
+        currency                           : String(3)      @title: 'Currency code';
+        LoanAmortizationScheduleToContract : Association to contract;
 
 }
+
 entity AmortizationSchedule2 {
 
-key ID:UUID;   
-dueDate:String;
-flowType:String;
-name:String;
-planActualRec:String;
-settlementAmount:String;
-settlementCurrency:String;
-baseAmount:String;
-percentageRate:String;
-calculationFrom:String;
-calculationDate:String;
-numberOfDays:String;
-index:Integer;
+    key ID                 : UUID;
+        dueDate            : String;
+        flowType           : String;
+        name               : String;
+        planActualRec      : String;
+        settlementAmount   : String;
+        settlementCurrency : String;
+        baseAmount         : String;
+        percentageRate     : String;
+        calculationFrom    : String;
+        calculationDate    : String;
+        numberOfDays       : String;
+        index              : Integer;
 
 
 }

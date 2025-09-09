@@ -58,7 +58,7 @@
                         <items>
                             <ColumnListItem>
                                 <cells>
-                                    <Text text="{paymentDate}" />
+                                    <Text text="{paymentDate}"  />
                                     <Text text="{name}" />
                                     <Text text="{settleAmount}" />
                                     <Text text="{currency}" />
