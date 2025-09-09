@@ -104,14 +104,6 @@ module.exports = cds.service.impl(async function () {
                 ? nextDate.isSameOrAfter(finalRepDate)
                 : nextDate.isAfter(finalRepDate);
 
-            if (isLastPeriod) {
-                principalRepayment = outstandingPrincipal;
-                repayment = principalRepayment + interest;
-                outstandingPrincipal = 0;
-            } else {
-                outstandingPrincipal -= principalRepayment;
-            }
-
             let calculationDate = nextDate.clone().subtract(1, 'days');
             if (interestCalcMethod === "360/360" && calculationDate.date() === 31) {
                 calculationDate.date(30);
@@ -127,7 +119,7 @@ module.exports = cds.service.impl(async function () {
                 "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
                 "Interest Rate (%)": parseFloat((interestRate * 100).toFixed(2)),
                 "Days": days,
-                "Name": "A_Interest debit pos. rec.",
+                "Name": "Interest debit pos. rec.",
                 "Amount": parseFloat(interest.toFixed(2)),
                 "Repayment Amount": 0,
                 "Principal Repayment": 0,
@@ -135,25 +127,69 @@ module.exports = cds.service.impl(async function () {
                 "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2))
             });
 
-            // Principal row
-            schedule.push({
-                "Index": index++,
-                "flowType": "0125",
-                "Calculation From": currentDate.format('DD/MM/YYYY'),
-                "Due Date": nextDate.format('DD/MM/YYYY'),
-                "Calculation Date": calculationDate.format('DD/MM/YYYY'),
-                // "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
-                "Outstanding Principal Start": 0,
-                "Interest Rate (%)": parseFloat((interestRate * 100).toFixed(2)),
-                "Days": days,
-                "Name": "A_Annuity rep. debit pos. rec.",
-                "Amount": parseFloat(principalRepayment.toFixed(2)),
-                "Repayment Amount": parseFloat(repayment.toFixed(2)),
-                "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
-                "Interest Amount": 0,
-                "Outstanding Principal End": 0
-                // "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2))
-            });
+            if (isLastPeriod) {
+                // Add annuity repayment row
+                outstandingPrincipal -= principalRepayment;
+
+                schedule.push({
+                    "Index": index++,
+                    "flowType": "0125",
+                    "Calculation From": currentDate.format('DD/MM/YYYY'),
+                    "Due Date": nextDate.format('DD/MM/YYYY'),
+                    "Calculation Date": calculationDate.format('DD/MM/YYYY'),
+                    "Outstanding Principal Start": 0,
+                    "Interest Rate (%)": parseFloat((interestRate * 100).toFixed(2)),
+                    "Days": days,
+                    "Name": "Annuity rep. debit pos. rec.",
+                    "Amount": parseFloat(principalRepayment.toFixed(2)),
+                    "Repayment Amount": parseFloat(repayment.toFixed(2)),
+                    "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
+                    "Interest Amount": 0,
+                    "Outstanding Principal End": 0
+                });
+
+                // Add final repayment row (clears balance)
+                schedule.push({
+                    "Index": index++,
+                    "flowType": "0115",
+                    "Calculation From": currentDate.format('DD/MM/YYYY'),
+                    "Due Date": nextDate.format('DD/MM/YYYY'),
+                    "Calculation Date": nextDate.clone().endOf('month').format('DD/MM/YYYY'),
+                    "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
+                    "Interest Rate (%)": 0,
+                    "Days": 0,
+                    "Name": "Final repmnt debit pos. rec.",
+                    "Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+                    "Repayment Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+                    "Principal Repayment": parseFloat(outstandingPrincipal.toFixed(2)),
+                    "Interest Amount": 0,
+                    "Outstanding Principal End": 0
+                });
+
+                outstandingPrincipal = 0;
+                break; // Stop after final repayment
+            } else {
+                // Normal case: reduce outstanding principal
+                outstandingPrincipal -= principalRepayment;
+
+                // Add annuity repayment row
+                schedule.push({
+                    "Index": index++,
+                    "flowType": "0125",
+                    "Calculation From": currentDate.format('DD/MM/YYYY'),
+                    "Due Date": nextDate.format('DD/MM/YYYY'),
+                    "Calculation Date": calculationDate.format('DD/MM/YYYY'),
+                    "Outstanding Principal Start": 0,
+                    "Interest Rate (%)": parseFloat((interestRate * 100).toFixed(2)),
+                    "Days": days,
+                    "Name": "Annuity rep. debit pos. rec.",
+                    "Amount": parseFloat(principalRepayment.toFixed(2)),
+                    "Repayment Amount": parseFloat(repayment.toFixed(2)),
+                    "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
+                    "Interest Amount": 0,
+                    "Outstanding Principal End": 0
+                });
+            }
 
             currentDate = nextDate.clone();
         }
@@ -161,8 +197,7 @@ module.exports = cds.service.impl(async function () {
         return schedule;
     }
 
-
-    // Example usage for more than one items
+    // Example usage
     const scheduleACT = calculateLoanScheduleFlexible({
         commitCapital: 100000,
         startDate: '01/01/2025',
@@ -175,11 +210,14 @@ module.exports = cds.service.impl(async function () {
             { start: '01/01/2026', amount: 6000 },
             { start: '01/03/2026', amount: 7000 }
         ],
-        finalRepaymentDate: '01/01/2027',
+        finalRepaymentDate: '01/12/2026',
         paymentFrequencyMonths: 1,
         interestCalcMethod: "360/360",
         inclusive: false
     });
+
+    console.table(scheduleACT);
+
 
 
     // // --- Inputs ---
@@ -476,7 +514,7 @@ module.exports = cds.service.impl(async function () {
             function convertDateToUSFormat(dateStr) {
                 if (!dateStr) return null;
                 let [day, month, year] = dateStr.split("/");
-                let shortYear = year.slice(-2);
+                let shortYear = year;
                 return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
             }
 

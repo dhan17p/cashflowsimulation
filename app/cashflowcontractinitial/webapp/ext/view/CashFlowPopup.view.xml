@@ -38,13 +38,13 @@
                 </ui:rowMode>
 
                 <ui:columns>
-                    <ui:Column label="Due Date" width="120px">
+                    <ui:Column label="Due Date" width="200px">
                         <ui:template>
                             <Text text="{dueDate}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Flow Type" width="120px">
+                    <ui:Column label="Flow Type" width="200px">
                         <ui:template>
                             <Text text="{flowType}" class="tableText"/>
                         </ui:template>
@@ -80,19 +80,19 @@
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Calculation From" width="120px">
+                    <ui:Column label="Calculation From" width="200px">
                         <ui:template>
                             <Text text="{calculationFrom}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Calculation Date" width="120px">
+                    <ui:Column label="Calculation Date" width="200px">
                         <ui:template>
                             <Text text="{calculationDate}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Number of Days" width="80px" hAlign="End">
+                    <ui:Column label="Number of Days" width="200px" hAlign="End">
                         <ui:template>
                             <Text text="{numberOfDays}" class="tableText"/>
                         </ui:template>
