@@ -1,0 +1,5 @@
+contractId,conditionTypeText,effectiveFrom,percentage,conditionAmt
+550e8400-e29b-41d4-a716-446655440000,Nominal Interest Fixed,2025-01-10,7,5000
+550e8400-e29b-41d4-a716-446655440000,Annuity repayment,2025-02-01,1,200
+550e8400-e29b-41d4-a716-446655440000,Final Repayment,2025-02-15,2,750
+

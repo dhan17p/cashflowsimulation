@@ -1,5 +1,35 @@
 sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExtension) {
 	'use strict';
+	function setWidth() {
+
+		var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
+		var conditionItemsColumns = conditionItems.getColumns();
+		// conditionItems.getColumns()[0].setWidth("400px");
+		var columnWidths = [
+			"10rem",   // col 0
+			"8.2rem", // col 1
+			"5.5rem",  // col 2
+			"7rem",    // col 3
+			"16.4rem",   // col 4
+			"9.5rem",  // col 5
+			"8.2rem", // col 6
+			"8.2rem"     // col 7
+		];
+
+		// Apply widths
+		conditionItemsColumns.forEach(function (oCol, index) {
+			if (columnWidths[index]) {
+
+				oCol.setWidth(columnWidths[index]);
+				oCol.setMinWidth(2);
+			}
+		});
+		conditionItemsColumns[1].setWidth("8.3rem");
+		console.log(conditionItemsColumns[1].getWidth());
+		debugger
+
+
+	}
 
 	return ControllerExtension.extend('cashflowcontractinitial.ext.controller.ContractObjectPage', {
 		// this section allows to extend lifecycle hooks or hooks provided by Fiori elements
@@ -9,9 +39,23 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
 			 * @memberOf cashflowcontractinitial.ext.controller.ContractObjectPage
 			 */
+
 			onInit: function () {
 				// you can access the Fiori elements extensionAPI via this.base.getExtensionAPI
 				var oModel = this.base.getExtensionAPI().getModel();
+			},
+			onAfterRendering: function () {
+				// Get the Object Page
+				var oObjectPage = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage");
+
+				// Attach the event
+				if (oObjectPage) {
+					oObjectPage.attachSectionChange(function (oEvent) {
+						var oSection = oEvent.getParameter("section");
+						setWidth();
+						// 👉 your logic here
+					});
+				}
 			},
 			routing: {
 				onBeforeBinding1: function () {
@@ -28,6 +72,8 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				},
 				onAfterBinding: function () {
 					debugger
+
+					// setWidth();
 					const oDatePicker = sap.ui.getCore().byId(
 						"cashflowcontractinitial::ContractObjectPage--fe::FormContainer::Fixed::FormElement::DataField::fixedFrom::Field-edit"
 					);
@@ -166,6 +212,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 						if (!oInnerTable.mAggregations.rows || oInnerTable.mAggregations.rows.length === 0) return;
 
 						const aRows = oInnerTable.mAggregations.rows;
+						// setWidth();
 
 						aRows.forEach(row => {
 							// Format for column 2 (effectiveFrom)
@@ -216,7 +263,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 
 
-				},
+				}
 			}
 		}
 	});

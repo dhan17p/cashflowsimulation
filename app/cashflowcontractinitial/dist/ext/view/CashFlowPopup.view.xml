@@ -38,61 +38,61 @@
                 </ui:rowMode>
 
                 <ui:columns>
-                    <ui:Column label="Due Date" width="120px">
+                    <ui:Column label="Due Date" minWidth="10em" width="90px">
                         <ui:template>
                             <Text text="{dueDate}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Flow Type" width="120px">
+                    <ui:Column label="Flow Type" width="80px">
                         <ui:template>
                             <Text text="{flowType}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Name" width="250px">
+                    <ui:Column label="Name" width="200px">
                         <ui:template>
                             <Text text="{name}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Plan/Actual Rec" width="200px">
+                    <ui:Column label="Plan/Actual Rec" width="115px">
                         <ui:template>
                             <Text text="{planActualRec}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Settlement Amount" width="200px" hAlign="End">
+                    <ui:Column label="Settlement Amount" width="140px" hAlign="End">
                         <ui:template>
                             <Text text="{settlementAmount}" class="amountText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Base Amount" width="200px" hAlign="End">
+                    <ui:Column label="Base Amount" width="100px" hAlign="End">
                         <ui:template>
                             <Text text="{baseAmount}" class="amountText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Percentage Rate" width="200px">
+                    <ui:Column label="Percentage Rate" width="120px">
                         <ui:template>
                             <Text text="{percentageRate}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Calculation From" width="120px">
+                    <ui:Column label="Calculation From" width="125px">
                         <ui:template>
                             <Text text="{calculationFrom}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Calculation Date" width="120px">
+                    <ui:Column label="Calculation Date" width="125px">
                         <ui:template>
                             <Text text="{calculationDate}" class="tableText"/>
                         </ui:template>
                     </ui:Column>
 
-                    <ui:Column label="Number of Days" width="80px" hAlign="End">
+                    <ui:Column label="Number of Days" width="120px">
                         <ui:template>
                             <Text text="{numberOfDays}" class="tableText"/>
                         </ui:template>

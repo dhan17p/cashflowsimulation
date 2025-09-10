@@ -183,6 +183,11 @@
                   }
                 },
                 "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
+                  "columns": {
+                    "DataField::conditionTypeText": {
+                      "width": "200px"
+                    }
+                  },
                   "tableSettings": {
                     "type": "GridTable"
                   }

@@ -76,14 +76,14 @@
 }
 
 .customTable .sapUiTableColHdrCnt {
-  background-color: #2c3e50;
+  /* background-color: #2c3e50; */
   color: #ffffff;
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .tableText {
-  color: #2c3e50;
+  /* color: #2c3e50; */
   font-size: 0.9rem;
 }
 
@@ -97,3 +97,6 @@
 .customTable .sapUiTableTr:nth-child(even) {
   background-color: #f4f6f7;
 } */
+
+
+

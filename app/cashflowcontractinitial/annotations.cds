@@ -633,7 +633,8 @@ annotate service.ConditionItems with @(UI.LineItem #ConditionItems1: [
         Value: calculationDate,
         Label: 'Calculation Date'
     }
-]);
+],
+    Common.Text : arBillingJob,);
 
 
 
@@ -653,13 +654,7 @@ annotate service.Contract with {
     )
 };
 
-annotate service.PledgedStatusSearchHelp with {
-    value @(
-        Common.Text                    : description,
-        Common.Text.@UI.TextArrangement: #TextLast
 
-    )
-};
 
 annotate service.Contract with {
     purposeOfLoan @(
@@ -679,12 +674,12 @@ annotate service.Contract with {
 
 
 
-annotate service.purposeOfLoanSearchHelp with {
-    value @(
-        Common.Text                    : description,
-        Common.Text.@UI.TextArrangement: #TextLast,
-    )
-};
+// annotate service.purposeOfLoanSearchHelp with {
+//     value @(
+//         Common.Text                    : description,
+//         Common.Text.@UI.TextArrangement: #TextLast,
+//     )
+// };
 
 annotate service.ConditionItems with {
     paymentFromExactDay @(
@@ -702,12 +697,12 @@ annotate service.ConditionItems with {
     )
 };
 
-annotate service.paymentFromExactDaySearchHepl with {
-    value @(
-        Common.Text                    : description,
-        Common.Text.@UI.TextArrangement: #TextLast,
-    )
-};
+// annotate service.paymentFromExactDaySearchHepl with {
+//     value @(
+//         Common.Text                    : description,
+//         Common.Text.@UI.TextArrangement: #TextLast,
+//     )
+// };
 annotate service.ConditionItems with {
     conditionTypeText @(
         Common.ValueList : {
