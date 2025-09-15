@@ -387,16 +387,16 @@ sap.ui.define([
                 oFunction.setParameter("inclusiveIndicator", String(data.include));
                 oFunction.setParameter("contractId", String(data.ID));
                 oFunction.setParameter("intCalMt", String(data.intCalMt)),
-                oFunction.setParameter("isActiveEntity", isActiveEntity),
-                // oFunction.setParameter("loanData", JSON.stringify(aResult));
+                    oFunction.setParameter("isActiveEntity", isActiveEntity),
+                    // oFunction.setParameter("loanData", JSON.stringify(aResult));
 
-                // oFunction.setParameter("dueDate", dueDate);
-                // oFunction.setParameter("percentage", percentage);
-                // oFunction.setParameter("calculationDate", calculationDate);
-                // oFunction.setParameter("conditionAmt", conditionAmt);
-                // oFunction.setParameter("efffectiveDatefinalRepayment", efffectiveDatefinalRepayment);
+                    // oFunction.setParameter("dueDate", dueDate);
+                    // oFunction.setParameter("percentage", percentage);
+                    // oFunction.setParameter("calculationDate", calculationDate);
+                    // oFunction.setParameter("conditionAmt", conditionAmt);
+                    // oFunction.setParameter("efffectiveDatefinalRepayment", efffectiveDatefinalRepayment);
 
-                await oFunction.execute();
+                    await oFunction.execute();
             }
             await backendcall.call(this);
 
@@ -405,11 +405,13 @@ sap.ui.define([
                 const url = window.location.href;
                 const match = url.match(/Contract\((.*)\)/);
 
+                var status = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent").mAggregations.content[0].mAggregations.items[0].mAggregations.items[0].mAggregations.items[1].mAggregations.formContainers[0].mAggregations.formElements[2].getFields()[0].getText()
+                var disbursementstatus = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent").mAggregations.content[0].mAggregations.items[0].mAggregations.items[0].mAggregations.items[1].mAggregations.formContainers[0].mAggregations.formElements[3].getFields()[0].getText()
                 if (match) {
                     let key = match[1]; // extract inside of Contract(...)
 
                     // append new fields
-                    key += ",status='Active',disbursementStatus='Pending'";
+                      key += `,status='${status}',disbursementStatus='${disbursementstatus}'`;
 
                     return key;
                 }

@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/ControllerExtension"],function(e){"use strict";return e.extend("loancreation.ext.controller.ListReport",{override:{onInit:function(){var e=this.base.getExtensionAPI().getModel()},routing:{onBeforeBinding:function(){debugger;sap.ui.getCore().byId("loancreation::contractNewList--fe::FilterBar::contractNew::BasicSearchField").setVisible(false);sap.ui.getCore().byId("loancreation::contractNewList--fe::FilterBar::contractNew-btnSearch").setText("Search")}}}})});
+//# sourceMappingURL=ListReport.controller.js.map

@@ -32,7 +32,33 @@ service CashFlowService {
                                   percentage: String,
                                   conditionAmt: String,
                                   efffectiveDatefinalRepayment: String,
-                                  isActiveEntity:String,
+                                  isActiveEntity: String,
+                                  loanData: LargeString) returns String;
+
+
+    //new application service
+    @odata.draft.enabled
+    entity contractNew                   as projection on cfs.contractNew;
+    entity ConditionItemsNew             as projection on cfs.ConditionItemsNew;
+    entity LoanAmortizationNew           as projection on cfs.LoanAmortizationNew;
+    entity AmortizationSchedule2New      as projection on cfs.AmortizationSchedule2New;
+    entity ConditionTypeTextSearchHelpNew      as projection on cfs.ConditionTypeTextSearchHelpNew;
+    
+    function loadAmortizationFuncNew(principal: String,
+                                  annualRate: String,
+                                  startDate: String,
+                                  endDate: String,
+                                  interestFixedDate: String,
+                                  inclusiveIndicator: String,
+
+                                  contractId: String,
+                                  intCalMt: String,
+                                  calculationDate: String,
+                                  dueDate: String,
+                                  percentage: String,
+                                  conditionAmt: String,
+                                  efffectiveDatefinalRepayment: String,
+                                  isActiveEntity: String,
                                   loanData: LargeString) returns String;
 
 

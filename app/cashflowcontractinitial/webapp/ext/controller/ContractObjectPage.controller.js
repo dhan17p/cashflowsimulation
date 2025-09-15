@@ -6,11 +6,11 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 		var conditionItemsColumns = conditionItems.getColumns();
 		// conditionItems.getColumns()[0].setWidth("400px");
 		var columnWidths = [
-			"10rem",   // col 0
+			"12.5rem",   // col 0
 			"8.2rem", // col 1
 			"5.5rem",  // col 2
 			"7rem",    // col 3
-			"16.4rem",   // col 4
+			"19rem",   // col 4
 			"9.5rem",  // col 5
 			"8.2rem", // col 6
 			"8.2rem"     // col 7
@@ -19,14 +19,15 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 		// Apply widths
 		conditionItemsColumns.forEach(function (oCol, index) {
 			if (columnWidths[index]) {
-
+				// debugger
 				oCol.setWidth(columnWidths[index]);
+				oCol._oInnerColumn.setResizable(false);
 				oCol.setMinWidth(2);
 			}
 		});
-		conditionItemsColumns[1].setWidth("8.3rem");
-		console.log(conditionItemsColumns[1].getWidth());
-		debugger
+		// conditionItemsColumns[1].setWidth("8.3rem");
+		// console.log(conditionItemsColumns[1].getWidth());
+		// debugger
 
 
 	}
@@ -51,8 +52,13 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				// Attach the event
 				if (oObjectPage) {
 					oObjectPage.attachSectionChange(function (oEvent) {
+						sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4::C::effectiveFrom-innerColumn").setWidth("8.2rem")
 						var oSection = oEvent.getParameter("section");
+
 						setWidth();
+						setTimeout(() => {
+							sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4::C::effectiveFrom-innerColumn").setWidth("8.2rem")
+						}, 5000);
 						// 👉 your logic here
 					});
 				}
@@ -63,7 +69,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 					try {
 						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
 						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
-						sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::Form::Conditions1::Content").mAggregations.formContainers[0].getTitle().destroy()
+						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::FormContainer::_").getTitle().destroy()
 
 					} catch (error) {
 						console.log(error);

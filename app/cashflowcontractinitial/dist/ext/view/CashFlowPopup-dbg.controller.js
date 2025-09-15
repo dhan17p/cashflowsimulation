@@ -34,11 +34,21 @@ sap.ui.define(
                             v = v.slice(1, -1);
                         }
 
+                        // decode double-encoded values safely
+                        try {
+                            v = decodeURIComponent(decodeURIComponent(v));
+                        } catch (e) {
+                            try {
+                                v = decodeURIComponent(v); // fallback single decode
+                            } catch { }
+                        }
+
                         obj[k] = v;
                     }
 
                     return obj;
                 }
+
                 var key = oEvent.getParameter("arguments").key;
                 var keyData = parseKeyString(key);
 

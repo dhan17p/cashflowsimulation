@@ -100,3 +100,104 @@
 
 
 
+/* #cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4\:\:C\:\:effectiveFrom-innerColumn-inner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row0-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row1-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row2-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row3-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row4-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row5-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row6-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row7-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row8-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row9-col1 .sapUiTableCellInner,
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:table\:\:contractToCondition\:\:LineItem\:\:ConditionItems4-innerTable-rows-row10-col1 .sapUiTableCellInner {
+  width: 8.2rem;
+  position: relative !important;
+} */
+
+/* [id*="contractToCondition::LineItem::ConditionItems4::C::effectiveFrom-innerColumn"] {
+   width: 10rem !important;
+   min-width: 10rem !important;
+} */
+
+
+
+
+
+
+/* remove extra space */
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:FormContainer\:\:_>.sapUiFormTitleH5 {
+  display: none !important;
+}
+
+
+#cashflowcontractinitial\:\:ContractObjectPage--fe\:\:FacetSubSection\:\:Conditions1-header {
+  display: none !important;
+
+}
+.sapUiSizeCompact .sapUiFormCL>.sapUiFormContainerTitle,
+.sapUiSizeCompact .sapUiFormCL>.sapUiFormContainerToolbar,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Phone>.sapUiFormCLContent>.sapUiFormCLContainerSFirstRow.sapUiFormContainerTitle,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Phone>.sapUiFormCLContent>.sapUiFormCLContainerSFirstRow.sapUiFormContainerToolbar,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Tablet>.sapUiFormCLContent>.sapUiFormCLContainerMFirstRow.sapUiFormContainerTitle,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Tablet>.sapUiFormCLContent>.sapUiFormCLContainerMFirstRow.sapUiFormContainerToolbar,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Desktop>.sapUiFormCLContent>.sapUiFormCLContainerLFirstRow.sapUiFormContainerTitle,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-Desktop>.sapUiFormCLContent>.sapUiFormCLContainerLFirstRow.sapUiFormContainerToolbar,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-LargeDesktop>.sapUiFormCLContent>.sapUiFormCLContainerXLFirstRow.sapUiFormContainerTitle,
+.sapUiSizeCompact .sapUiFormCLMedia-Std-LargeDesktop>.sapUiFormCLContent>.sapUiFormCLContainerXLFirstRow.sapUiFormContainerToolbar {
+  padding-top: 0rem !important;
+}
+
+.sapUiFormCLContainer {
+  padding: 0 !important;
+}
+
+
+.sapUxAPObjectPageSection .sapUxAPObjectPageSectionContainer .sapUxAPObjectPageSubSection .sapUxAPBlockContainer {
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+}
+
+
+.sapUiForm:not(.sapUiFormEdit) .sapUiFormCLSmallColumns .sapUiFormCLElement {
+  padding-top: 0 !important;
+}
+
+
+
+.sapUxAPObjectPageSection.sapUxAPObjectPageSectionFirstVisible {
+  padding-top: 0rem !important;
+}
+
+.sapUxAPObjectPageSection:not(.sapUxAPObjectPageSectionFirstVisible) {
+  padding-top: 0rem !important;
+}
+
+
+.sapUxAPObjectPageSubSection:not(.sapUxAPObjectPageSubSectionPromoted) {
+  padding-top: 0rem !important;
+
+}
+
+
+/* Header */
+
+.sapFDynamicPage-Std-Desktop .sapFDynamicPageHeader.sapFDynamicPageHeaderWithContent {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+/* phone  */
+
+.sapFDynamicPage-Std-Phone .sapFDynamicPageHeaderWithContent {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+.sapUxAPObjectPageLayout-Std-Phone .sapUxAPObjectPageSubSection .sapUiRespGrid.sapUiRespGridHSpace1 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}

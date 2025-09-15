@@ -27,6 +27,8 @@
 
                     <Label text="Loan Partner" design="Bold" />
                     <Text text="{keyData>/loanPartner}" class="valueText"/>
+                    <Label text="Loan Type" design="Bold" />
+                    <Text text="{keyData>/loanType}" class="valueText"/>
                 </f:content>
             </f:SimpleForm>
 

@@ -69,9 +69,23 @@ modules:
       - cashflowcontractinitial.zip
       name: cashflowcontractinitial
       target-path: resources/
+    - artifacts:
+      - loancreation.zip
+      name: loancreation
+      target-path: resources/
 - name: cashflowcontractinitial
   type: html5
   path: app/cashflowcontractinitial
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: loancreation
+  type: html5
+  path: app/loancreation
   build-parameters:
     build-result: dist
     builder: custom

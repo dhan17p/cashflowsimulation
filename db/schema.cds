@@ -97,9 +97,9 @@ entity ConditionItems : managed {
 
 }
 
-entity ConditionTypeTextSearchHelp{
-   key ID:UUID;
-    value:String;
+entity ConditionTypeTextSearchHelp {
+    key ID    : UUID;
+        value : String;
 
 }
 
@@ -172,4 +172,102 @@ entity paymentFromExactDaySearchHepl {
     key ID          : UUID;
         value       : String;
         description : String;
+}
+
+
+//new application schema
+
+
+entity contractNew {
+    key ID                                 : UUID;
+        companyCode                        : String  @Common.Label: 'Company Code';
+    key loanNumber                         : String  @mandatory  @Common.Label: 'Loan Number';
+    key productType                        : String  @mandatory  @Common.Label: 'Agency';
+    key loanType                           : String  @mandatory  @Common.Label: 'Loan Program';
+    key loanPartner                        : String  @mandatory  @Common.Label: 'Loan Partner';
+        status                             : String;
+        disbursementStatus                 : String;
+
+        //basic data
+        pledgedStatus                      : String;
+        //analysis
+        purposeOfLoan                      : String;
+        arBillingJob                       : String;
+        //conditions
+        commitCapital                      : String  @mandatory;
+        repaymentType                      : String;
+
+        //term/fixed Period
+        fixedFrom                          : Date    @mandatory;
+        fixedUntil                         : Date    @mandatory;
+        include                            : Boolean;
+
+        //Interest Calculation
+        intCalMt                           : String  @mandatory;
+        contractToCondition                : Composition of many ConditionItemsNew
+                                                 on contractToCondition.contractId = ID;
+        contractToLoanAmortization         : Association to many LoanAmortizationNew
+                                                 on contractToLoanAmortization.contractId = ID;
+        contractToLoanAmortizationSchedule : Association to many LoanAmortizationNew
+                                                 on contractToLoanAmortizationSchedule.contractId = ID;
+
+
+}
+
+entity ConditionItemsNew : managed {
+    key conditionId         : UUID;
+        contractId          : UUID;
+        conditionTypeText   : String;
+        effectiveFrom       : Date;
+        percentage          : String;
+        conditionAmt        : String;
+        paymentFromExactDay : String;
+        frequencyInMonths   : String;
+        dueDate             : Date;
+        calculationDate     : Date;
+        sequence            : Integer;
+        conditionToContract : Association to contract;
+
+
+}
+
+
+entity LoanAmortizationNew {
+    key ID                         : UUID;
+        contractId                 : UUID;
+        periodStart                : String;
+        periodEnd                  : String;
+        paymentDate                : String;
+        principalPayment           : String;
+        interestPayment            : String;
+        totalPayment               : String;
+        openingBalance             : String;
+        closingBalance             : String;
+        LoanAmortizationToContract : Association to contract;
+
+}
+
+
+entity AmortizationSchedule2New {
+
+    key ID                 : UUID;
+        dueDate            : String;
+        flowType           : String;
+        name               : String;
+        planActualRec      : String;
+        settlementAmount   : String;
+        settlementCurrency : String;
+        baseAmount         : String;
+        percentageRate     : String;
+        calculationFrom    : String;
+        calculationDate    : String;
+        numberOfDays       : String;
+        index              : Integer;
+
+
+}
+entity ConditionTypeTextSearchHelpNew {
+    key ID    : UUID;
+        value : String;
+
 }

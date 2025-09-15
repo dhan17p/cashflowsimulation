@@ -1,0 +1,114 @@
+<!-- <mvc:View xmlns:core="sap.ui.core"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:macros="sap.fe.macros" -->
+    <!-- xmlns:html="http://www.w3.org/1999/xhtml" controllerName="loancreation.ext.view.CashFlowPopup"> -->
+    <!-- <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}">
+        <content></content>
+    </Page> -->
+    <mvc:View xmlns:core="sap.ui.core"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:ui="sap.ui.table"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:macros="sap.fe.macros"
+    xmlns:uirm="sap.ui.table.rowmodes"
+    xmlns:html="http://www.w3.org/1999/xhtml" controllerName="loancreation.ext.view.CashFlowPopup">
+
+    <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}" class="customPage">
+        <content>
+
+            <!-- Loan Header Details -->
+            <f:SimpleForm editable="false" layout="ResponsiveGridLayout" class="fixedForm loanHeaderForm">
+                <f:content>
+                    <Label text="Loan Number" design="Bold" />
+                    <Text text="{keyData>/loanNumber}" class="valueText" />
+
+                    <Label text="Agency" design="Bold" />
+                    <Text text="{keyData>/productType}" class="valueText"/>
+
+                    <Label text="Status" design="Bold" />
+                    <Text text="{keyData>/status}" class="valueText"/>
+
+                    <Label text="Disb.Status" design="Bold" />
+                    <Text text="{keyData>/disbursementStatus}" class="valueText"/>
+
+                    <Label text="Loan Partner" design="Bold" />
+                    <Text text="{keyData>/loanPartner}" class="valueText"/>
+                    <Label text="Loan Program" design="Bold" />
+                    <Text text="{keyData>/loanType}" class="valueText"/>
+                </f:content>
+            </f:SimpleForm>
+
+            <!-- Loan Amortization Table -->
+            <ui:Table id="ConditionTablepopscreen" rows="{/AmortizationSchedule2New}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" visibleRowCount="8" class="customTable">
+
+                <ui:rowMode>
+                    <uirm:Fixed rowCount="8"/>
+                </ui:rowMode>
+
+                <ui:columns>
+                    <ui:Column label="Due Date" minWidth="10em" width="90px">
+                        <ui:template>
+                            <Text text="{dueDate}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Flow Type" width="80px">
+                        <ui:template>
+                            <Text text="{flowType}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Name" width="200px">
+                        <ui:template>
+                            <Text text="{name}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Planned/Incurred" width="125px">
+                        <ui:template>
+                            <Text text="{planActualRec}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Settlement Amount" width="140px" hAlign="End">
+                        <ui:template>
+                            <Text text="{settlementAmount}" class="amountText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Calculation Base" width="122px" hAlign="End">
+                        <ui:template>
+                            <Text text="{baseAmount}" class="amountText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Percentage Rate" width="120px">
+                        <ui:template>
+                            <Text text="{percentageRate}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Calculation From" width="125px">
+                        <ui:template>
+                            <Text text="{calculationFrom}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Calculation Date" width="125px">
+                        <ui:template>
+                            <Text text="{calculationDate}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+
+                    <ui:Column label="Number of Days" width="120px">
+                        <ui:template>
+                            <Text text="{numberOfDays}" class="tableText"/>
+                        </ui:template>
+                    </ui:Column>
+                </ui:columns>
+            </ui:Table>
+        </content>
+    </Page>
+</mvc:View>
