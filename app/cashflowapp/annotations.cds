@@ -64,6 +64,11 @@ annotate service.CashFlow with @(
             Value : SettlementAmount,
             Label : 'Settlement Amount',
         },
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action : 'CashFlowService.EntityContainer/onRatePress',
+            Label : 'onRatePress',
+        },
     ],
     UI.SelectionFields : [
         productType,

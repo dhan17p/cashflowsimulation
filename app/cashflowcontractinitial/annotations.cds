@@ -592,50 +592,51 @@ annotate cfs.ConditionItems with @(
     },
 );
 
-annotate service.ConditionItems with @(UI.LineItem #ConditionItems1: [
-    {
-        $Type: 'UI.DataField',
-        Value: conditionTypeText,
-        Label: 'Cond.Type Text'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: effectiveFrom,
-        Label: 'Eff. From'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: percentage,
-        Label: 'Percentage'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: conditionAmt,
-        Label: 'Condition Amnt'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: paymentFromExactDay,
-        Label: 'Payment From Exact Day'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: frequencyInMonths,
-        Label: 'Frequency in Months'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: dueDate,
-        Label: 'Due Date'
-    },
-    {
-        $Type: 'UI.DataField',
-        Value: calculationDate,
-        Label: 'Calculation Date'
-    }
-],
-    Common.Text : arBillingJob,);
-
+annotate service.ConditionItems with @(
+    UI.LineItem #ConditionItems1: [
+        {
+            $Type: 'UI.DataField',
+            Value: conditionTypeText,
+            Label: 'Cond.Type Text'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: effectiveFrom,
+            Label: 'Eff. From'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: percentage,
+            Label: 'Percentage'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: conditionAmt,
+            Label: 'Condition Amnt'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: paymentFromExactDay,
+            Label: 'Payment From Exact Day'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: frequencyInMonths,
+            Label: 'Frequency in Months'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: dueDate,
+            Label: 'Due Date'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: calculationDate,
+            Label: 'Calculation Date'
+        }
+    ],
+    Common.Text                 : arBillingJob,
+);
 
 
 annotate service.Contract with {
@@ -655,7 +656,6 @@ annotate service.Contract with {
 };
 
 
-
 annotate service.Contract with {
     purposeOfLoan @(
         Common.ValueList               : {
@@ -671,7 +671,6 @@ annotate service.Contract with {
         Common.ValueListWithFixedValues: true,
     )
 };
-
 
 
 // annotate service.purposeOfLoanSearchHelp with {
@@ -705,18 +704,16 @@ annotate service.ConditionItems with {
 // };
 annotate service.ConditionItems with {
     conditionTypeText @(
-        Common.ValueList : {
-            $Type : 'Common.ValueListType',
-            CollectionPath : 'ConditionTypeTextSearchHelp',
-            Parameters : [
-                {
-                    $Type : 'Common.ValueListParameterInOut',
-                    LocalDataProperty : conditionTypeText,
-                    ValueListProperty : 'value',
-                },
-            ],
-            Label : 'Condition text shelp',
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'ConditionTypeTextSearchHelp',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: conditionTypeText,
+                ValueListProperty: 'value',
+            }, ],
+            Label         : 'Condition text shelp',
         },
-        Common.ValueListWithFixedValues : true,
-)};
-
+        Common.ValueListWithFixedValues: true,
+    )
+};

@@ -183,13 +183,17 @@
                   }
                 },
                 "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
-                  "columns": {
-                    "DataField::conditionTypeText": {
-                      "width": "200px"
-                    }
-                  },
                   "tableSettings": {
                     "type": "GridTable"
+                  },
+                  "actions": {
+                    "rateCal": {
+                      "press": "cashflowcontractinitial.ext.controller.RateCalc.onRateCalcPress",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Rate"
+                    }
                   }
                 }
               },

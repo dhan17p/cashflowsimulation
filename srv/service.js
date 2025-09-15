@@ -991,7 +991,143 @@ module.exports = cds.service.impl(async function () {
         // return result;
     });
 
+    const freqMap = {
+        "LM(Monthly end of mo due next day)": { code: "LM", months: 1 },
+        "MN(Monthly at end of period)": { code: "MN", months: 1 },
+        "LQ(Quartly end of pd due nxt day)": { code: "LQ", months: 3 },
+        "LS(Semiannual end of pd du nxtday)": { code: "LS", months: 6 },
+        "VV(Quarterly at start of period)": { code: "VV", months: 3 }
+    };
+
+    // --- Helpers ---
+    function isWorkingDay(date) {
+        const day = date.getDay();
+        return day !== 0 && day !== 6; // Sunday(0), Saturday(6)
+    }
+
+    function getNextWorkingDay(date) {
+        let d = new Date(date);
+        while (!isWorkingDay(d)) {
+            d.setDate(d.getDate() + 1);
+        }
+        return d;
+    }
+
+    function getLastDayOfMonth(year, month) {
+        return new Date(year, month + 1, 0);
+    }
+    function getNextWorkingDay(date) {
+        let d = new Date(date);
+        while (!isWorkingDay(d)) {
+            d.setDate(d.getDate() + 1);
+        }
+        return d;
+    }
+
+    async function getSchedule(effectiveFrom, paymentString) {
+        const config = freqMap[paymentString];
+        if (!config) throw new Error("Invalid payment type: " + paymentString);
+
+        const { code, months } = config;
+        const effDate = new Date(effectiveFrom);
+        let calcDate, dueDate;
+
+        // --- Monthly ---
+        if (code === "LM" || code === "MN") {
+            calcDate = getLastDayOfMonth(effDate.getFullYear(), effDate.getMonth());
+            if (calcDate < effDate) {
+                calcDate = getLastDayOfMonth(effDate.getFullYear(), effDate.getMonth() + 1);
+            }
+            dueDate = code === "LM"
+                ? getNextWorkingDay(new Date(calcDate.getTime() + 86400000)) // next day
+                : calcDate;
+        }
+
+        // --- Quarterly end-of-period (LQ) ---
+        if (code === "LQ") {
+            const quarters = [2, 5, 8, 11]; // Mar, Jun, Sep, Dec
+            let y = effDate.getFullYear();
+            let q = quarters.find(m => getLastDayOfMonth(y, m) >= effDate);
+            if (q === undefined) {
+                y++;
+                q = 2;
+            }
+            calcDate = getLastDayOfMonth(y, q);
+            dueDate = getNextWorkingDay(new Date(calcDate.getTime() + 86400000));
+        }
+
+        // --- Semiannual end-of-period (LS) ---
+        if (code === "LS") {
+            const semis = [5, 11]; // Jun, Dec
+            let y = effDate.getFullYear();
+            let s = semis.find(m => getLastDayOfMonth(y, m) >= effDate);
+            if (s === undefined) {
+                y++;
+                s = 5;
+            }
+            calcDate = getLastDayOfMonth(y, s);
+            dueDate = getNextWorkingDay(new Date(calcDate.getTime() + 86400000));
+        }
+
+        // --- Quarterly at start-of-period (VV) ---
+        if (code === "VV") {
+            const quarterStarts = [0, 3, 6, 9]; // Jan, Apr, Jul, Oct
+            let y = effDate.getFullYear();
+            let startMonth = quarterStarts.find(m => new Date(y, m, 1) >= effDate);
+            if (startMonth === undefined) {
+                y++;
+                startMonth = 0;
+            }
+            calcDate = new Date(y, startMonth, 1);
+            dueDate = calcDate; // start of period → due same day
+        }
+
+        return {
+            frequencyMonths: months,
+            calculationDate: calcDate,
+            dueDate
+        };
+    }
     this.on('UPDATE', ConditionItems.drafts, async (req, next) => {
+
+
+
+
+        try {
+            function formatDateOnly(date) {
+                return date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+            }
+            var conditionData = await SELECT.from(ConditionItems.drafts).where({ conditionId: req.data.conditionId })
+            var effectiveFrom = conditionData[0].effectiveFrom;
+
+            if (req.data.paymentFromExactDay) {
+                const schedule = await getSchedule(
+                    effectiveFrom,
+                    req.data.paymentFromExactDay // e.g. "LM(Monthly end of mo due next day)"
+                );
+
+                console.log("Schedule calculated:", schedule);
+
+
+                // if you want to update back into DB:
+                await UPDATE(ConditionItems.drafts)
+                    .set({
+                        calculationDate: formatDateOnly(schedule.calculationDate),
+                        dueDate: formatDateOnly(schedule.dueDate),
+                        frequencyInMonths: `${schedule.frequencyMonths}`
+                    })
+                    .where({ conditionId: req.data.conditionId });
+
+                var selected_data = await SELECT.from(ConditionItems.drafts).where({ conditionId: req.data.conditionId })
+                console.log("selecteddata", selected_data);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+
+
         try {
             var conditionData = await SELECT.from(ConditionItems.drafts).where({ conditionId: req.data.conditionId })
 
@@ -1062,6 +1198,7 @@ module.exports = cds.service.impl(async function () {
             return next();
         } catch (error) {
         }
+        return next();
     });
     this.on('UPDATE', ConditionItemsNew.drafts, async (req, next) => {
         try {
@@ -1135,6 +1272,171 @@ module.exports = cds.service.impl(async function () {
         } catch (error) {
         }
     });
+
+    function calculateAnnuityRepayment({
+        principal,           // Loan amount
+        fixedFrom,           // Loan start date
+        fixedUntil,          // Loan maturity date
+        interestConditions,  // Array of { start: Date, rate: number }
+        annuityStart         // Date when annuity repayment begins
+    }) {
+        // --- Helper: annuity formula ---
+        function annuityPayment(principal, annualRate, months) {
+            const monthlyRate = annualRate / 12;
+            return principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+        }
+
+        // --- Helper: difference in months ---
+        const diffMonths = (date1, date2) =>
+            (date2.getFullYear() - date1.getFullYear()) * 12 +
+            (date2.getMonth() - date1.getMonth());
+
+        // Duration in months
+        const durationMonths = diffMonths(fixedFrom, fixedUntil);
+
+        // Annuity duration
+        const annuityDurationMonths = diffMonths(annuityStart, fixedUntil);
+
+        // --- Pick the correct interest rate for annuityStart ---
+        // Ensure conditions are sorted by start date
+        interestConditions.sort((a, b) => a.start - b.start);
+
+        let annualInterestRate = interestConditions[0].rate; // default first
+        for (let i = 0; i < interestConditions.length; i++) {
+            if (interestConditions[i].start <= annuityStart) {
+                annualInterestRate = interestConditions[i].rate;
+            } else {
+                break; // stop once condition exceeds annuityStart
+            }
+        }
+
+        // Calculate annuity repayment
+        const annuityAmount = annuityPayment(principal, annualInterestRate, annuityDurationMonths);
+
+        return {
+            annuityAmount,
+            durationMonths,
+            annuityDurationMonths,
+            annualInterestRate
+        };
+    }
+
+
+    const result = calculateAnnuityRepayment({
+        principal: 100000,
+        fixedFrom: new Date("2025-01-01"),
+        fixedUntil: new Date("2027-01-01"),
+        interestConditions: [
+            { start: new Date("2025-01-01"), rate: 0.03 },
+            { start: new Date("2026-01-01"), rate: 0.04 },
+            { start: new Date("2026-07-01"), rate: 0.05 } // dynamically add more
+        ],
+        annuityStart: new Date("2026-01-01")
+    });
+
+    console.log("Annuity Repayment Amount:", result.annuityAmount.toFixed(2));
+    console.log("Rate used:", result.annualInterestRate);
+    console.log("Annuity months:", result.annuityDurationMonths);
+
+
+    this.on('onRatePress', async (req) => {
+        debugger;
+        const { contractId, isActiveEntity } = req.data;
+        console.log("Request data:", req.data);
+
+        // --- Helper: Format Date ---
+        const formatDate = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // --- Helper: Resolve active/draft table ---
+        const getTable = (entity) => (isActiveEntity === "true" ? entity : entity.drafts);
+
+        // --- Build interest periods ---
+        async function buildContractData(contractId) {
+            const itemData = await SELECT.from(getTable(ConditionItems)).where({ contractId });
+            return itemData
+                .filter(oData => oData.conditionTypeText === "Nominal Interest Fixed")
+                .map(oData => ({
+                    start: formatDate(oData.effectiveFrom),
+                    rate: parseFloat(oData.percentage) / 100 || 0
+                }));
+        }
+
+        // --- Fetch parent contract & interest periods ---
+        const [oParent] = await SELECT.from(getTable(Contract)).where({ ID: contractId });
+        const oConditionItems = await SELECT.from(getTable(ConditionItems)).where({
+            contractId: contractId,
+            conditionTypeText: "Annuity repayment"
+        });
+        const interestRates = await buildContractData(contractId);
+
+        console.log("Interest Rates:", interestRates);
+        console.log("Contract:", oParent);
+        console.log("Condition Items:", oConditionItems);
+
+        if (interestRates.length === 0) {
+            let oPrinciple = Number(oParent.commitCapital) || 0;
+            const fixedFrom = moment(oParent.fixedFrom);
+            const fixedUntil = moment(oParent.fixedUntil);
+
+            // Calculate the difference in months
+            const monthDifference = fixedUntil.diff(fixedFrom, 'months');
+            console.log(monthDifference);
+            let amount = oPrinciple / monthDifference;
+
+            await UPDATE(getTable(ConditionItems))
+                .set({ conditionAmt: amount.toFixed(2) })
+                .where({ contractId: contractId, conditionTypeText: "Annuity repayment" });
+
+            return `No interest rates found for Contract ${contractId}. Condition amounts set to ${amount.toFixed(2)}.`;
+        }
+
+        // --- Filter Annuity items ---
+        const annuityItems = oConditionItems.filter(item => item.conditionTypeText === 'Annuity repayment');
+
+        if (annuityItems.length > 0) {
+            // --- Find the item with the lowest sequence ---
+            const firstItem = annuityItems.reduce((prev, curr) => prev.sequence < curr.sequence ? prev : curr);
+
+            const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
+
+            // --- Calculate annuity using the earliest sequence's effectiveFrom ---
+            const result = calculateAnnuityRepayment({
+                principal: Number(oParent.commitCapital),
+                fixedFrom: new Date(oParent.fixedFrom),
+                fixedUntil: new Date(oParent.fixedUntil),
+                interestConditions: interestRates.map(r => ({
+                    start: new Date(r.start),
+                    rate: r.rate
+                })),
+                annuityStart: firstEffectiveFrom
+            });
+
+            console.log("Annuity Repayment (all items):", result);
+
+            // --- Single update for all Annuity repayment items in this contract ---
+            await UPDATE(getTable(ConditionItems))
+                .set({ conditionAmt: result.annuityAmount.toFixed(2) })
+                .where({
+                    contractId: contractId,
+                    conditionTypeText: "Annuity repayment"
+                });
+        }
+
+
+        // --- Final fetch for verification (optional) ---
+        const updatedItems = await SELECT.from(getTable(ConditionItems)).where({ contractId });
+        console.log("Updated Condition Items:", updatedItems);
+
+        return `Annuity calculation updated for Contract ${contractId}`;
+    });
+
+
 });
 
 
