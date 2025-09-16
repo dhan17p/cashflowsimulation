@@ -1,9 +1,10 @@
 sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExtension) {
 	'use strict';
 	function setWidth() {
-
+		debugger
 		var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
-		var conditionItemsColumns = conditionItems.getColumns();
+		var table_ui = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4")
+		var conditionItemsColumns = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4").mAggregations._content.getColumns()
 		// conditionItems.getColumns()[0].setWidth("400px");
 		var columnWidths = [
 			"12.5rem",   // col 0
@@ -15,14 +16,27 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			"8.2rem", // col 6
 			"8.2rem"     // col 7
 		];
+		// let oInnerTable = conditionItems;
+		// oInnerTable.addEventDelegate({
+		// 	onAfterRendering: function () {
+		// 		debugger
+		// 		var oTe = new sap.ui.table.TablePointerExtension(oInnerTable);
+		// 		oInnerTable.getColumns().forEach(function (oColumn, i) {
+		// 			oTe.doAutoResizeColumn(i);
+		// 		});
+		// 	}
+		// });
 
 		// Apply widths
 		conditionItemsColumns.forEach(function (oCol, index) {
 			if (columnWidths[index]) {
-				// debugger
+				debugger
+				// oCol.setAutoResizable(false);
 				oCol.setWidth(columnWidths[index]);
-				oCol._oInnerColumn.setResizable(false);
-				oCol.setMinWidth(2);
+				// oCol.addStyleClass("widthcss")
+
+				// oCol.data("p13nMode", []);
+				// oCol.setMinWidth(2);
 			}
 		});
 		// conditionItemsColumns[1].setWidth("8.3rem");
@@ -46,6 +60,8 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				var oModel = this.base.getExtensionAPI().getModel();
 			},
 			onAfterRendering: function () {
+				debugger
+
 				// Get the Object Page
 				var oObjectPage = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage");
 

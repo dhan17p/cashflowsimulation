@@ -1,6 +1,52 @@
 sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExtension) {
 	'use strict';
 
+	function setWidth() {
+		debugger
+		// var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
+		// var table_ui = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4")
+		var conditionItemsColumns = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4").mAggregations._content.getColumns()
+		// conditionItems.getColumns()[0].setWidth("400px");
+		var columnWidths = [
+			"12.5rem",   // col 0
+			"8.2rem", // col 1
+			"5.5rem",  // col 2
+			"7rem",    // col 3
+			"19rem",   // col 4
+			"9.5rem",  // col 5
+			"8.2rem", // col 6
+			"8.2rem"     // col 7
+		];
+		// let oInnerTable = conditionItems;
+		// oInnerTable.addEventDelegate({
+		// 	onAfterRendering: function () {
+		// 		debugger
+		// 		var oTe = new sap.ui.table.TablePointerExtension(oInnerTable);
+		// 		oInnerTable.getColumns().forEach(function (oColumn, i) {
+		// 			oTe.doAutoResizeColumn(i);
+		// 		});
+		// 	}
+		// });
+
+		// Apply widths
+		conditionItemsColumns.forEach(function (oCol, index) {
+			if (columnWidths[index]) {
+				debugger
+				// oCol.setAutoResizable(false);
+				oCol.setWidth(columnWidths[index]);
+				// oCol.addStyleClass("widthcss")
+
+				// oCol.data("p13nMode", []);
+				// oCol.setMinWidth(2);
+			}
+		});
+		// conditionItemsColumns[1].setWidth("8.3rem");
+		// console.log(conditionItemsColumns[1].getWidth());
+		// debugger
+
+
+	}
+
 	return ControllerExtension.extend('loancreation.ext.controller.Objectpagecont', {
 		// this section allows to extend lifecycle hooks or hooks provided by Fiori elements
 		override: {
@@ -9,19 +55,21 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
 			 * @memberOf loancreation.ext.controller.Objectpagecont
 			 */
+
+
 			onInit: function () {
 				// you can access the Fiori elements extensionAPI via this.base.getExtensionAPI
 				var oModel = this.base.getExtensionAPI().getModel();
 			},
 			onAfterRendering: function () {
 				// Get the Object Page
-				var oObjectPage = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage");
+				var oObjectPage = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage");
 
 				// Attach the event
 				if (oObjectPage) {
 					oObjectPage.attachSectionChange(function (oEvent) {
 						var oSection = oEvent.getParameter("section");
-						// setWidth();
+						setWidth()
 						// 👉 your logic here
 					});
 				}
@@ -30,8 +78,8 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				onBeforeBinding1: function () {
 					debugger
 					try {
-						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
-						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
+						// sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
+						// sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
 						sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::Form::Conditions1::Content").mAggregations.formContainers[0].getTitle().destroy()
 
 					} catch (error) {
@@ -41,6 +89,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				},
 				onAfterBinding: function () {
 					debugger
+
 
 					// setWidth();
 					const oDatePicker = sap.ui.getCore().byId(

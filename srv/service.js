@@ -524,7 +524,7 @@ module.exports = cds.service.impl(async function () {
                 currentDate = nextDate.clone();
                 // guard final repayment if we passed finalRepCutoff
                 if (nextDate.isAfter(finalRepCutoff)) {
-                    if (Math.abs(outstandingPrincipal) > 0.01) pushFinalRepayment(periodStart, finalRepCutoff);
+                    if (Math.abs(outstandingPrincipal) > 1) pushFinalRepayment(periodStart, finalRepCutoff);
                     break;
                 }
                 continue;
@@ -583,7 +583,7 @@ module.exports = cds.service.impl(async function () {
             // Advance currentDate to next month
             // Final period detection: if nextDate passes finalRepCutoff - push final and break
             if (inclusive ? nextDate.isSameOrAfter(finalRepCutoff) : nextDate.isAfter(finalRepCutoff)) {
-                if (Math.abs(outstandingPrincipal) > 0.01) {
+                if (Math.abs(outstandingPrincipal) > 1) {
                     // use periodStart as calcFrom and finalRepCutoff as due
                     pushFinalRepayment(periodStart, finalRepCutoff);
                     outstandingPrincipal = 0;
@@ -595,7 +595,7 @@ module.exports = cds.service.impl(async function () {
         }
 
         // Safety: if anything remains unpaid after loop
-        if (Math.abs(outstandingPrincipal) > 0.01) {
+        if (Math.abs(outstandingPrincipal) > 1) {
             // push final repayment on finalRepCutoff
             pushFinalRepayment(moment(finalRepDate).startOf('month'), finalRepCutoff);
         }
@@ -623,28 +623,46 @@ module.exports = cds.service.impl(async function () {
     //     inclusive: true
     // };
 
+    
+    
+    // const input = {
+    //     commitCapital: 100000, // loan amount
+    //     startDate: "01/01/2025",
+    //     endDate: "01/01/2027",
+    //     interestPeriods: [
+    //         { start: "01/01/2025", rate: 0.03, freqinmonths: 3, firstduedate: "01/04/2025", firstCaldate: "31/03/2025" },
+    //         { start: "01/01/2026", rate: 0.04, freqinmonths: 3, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+    //     ],
+    //     repaymentChanges: [
+    //         { start: "01/01/2026", amount: 6000, freqinmonths: 1, firstduedate: "01/01/2026", firstCaldate: "31/01/2026" },
+    //         { start: "01/03/2026", amount: 7000, freqinmonths: 1, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+    //     ],
+    //     finalRepaymentDate: "01/12/2026",
+    //     paymentFrequencyMonths: 1, // monthly schedule
+    //     interestCalcMethod: "360/360",
+    //     inclusive: true
+    // };
+
+    // const schedule = calculateLoanScheduleFlexible(input);
+    // console.table(schedule);
     const input = {
         commitCapital: 100000, // loan amount
-        startDate: "01/01/2025",
+        startDate: "09/01/2025",
         endDate: "01/01/2027",
         interestPeriods: [
-            { start: "01/01/2025", rate: 0.03, freqinmonths: 3, firstduedate: "01/04/2025", firstCaldate: "31/03/2025" },
-            { start: "01/01/2026", rate: 0.04, freqinmonths: 3, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+            { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
         ],
         repaymentChanges: [
-            { start: "01/01/2026", amount: 6000, freqinmonths: 1, firstduedate: "01/01/2026", firstCaldate: "31/01/2026" },
-            { start: "01/03/2026", amount: 7000, freqinmonths: 1, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+            { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
         ],
         finalRepaymentDate: "01/12/2026",
         paymentFrequencyMonths: 1, // monthly schedule
-        interestCalcMethod: "360/360",
+        interestCalcMethod: "act/360",
         inclusive: true
     };
 
     const schedule = calculateLoanScheduleFlexible(input);
     console.table(schedule);
-
-
 
     // // Example usage
     // const scheduleACT = calculateLoanScheduleFlexible({
@@ -1678,69 +1696,82 @@ module.exports = cds.service.impl(async function () {
     });
 
     function calculateAnnuityRepayment({
-        principal,           // Loan amount
-        fixedFrom,           // Loan start date
-        fixedUntil,          // Loan maturity date
-        interestConditions,  // Array of { start: Date, rate: number }
-        annuityStart         // Date when annuity repayment begins
+        principal,
+        fixedFrom,
+        fixedUntil,
+        interestConditions,
+        annuityStart,
+        interestCalcMethod = "360/360"
     }) {
-        // --- Helper: annuity formula ---
-        function annuityPayment(principal, annualRate, months) {
-            const monthlyRate = annualRate / 12;
-            return principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
-        }
-
-        // --- Helper: difference in months ---
-        const diffMonths = (date1, date2) =>
-            (date2.getFullYear() - date1.getFullYear()) * 12 +
-            (date2.getMonth() - date1.getMonth());
-
-        // Duration in months
-        const durationMonths = diffMonths(fixedFrom, fixedUntil);
-
-        // Annuity duration
-        const annuityDurationMonths = diffMonths(annuityStart, fixedUntil);
-
-        // --- Pick the correct interest rate for annuityStart ---
-        // Ensure conditions are sorted by start date
+        // --- Determine applicable interest rate at annuityStart ---
         interestConditions.sort((a, b) => a.start - b.start);
-
-        let annualInterestRate = interestConditions[0].rate; // default first
-        for (let i = 0; i < interestConditions.length; i++) {
-            if (interestConditions[i].start <= annuityStart) {
-                annualInterestRate = interestConditions[i].rate;
-            } else {
-                break; // stop once condition exceeds annuityStart
-            }
+        let annualInterestRate = interestConditions[0].rate;
+        for (let cond of interestConditions) {
+            if (cond.start <= annuityStart) annualInterestRate = cond.rate;
+            else break;
         }
 
-        // Calculate annuity repayment
-        const annuityAmount = annuityPayment(principal, annualInterestRate, annuityDurationMonths);
+        // --- Compute number of months for annuity ---
+        const annuityDurationMonths =
+            (fixedUntil.getFullYear() - annuityStart.getFullYear()) * 12 +
+            (fixedUntil.getMonth() - annuityStart.getMonth());
+
+        let fixedAnnuity = 0;
+
+        if (interestCalcMethod === "360/360") {
+            const monthlyRate = annualInterestRate / 12;
+            fixedAnnuity = principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -annuityDurationMonths));
+        } else if (interestCalcMethod === "act/360") {
+            // Compute total days over annuity period
+            let totalDays = 0;
+            let current = new Date(annuityStart);
+            for (let i = 0; i < annuityDurationMonths; i++) {
+                let next = new Date(current);
+                next.setMonth(next.getMonth() + 1);
+                totalDays += Math.round((next - current) / (1000 * 60 * 60 * 24));
+                current = next;
+            }
+            const avgMonthlyRate = annualInterestRate * (totalDays / 360 / annuityDurationMonths);
+            fixedAnnuity = principal * avgMonthlyRate / (1 - Math.pow(1 + avgMonthlyRate, -annuityDurationMonths));
+        }
 
         return {
-            annuityAmount,
-            durationMonths,
-            annuityDurationMonths,
-            annualInterestRate
-        };
+            annuityAmount: fixedAnnuity
+        }
     }
 
+    // --- Example usage ---
+    // const resultAct360 = calculateAnnuityRepayment({
+    //     principal: 100000,
+    //     fixedFrom: new Date("2025-01-01"),
+    //     fixedUntil: new Date("2027-01-01"),
+    //     interestConditions: [
+    //         { start: new Date("2025-01-01"), rate: 0.03 },
+    //         { start: new Date("2026-01-01"), rate: 0.04 }
+    //     ],
+    //     annuityStart: new Date("2026-01-01"),
+    //     interestCalcMethod: "360/360"
+    // });
 
-    const result = calculateAnnuityRepayment({
+    // console.log("Annuity Amount:", resultAct360); // 10187.95
+    const resultAct360 = calculateAnnuityRepayment({
         principal: 100000,
         fixedFrom: new Date("2025-01-01"),
         fixedUntil: new Date("2027-01-01"),
         interestConditions: [
             { start: new Date("2025-01-01"), rate: 0.03 },
-            { start: new Date("2026-01-01"), rate: 0.04 },
-            { start: new Date("2026-07-01"), rate: 0.05 } // dynamically add more
+            { start: new Date("2026-01-01"), rate: 0.04 }
         ],
-        annuityStart: new Date("2026-01-01")
+        annuityStart: new Date("2026-03-01"),
+        interestCalcMethod: "act/360"
     });
 
-    console.log("Annuity Repayment Amount:", result.annuityAmount.toFixed(2));
-    console.log("Rate used:", result.annualInterestRate);
-    console.log("Annuity months:", result.annuityDurationMonths);
+    console.log("Annuity Amount:", resultAct360); // 10187.95
+
+
+    // console.log("Annuity Repayment Amount:", result.annuityAmount.toFixed(2));
+    // console.log("Rate used:", result.annualInterestRate);
+    // console.log("Annuity months:", result.annuityDurationMonths);
 
 
     this.on('onRatePress', async (req) => {
@@ -1820,7 +1851,8 @@ module.exports = cds.service.impl(async function () {
                     start: new Date(r.start),
                     rate: r.rate
                 })),
-                annuityStart: firstEffectiveFrom
+                annuityStart: firstEffectiveFrom,
+                interestCalcMethod: oParent.intCalMt || "360/360"
             });
 
             console.log("Annuity Repayment (all items):", result);
@@ -1918,7 +1950,8 @@ module.exports = cds.service.impl(async function () {
                     start: new Date(r.start),
                     rate: r.rate
                 })),
-                annuityStart: firstEffectiveFrom
+                annuityStart: firstEffectiveFrom,
+                interestCalcMethod: oParent.intCalMt || "360/360"
             });
 
             console.log("Payment Amount (all items):", result);

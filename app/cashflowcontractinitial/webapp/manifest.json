@@ -175,11 +175,8 @@
                   },
                   "actions": {
                     "rateCal": {
-                      "press": "cashflowcontractinitial.ext.controller.RateCalc.onRateCalcPress",
-                      "visible": true,
-                      "enabled": true,
-                      "requiresSelection": false,
-                      "text": "Rate"
+                      "text": "Rate",
+                      "press": "cashflowcontractinitial.ext.controller.RateCalc.onRateCalcPress"
                     }
                   }
                 }

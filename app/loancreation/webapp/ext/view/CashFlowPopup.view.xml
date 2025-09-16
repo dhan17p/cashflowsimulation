@@ -1,12 +1,9 @@
-<!-- <mvc:View xmlns:core="sap.ui.core"
-    xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m"
-    xmlns:macros="sap.fe.macros" -->
-    <!-- xmlns:html="http://www.w3.org/1999/xhtml" controllerName="loancreation.ext.view.CashFlowPopup"> -->
-    <!-- <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}">
+<!-- <mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:macros="sap.fe.macros" -->
+<!-- xmlns:html="http://www.w3.org/1999/xhtml" controllerName="loancreation.ext.view.CashFlowPopup"> -->
+<!-- <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}">
         <content></content>
     </Page> -->
-    <mvc:View xmlns:core="sap.ui.core"
+<mvc:View xmlns:core="sap.ui.core"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:ui="sap.ui.table"
@@ -19,7 +16,7 @@
         <content>
 
             <!-- Loan Header Details -->
-            <f:SimpleForm editable="false" layout="ResponsiveGridLayout" class="fixedForm loanHeaderForm">
+            <!-- <f:SimpleForm editable="false" layout="ResponsiveGridLayout" class="fixedForm loanHeaderForm">
                 <f:content>
                     <Label text="Loan Number" design="Bold" />
                     <Text text="{keyData>/loanNumber}" class="valueText" />
@@ -38,13 +35,103 @@
                     <Label text="Loan Program" design="Bold" />
                     <Text text="{keyData>/loanType}" class="valueText"/>
                 </f:content>
-            </f:SimpleForm>
+            </f:SimpleForm> -->
+
+            <f:Form id="FormChangeColumn_oneGroup234" class="FormCashflowpop" editable="false">
+                <f:layout>
+                    <f:ColumnLayout columnsM="2" columnsL="3" columnsXL="4" />
+                </f:layout>
+                <f:formContainers>
+                    <f:FormContainer>
+                        <f:formElements>
+
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Loan Number" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/loanNumber}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Agency" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/productType}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Status" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/status}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Disb. Status" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/disbursementStatus}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Loan Partner" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/loanPartner}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+                            <f:FormElement>
+                                <f:label>
+                                    <Label text="Loan Program" design="Bold"/>
+                                </f:label>
+                                <f:fields>
+                                    <Text text="{keyData>/loanType}⠀⠀⠀⠀">
+                                        <layoutData>
+                                            <f:ColumnElementData cellsLarge="1"/>
+                                        </layoutData>
+                                    </Text>
+                                </f:fields>
+                            </f:FormElement>
+
+                        </f:formElements>
+                    </f:FormContainer>
+                </f:formContainers>
+            </f:Form>
 
             <!-- Loan Amortization Table -->
             <ui:Table id="ConditionTablepopscreen" rows="{/AmortizationSchedule2New}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" visibleRowCount="8" class="customTable">
 
                 <ui:rowMode>
-                    <uirm:Fixed rowCount="8"/>
+                    <uirm:Fixed rowCount="12"/>
                 </ui:rowMode>
 
                 <ui:columns>

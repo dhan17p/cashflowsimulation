@@ -10,6 +10,13 @@
 }
 
 
+.FormCashflowpop {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 15px;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
 
 /* //dialog */
 .conditionTableCls {
@@ -47,6 +54,7 @@
   background-color: #f9fafb;
   /* light gray */
   padding: 1rem;
+  padding-right: 1rem;
 }
 
 /* Header Form Styling */
@@ -136,6 +144,7 @@
   display: none !important;
 
 }
+
 .sapUiSizeCompact .sapUiFormCL>.sapUiFormContainerTitle,
 .sapUiSizeCompact .sapUiFormCL>.sapUiFormContainerToolbar,
 .sapUiSizeCompact .sapUiFormCLMedia-Std-Phone>.sapUiFormCLContent>.sapUiFormCLContainerSFirstRow.sapUiFormContainerTitle,
@@ -200,4 +209,11 @@
 .sapUxAPObjectPageLayout-Std-Phone .sapUxAPObjectPageSubSection .sapUiRespGrid.sapUiRespGridHSpace1 {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+}
+
+
+.widthcss{
+  width: 200px !important;
+  background-color: red !important;
+  align-items: center !important;
 }
