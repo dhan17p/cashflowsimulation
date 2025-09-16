@@ -193,6 +193,12 @@
                 "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
                   "tableSettings": {
                     "type": "GridTable"
+                  },
+                  "actions": {
+                    "rateCal": {
+                      "press": "loancreation.ext.controller.RateCalc.onRatePress",
+                      "text": "Rate"
+                    }
                   }
                 }
               }

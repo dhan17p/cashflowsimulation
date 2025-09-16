@@ -39,6 +39,267 @@ module.exports = cds.service.impl(async function () {
     })
 
 
+    // const moment = require("moment");
+
+    // function calculateLoanScheduleFlexible({
+    //     commitCapital,
+    //     startDate,
+    //     endDate,
+    //     interestPeriods,
+    //     repaymentChanges,
+    //     finalRepaymentDate,
+    //     paymentFrequencyMonths = 1,
+    //     interestCalcMethod = "360/360", // Accepts "360/360" or "act/360"
+    //     inclusive
+    // }) {
+    //     // Sort dynamic inputs by start date
+    //     interestPeriods.sort((a, b) =>
+    //         moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
+    //     );
+    //     repaymentChanges.sort((a, b) =>
+    //         moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
+    //     );
+
+    //     // Days calculation
+    //     const getDays = (start, end) => {
+    //         if (interestCalcMethod === "360/360") {
+    //             let d1 = start.date(), d2 = end.date();
+    //             let m1 = start.month() + 1, m2 = end.month() + 1;
+    //             let y1 = start.year(), y2 = end.year();
+
+    //             if (d1 === 31) d1 = 30;
+    //             if (d2 === 31 && d1 === 30) d2 = 30;
+
+    //             return 360 * (y2 - y1) + 30 * (m2 - m1) + (d2 - d1);
+    //         } else if (interestCalcMethod === "act/360") {
+    //             return end.diff(start, "days");
+    //         }
+    //         return 0;
+    //     };
+
+    //     // Get current interest plan based on freqinmonths
+    //     const getCurrentInterestPlan = (date) => {
+    //         let plan = { rate: 0, freqinmonths: paymentFrequencyMonths, start: startDate };
+    //         for (const ip of interestPeriods) {
+    //             if (date.isSameOrAfter(moment(ip.start, 'DD/MM/YYYY'))) {
+    //                 plan = {
+    //                     rate: ip.rate,
+    //                     freqinmonths: ip.freqinmonths || paymentFrequencyMonths,
+    //                     start: ip.start
+    //                 };
+    //             }
+    //         }
+    //         return plan;
+    //     };
+
+    //     // Get current repayment plan based on freqinmonths
+    //     const getCurrentRepaymentPlan = (date) => {
+    //         let plan = { amount: 0, freqinmonths: paymentFrequencyMonths, start: startDate };
+    //         for (const rep of repaymentChanges) {
+    //             if (date.isSameOrAfter(moment(rep.start, 'DD/MM/YYYY'))) {
+    //                 plan = {
+    //                     amount: rep.amount,
+    //                     freqinmonths: rep.freqinmonths || paymentFrequencyMonths,
+    //                     start: rep.start
+    //                 };
+    //             }
+    //         }
+    //         return plan;
+    //     };
+
+    //     // --- Status helper (easy to change later) ---
+    //     function getStatus(flowType /*, optionally you can pass dueDate or settlement data later */) {
+    //         if (flowType === "0001") return "S"; // disbursement settled
+    //         return "P"; // everything else planned by default
+    //     }
+
+    //     let schedule = [];
+    //     let outstandingPrincipal = commitCapital;
+    //     let currentDate = moment(startDate, 'DD/MM/YYYY');
+    //     let lastPeriodStart = currentDate.clone(); // keep track of the current period start
+    //     const finalDate = moment(endDate, 'DD/MM/YYYY');
+    //     const finalRepDate = moment(finalRepaymentDate, 'DD/MM/YYYY');
+    //     const finalRepCutoff = finalRepDate.clone().add(1, "month"); // include last month as cutoff
+    //     let index = 1;
+
+    //     // --- Add Loan Disbursement row as the first entry ---
+    //     schedule.push({
+    //         "Index": index++,
+    //         "flowType": "0001",
+    //         "Calculation From": currentDate.format('DD/MM/YYYY'),
+    //         "Due Date": currentDate.format('DD/MM/YYYY'),
+    //         "Calculation Date": currentDate.format('DD/MM/YYYY'),
+    //         "Outstanding Principal Start": "",
+    //         "Interest Rate (%)": "",
+    //         "Days": "",
+    //         "Name": "Loan disbursement",
+    //         "Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+    //         "Repayment Amount": "",
+    //         "Principal Repayment": "",
+    //         "Interest Amount": "",
+    //         "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
+    //         "Planned/Incurred Status": getStatus("0001")
+    //     });
+
+    //     // --- Helper: Push Final Repayment (uses explicit fromDate and dueDate) ---
+    //     function pushFinalRepayment(fromDate, dueDate) {
+    //         const calcFrom = (fromDate && fromDate.format) ? fromDate.format('DD/MM/YYYY') : lastPeriodStart.format('DD/MM/YYYY');
+    //         const due = (dueDate && dueDate.format) ? dueDate.format('DD/MM/YYYY') : finalRepCutoff.format('DD/MM/YYYY');
+    //         const calcDate = finalRepDate.clone().endOf('month').format('DD/MM/YYYY');
+
+    //         schedule.push({
+    //             "Index": index++,
+    //             "flowType": "0115",
+    //             "Calculation From": calcFrom,
+    //             "Due Date": due,
+    //             "Calculation Date": calcDate,
+    //             "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
+    //             "Interest Rate (%)": "",
+    //             "Days": "",
+    //             "Name": "Final Repayment",
+    //             "Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+    //             "Repayment Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+    //             "Principal Repayment": parseFloat(outstandingPrincipal.toFixed(2)),
+    //             "Interest Amount": "",
+    //             "Outstanding Principal End": 0,
+    //             "Planned/Incurred Status": getStatus("0115")
+    //         });
+    //     }
+
+    //     let finalAdded = false;
+
+    //     while (currentDate.isBefore(finalDate)) {
+    //         // capture start of this period
+    //         lastPeriodStart = currentDate.clone();
+
+    //         let nextDate = currentDate.clone().add(paymentFrequencyMonths, 'months');
+    //         let days = getDays(currentDate, nextDate);
+
+    //         const interestPlan = getCurrentInterestPlan(currentDate);
+    //         const repaymentPlan = getCurrentRepaymentPlan(currentDate);
+
+    //         const monthsSinceInterestStart = currentDate.diff(moment(interestPlan.start, 'DD/MM/YYYY'), 'months') + 1;
+    //         const monthsSinceRepaymentStart = currentDate.diff(moment(repaymentPlan.start, 'DD/MM/YYYY'), 'months') + 1;
+
+    //         const principalStart = outstandingPrincipal;
+
+    //         // Determine interest for this period based on freqinmonths
+    //         let interest = 0;
+    //         if (monthsSinceInterestStart % interestPlan.freqinmonths === 0) {
+    //             interest = outstandingPrincipal * interestPlan.rate * days / 360;
+    //         }
+
+    //         // Determine principal repayment for this period based on freqinmonths
+    //         let scheduledAnnuity = 0;
+    //         if (monthsSinceRepaymentStart % repaymentPlan.freqinmonths === 0) {
+    //             scheduledAnnuity = repaymentPlan.amount;
+    //         }
+
+    //         let principalRepayment = Math.max(0, Math.min(scheduledAnnuity - interest, outstandingPrincipal));
+    //         let repayment = principalRepayment + interest;
+
+    //         // Last period detection
+    //         const isLastPeriod = inclusive
+    //             ? nextDate.isSameOrAfter(finalRepCutoff)
+    //             : nextDate.isAfter(finalRepCutoff);
+
+    //         let calculationDate = nextDate.clone().subtract(1, 'days');
+    //         if (interestCalcMethod === "360/360" && calculationDate.date() === 31) {
+    //             calculationDate.date(30);
+    //         }
+
+    //         // --- Interest row ---
+    //         if (interest !== 0) {
+    //             schedule.push({
+    //                 "Index": index++,
+    //                 "flowType": "0110",
+    //                 "Calculation From": currentDate.format('DD/MM/YYYY'),
+    //                 "Due Date": nextDate.format('DD/MM/YYYY'),
+    //                 "Calculation Date": calculationDate.format('DD/MM/YYYY'),
+    //                 "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
+    //                 "Interest Rate (%)": parseFloat((interestPlan.rate * 100).toFixed(2)),
+    //                 "Days": days,
+    //                 "Name": "Interest Receivable",
+    //                 "Amount": parseFloat(interest.toFixed(2)),
+    //                 "Repayment Amount": "",
+    //                 "Principal Repayment": "",
+    //                 "Interest Amount": parseFloat(interest.toFixed(2)),
+    //                 "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
+    //                 "Planned/Incurred Status": getStatus("0110")
+    //             });
+    //         }
+
+    //         // --- Annuity row ---
+    //         if (principalRepayment !== 0) {
+    //             outstandingPrincipal -= principalRepayment;
+    //             schedule.push({
+    //                 "Index": index++,
+    //                 "flowType": "0125",
+    //                 "Calculation From": currentDate.format('DD/MM/YYYY'),
+    //                 "Due Date": nextDate.format('DD/MM/YYYY'),
+    //                 "Calculation Date": calculationDate.format('DD/MM/YYYY'),
+    //                 "Outstanding Principal Start": "",
+    //                 "Interest Rate (%)": "",
+    //                 "Days": days,
+    //                 "Name": "Principal Receivable",
+    //                 "Amount": parseFloat(principalRepayment.toFixed(2)),
+    //                 "Repayment Amount": parseFloat(repayment.toFixed(2)),
+    //                 "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
+    //                 "Interest Amount": "",
+    //                 "Outstanding Principal End": "",
+    //                 "Planned/Incurred Status": getStatus("0125")
+    //             });
+    //         }
+
+
+    //         // --- Final repayment inside loop (use precise from/due when we detect it) ---
+    //         if (isLastPeriod && Math.abs(outstandingPrincipal) > 0.01) {
+    //             pushFinalRepayment(currentDate, nextDate); // use current period start & nextDate as dueDate
+    //             outstandingPrincipal = 0;
+    //             finalAdded = true;
+    //             break;
+    //         }
+
+    //         currentDate = nextDate.clone();
+    //     }
+
+    //     // --- Safety: Add final repayment after loop if anything remains (use lastPeriodStart and finalRepCutoff) ---
+    //     if (!finalAdded && Math.abs(outstandingPrincipal) > 0.01) {
+    //         pushFinalRepayment(lastPeriodStart, finalRepCutoff);
+    //         outstandingPrincipal = 0;
+    //         finalAdded = true;
+    //     }
+
+    //     return schedule;
+    // }
+
+
+
+    // const input = {
+    //     commitCapital: 100000, // loan amount
+    //     startDate: "01/01/2025",
+    //     endDate: "01/01/2027",
+    //     interestPeriods: [
+    //         { start: "01/01/2025", rate: 0.03, freqinmonths: 1 }, // yearly reset at 3%
+    //         { start: "01/01/2026", rate: 0.04, freqinmonths: 1 }   // monthly reset at 4%
+    //     ],
+    //     repaymentChanges: [
+    //         { start: "01/01/2026", amount: 6000, freqinmonths: 1 }, // every 2 months
+    //         { start: "01/03/2026", amount: 7000, freqinmonths: 1 }  // overrides → monthly
+    //     ],
+    //     finalRepaymentDate: "01/12/2026",
+    //     paymentFrequencyMonths: 1, // monthly schedule
+    //     interestCalcMethod: "360/360",
+    //     inclusive: true
+    // };
+
+    // // === Function Call ===
+    // const schedule = calculateLoanScheduleFlexible(input);
+
+    // // === Output ===
+    // console.table(schedule);
+
+    // Run with: node file.js
     const moment = require("moment");
 
     function calculateLoanScheduleFlexible({
@@ -49,18 +310,16 @@ module.exports = cds.service.impl(async function () {
         repaymentChanges,
         finalRepaymentDate,
         paymentFrequencyMonths = 1,
-        interestCalcMethod = "360/360", // Accepts "360/360" or "act/360"
-        inclusive
+        interestCalcMethod = "360/360",
+        inclusive = true
     }) {
-        // Sort dynamic inputs by start date
-        interestPeriods.sort((a, b) =>
-            moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
-        );
-        repaymentChanges.sort((a, b) =>
-            moment(a.start, 'DD/MM/YYYY') - moment(b.start, 'DD/MM/YYYY')
-        );
+        // normalize & sort
+        interestPeriods = (interestPeriods || []).slice();
+        repaymentChanges = (repaymentChanges || []).slice();
 
-        // Days calculation
+        interestPeriods.sort((a, b) => moment(a.start, 'DD/MM/YYYY').diff(moment(b.start, 'DD/MM/YYYY')));
+        repaymentChanges.sort((a, b) => moment(a.start, 'DD/MM/YYYY').diff(moment(b.start, 'DD/MM/YYYY')));
+
         const getDays = (start, end) => {
             if (interestCalcMethod === "360/360") {
                 let d1 = start.date(), d2 = end.date();
@@ -77,52 +336,32 @@ module.exports = cds.service.impl(async function () {
             return 0;
         };
 
-        // Get current interest plan based on freqinmonths
-        const getCurrentInterestPlan = (date) => {
-            let plan = { rate: 0, freqinmonths: paymentFrequencyMonths, start: startDate };
-            for (const ip of interestPeriods) {
-                if (date.isSameOrAfter(moment(ip.start, 'DD/MM/YYYY'))) {
-                    plan = {
-                        rate: ip.rate,
-                        freqinmonths: ip.freqinmonths || paymentFrequencyMonths,
-                        start: ip.start
-                    };
-                }
+        const getPlanForDate = (plans, date, defaultFreq) => {
+            // return latest plan whose start <= date
+            let plan = { freqinmonths: defaultFreq, start: startDate, firstduedate: null, firstCaldate: null };
+            for (const p of plans) {
+                if (moment(date, 'DD/MM/YYYY').isSameOrAfter(moment(p.start, 'DD/MM/YYYY'))) {
+                    plan = Object.assign({}, p);
+                    plan.freqinmonths = p.freqinmonths || defaultFreq;
+                } else break;
             }
             return plan;
         };
 
-        // Get current repayment plan based on freqinmonths
-        const getCurrentRepaymentPlan = (date) => {
-            let plan = { amount: 0, freqinmonths: paymentFrequencyMonths, start: startDate };
-            for (const rep of repaymentChanges) {
-                if (date.isSameOrAfter(moment(rep.start, 'DD/MM/YYYY'))) {
-                    plan = {
-                        amount: rep.amount,
-                        freqinmonths: rep.freqinmonths || paymentFrequencyMonths,
-                        start: rep.start
-                    };
-                }
-            }
-            return plan;
-        };
-
-        // --- Status helper (easy to change later) ---
-        function getStatus(flowType /*, optionally you can pass dueDate or settlement data later */) {
-            if (flowType === "0001") return "S"; // disbursement settled
-            return "P"; // everything else planned by default
+        function getStatus(flowType) {
+            if (flowType === "0001") return "S";
+            return "P";
         }
 
-        let schedule = [];
+        const schedule = [];
         let outstandingPrincipal = commitCapital;
         let currentDate = moment(startDate, 'DD/MM/YYYY');
-        let lastPeriodStart = currentDate.clone(); // keep track of the current period start
         const finalDate = moment(endDate, 'DD/MM/YYYY');
         const finalRepDate = moment(finalRepaymentDate, 'DD/MM/YYYY');
-        const finalRepCutoff = finalRepDate.clone().add(1, "month"); // include last month as cutoff
+        const finalRepCutoff = finalRepDate.clone().add(1, 'month');
         let index = 1;
 
-        // --- Add Loan Disbursement row as the first entry ---
+        // Disbursement row
         schedule.push({
             "Index": index++,
             "flowType": "0001",
@@ -141,17 +380,13 @@ module.exports = cds.service.impl(async function () {
             "Planned/Incurred Status": getStatus("0001")
         });
 
-        // --- Helper: Push Final Repayment (uses explicit fromDate and dueDate) ---
-        function pushFinalRepayment(fromDate, dueDate) {
-            const calcFrom = (fromDate && fromDate.format) ? fromDate.format('DD/MM/YYYY') : lastPeriodStart.format('DD/MM/YYYY');
-            const due = (dueDate && dueDate.format) ? dueDate.format('DD/MM/YYYY') : finalRepCutoff.format('DD/MM/YYYY');
+        function pushFinalRepayment(calcFrom, dueDate) {
             const calcDate = finalRepDate.clone().endOf('month').format('DD/MM/YYYY');
-
             schedule.push({
                 "Index": index++,
                 "flowType": "0115",
-                "Calculation From": calcFrom,
-                "Due Date": due,
+                "Calculation From": calcFrom.format('DD/MM/YYYY'),
+                "Due Date": dueDate.format('DD/MM/YYYY'),
                 "Calculation Date": calcDate,
                 "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
                 "Interest Rate (%)": "",
@@ -166,126 +401,239 @@ module.exports = cds.service.impl(async function () {
             });
         }
 
-        let finalAdded = false;
+        // Track interest aggregation bucket for when there are no repayments active
+        let interestBucket = null; // { planStartMoment, freq, bucketMonthsCount, sumInterest, bucketFrom, bucketTo, bucketDays, dueDate, calcDate }
 
+        // We'll iterate month-by-month (paymentFrequencyMonths assumed 1)
+        // Each iteration represents calculation-from = currentDate and calculation-to = monthEnd (nextDate - 1 day)
         while (currentDate.isBefore(finalDate)) {
-            // capture start of this period
-            lastPeriodStart = currentDate.clone();
+            const periodStart = currentDate.clone();
+            const nextDate = currentDate.clone().add(paymentFrequencyMonths, 'months');
+            const periodEnd = nextDate.clone().subtract(1, 'days');
 
-            let nextDate = currentDate.clone().add(paymentFrequencyMonths, 'months');
-            let days = getDays(currentDate, nextDate);
+            // determine current plans by period start
+            const interestPlan = getPlanForDate(interestPeriods, periodStart.format('DD/MM/YYYY'), paymentFrequencyMonths);
+            const repaymentPlan = getPlanForDate(repaymentChanges, periodStart.format('DD/MM/YYYY'), paymentFrequencyMonths);
 
-            const interestPlan = getCurrentInterestPlan(currentDate);
-            const repaymentPlan = getCurrentRepaymentPlan(currentDate);
+            // Determine calculation-related moments for plan buckets:
+            // interest bucket due date: compute nth due from firstduedate so that due > periodStart and corresponds to the bucket containing periodStart
+            const getBucketDueAndCalc = (plan, periodStart) => {
+                if (!plan || !plan.start) return { due: null, calc: null, bucketIndex: 0 };
+                const freq = Math.max(1, plan.freqinmonths || paymentFrequencyMonths);
+                // if firstduedate provided, base on that; otherwise assume due= periodStart+freq months
+                let firstDue = plan.firstduedate ? moment(plan.firstduedate, 'DD/MM/YYYY') : null;
+                let firstCal = plan.firstCaldate ? moment(plan.firstCaldate, 'DD/MM/YYYY') : null;
 
-            const monthsSinceInterestStart = currentDate.diff(moment(interestPlan.start, 'DD/MM/YYYY'), 'months') + 1;
-            const monthsSinceRepaymentStart = currentDate.diff(moment(repaymentPlan.start, 'DD/MM/YYYY'), 'months') + 1;
+                if (firstDue) {
+                    // find the bucket index such that the bucket's calc range covers periodStart
+                    // bucket i covers: calcFrom_i .. calcTo_i, where calcTo_i = (firstCal + (i*freq months) ) (end)
+                    // We'll find smallest i where calcFrom_i <= periodStart <= calcTo_i
+                    // For simplicity: compute distance in months between firstCal (or firstDue-freq if no firstCal) and periodStart
+                    let baseCalc = firstCal ? firstCal.clone() : firstDue.clone().subtract(freq, 'months').endOf('month');
+                    // ensure baseCalc is end-of-month style
+                    // compute months difference (floor)
+                    const monthsDiff = Math.floor(periodStart.diff(baseCalc, 'months', true));
+                    let bucketIndex = monthsDiff >= 0 ? Math.floor(monthsDiff / freq) : -1;
+                    if (bucketIndex < 0) bucketIndex = 0;
+                    // bucket's due = firstDue + bucketIndex * freq months
+                    const due = firstDue.clone().add(bucketIndex * freq, 'months');
+                    const calc = (firstCal ? firstCal.clone().add(bucketIndex * freq, 'months') : due.clone().subtract(1, 'days'));
+                    // adjust if periodStart beyond this due/calc -> advance until covers periodStart
+                    while (periodStart.isAfter(calc)) {
+                        bucketIndex += 1;
+                        due.add(freq, 'months');
+                        calc.add(freq, 'months');
+                    }
+                    return { due, calc, bucketIndex };
+                } else {
+                    // fallback: due = periodStart + freq months, calc = due - 1 day
+                    const due = periodStart.clone().add(freq, 'months');
+                    const calc = due.clone().subtract(1, 'days');
+                    return { due, calc, bucketIndex: 0 };
+                }
+            };
 
-            const principalStart = outstandingPrincipal;
+            const interestBucketInfo = getBucketDueAndCalc(interestPlan, periodStart);
+            const repaymentBucketInfo = getBucketDueAndCalc(repaymentPlan, periodStart);
 
-            // Determine interest for this period based on freqinmonths
-            let interest = 0;
-            if (monthsSinceInterestStart % interestPlan.freqinmonths === 0) {
-                interest = outstandingPrincipal * interestPlan.rate * days / 360;
+            // compute days for this mini-period
+            let days = getDays(periodStart, nextDate);
+
+            // compute interest for this month on current outstanding principal
+            const currentRate = (interestPlan && interestPlan.rate) ? interestPlan.rate : 0;
+            const monthlyInterest = parseFloat((outstandingPrincipal * currentRate * days / 360).toFixed(2));
+
+            // Check if repayments active (non-zero amount)
+            const repaymentActive = repaymentPlan && repaymentPlan.amount && repaymentPlan.amount > 0;
+
+            // --- Case A: No repayment active (repaymentPlan.amount == 0) AND interestPlan.freqinmonths > 1
+            // aggregate months into interest bucket (quarterly) into single row
+            if (!repaymentActive && interestPlan && interestPlan.freqinmonths > 1) {
+                // start bucket if none or if bucket plan changed
+                if (!interestBucket ||
+                    interestBucket.planStart !== interestPlan.start ||
+                    interestBucket.freq !== interestPlan.freqinmonths) {
+                    // start new bucket
+                    const bucketFrom = periodStart.clone();
+                    // bucketTo will be interestBucketInfo.calc (the calculation date) - i.e., end of bucket
+                    const bucketTo = interestBucketInfo.calc.clone();
+                    // bucketDays will be accumulated
+                    interestBucket = {
+                        planStart: interestPlan.start,
+                        freq: interestPlan.freqinmonths,
+                        bucketFrom,
+                        bucketTo,
+                        sumInterest: 0,
+                        sumDays: 0,
+                        due: interestBucketInfo.due.clone(),
+                        calc: interestBucketInfo.calc.clone()
+                    };
+                }
+
+                // accumulate this month's interest
+                interestBucket.sumInterest += monthlyInterest;
+                interestBucket.sumDays += days;
+
+                // check if this month completes the bucket: determine months since plan start
+                const monthsSincePlan = Math.floor(periodStart.diff(moment(interestPlan.start, 'DD/MM/YYYY'), 'months')) + 1;
+                const isBucketEnd = (monthsSincePlan % interestPlan.freqinmonths) === 0;
+
+                if (isBucketEnd) {
+                    // push aggregated interest row
+                    schedule.push({
+                        "Index": index++,
+                        "flowType": "0110",
+                        "Calculation From": interestBucket.bucketFrom.format('DD/MM/YYYY'),
+                        "Due Date": interestBucket.due.format('DD/MM/YYYY'),
+                        "Calculation Date": interestBucket.calc.format('DD/MM/YYYY'),
+                        "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Interest Rate (%)": parseFloat((currentRate * 100).toFixed(7)),
+                        "Days": interestBucket.sumDays,
+                        "Name": "Interest Receivable",
+                        "Amount": parseFloat(interestBucket.sumInterest.toFixed(2)),
+                        "Repayment Amount": "",
+                        "Principal Repayment": "",
+                        "Interest Amount": parseFloat(interestBucket.sumInterest.toFixed(2)),
+                        "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Planned/Incurred Status": getStatus("0110")
+                    });
+                    // reset bucket
+                    interestBucket = null;
+                }
+                // advance month and continue
+                currentDate = nextDate.clone();
+                // guard final repayment if we passed finalRepCutoff
+                if (nextDate.isAfter(finalRepCutoff)) {
+                    if (Math.abs(outstandingPrincipal) > 0.01) pushFinalRepayment(periodStart, finalRepCutoff);
+                    break;
+                }
+                continue;
             }
 
-            // Determine principal repayment for this period based on freqinmonths
-            let scheduledAnnuity = 0;
-            if (monthsSinceRepaymentStart % repaymentPlan.freqinmonths === 0) {
-                scheduledAnnuity = repaymentPlan.amount;
-            }
-
-            let principalRepayment = Math.max(0, Math.min(scheduledAnnuity - interest, outstandingPrincipal));
-            let repayment = principalRepayment + interest;
-
-            // Last period detection
-            const isLastPeriod = inclusive
-                ? nextDate.isSameOrAfter(finalRepCutoff)
-                : nextDate.isAfter(finalRepCutoff);
-
-            let calculationDate = nextDate.clone().subtract(1, 'days');
-            if (interestCalcMethod === "360/360" && calculationDate.date() === 31) {
-                calculationDate.date(30);
-            }
-
-            // --- Interest row ---
-            if (interest !== 0) {
+            // --- Case B: Repayments active OR interestPlan.freqinmonths === 1 => compute monthly (split interest + principal)
+            // Interest row: interest for this month, but due = interestBucketInfo.due (which may be quarter end)
+            if (monthlyInterest > 0) {
                 schedule.push({
                     "Index": index++,
                     "flowType": "0110",
-                    "Calculation From": currentDate.format('DD/MM/YYYY'),
-                    "Due Date": nextDate.format('DD/MM/YYYY'),
-                    "Calculation Date": calculationDate.format('DD/MM/YYYY'),
-                    "Outstanding Principal Start": parseFloat(principalStart.toFixed(2)),
-                    "Interest Rate (%)": parseFloat((interestPlan.rate * 100).toFixed(2)),
+                    "Calculation From": periodStart.format('DD/MM/YYYY'),
+                    "Due Date": interestBucketInfo.due.format('DD/MM/YYYY'),
+                    "Calculation Date": interestBucketInfo.calc.format('DD/MM/YYYY'),
+                    "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
+                    "Interest Rate (%)": parseFloat((currentRate * 100).toFixed(7)),
                     "Days": days,
                     "Name": "Interest Receivable",
-                    "Amount": parseFloat(interest.toFixed(2)),
+                    "Amount": parseFloat(monthlyInterest.toFixed(2)),
                     "Repayment Amount": "",
                     "Principal Repayment": "",
-                    "Interest Amount": parseFloat(interest.toFixed(2)),
+                    "Interest Amount": parseFloat(monthlyInterest.toFixed(2)),
                     "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
                     "Planned/Incurred Status": getStatus("0110")
                 });
             }
 
-            // --- Annuity row ---
-            if (principalRepayment !== 0) {
-                outstandingPrincipal -= principalRepayment;
+            // Principal/Annuity row if repayment scheduled this month
+            let scheduledAnnuity = (repaymentActive) ? repaymentPlan.amount : 0;
+            if (scheduledAnnuity && scheduledAnnuity > 0) {
+                // total payment = scheduledAnnuity; interest portion already charged above; principal = scheduledAnnuity - interest
+                // Use monthlyInterest as interest for this month so principal portion:
+                const principalPortion = Math.max(0, parseFloat((scheduledAnnuity - monthlyInterest).toFixed(2)));
+                // reduce outstanding principal
+                outstandingPrincipal = parseFloat((outstandingPrincipal - principalPortion).toFixed(8));
+
                 schedule.push({
                     "Index": index++,
                     "flowType": "0125",
-                    "Calculation From": currentDate.format('DD/MM/YYYY'),
-                    "Due Date": nextDate.format('DD/MM/YYYY'),
-                    "Calculation Date": calculationDate.format('DD/MM/YYYY'),
+                    "Calculation From": periodStart.format('DD/MM/YYYY'),
+                    "Due Date": repaymentBucketInfo.due.format('DD/MM/YYYY'),
+                    "Calculation Date": repaymentBucketInfo.calc.format('DD/MM/YYYY'),
                     "Outstanding Principal Start": "",
                     "Interest Rate (%)": "",
                     "Days": days,
                     "Name": "Principal Receivable",
-                    "Amount": parseFloat(principalRepayment.toFixed(2)),
-                    "Repayment Amount": parseFloat(repayment.toFixed(2)),
-                    "Principal Repayment": parseFloat(principalRepayment.toFixed(2)),
+                    "Amount": parseFloat(principalPortion.toFixed(2)),          // principal part shown as "Amount"
+                    "Repayment Amount": parseFloat(scheduledAnnuity.toFixed(2)), // total payment
+                    "Principal Repayment": parseFloat(principalPortion.toFixed(2)),
                     "Interest Amount": "",
-                    "Outstanding Principal End": "",
+                    "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
                     "Planned/Incurred Status": getStatus("0125")
                 });
             }
 
-
-            // --- Final repayment inside loop (use precise from/due when we detect it) ---
-            if (isLastPeriod && Math.abs(outstandingPrincipal) > 0.01) {
-                pushFinalRepayment(currentDate, nextDate); // use current period start & nextDate as dueDate
-                outstandingPrincipal = 0;
-                finalAdded = true;
+            // Advance currentDate to next month
+            // Final period detection: if nextDate passes finalRepCutoff - push final and break
+            if (inclusive ? nextDate.isSameOrAfter(finalRepCutoff) : nextDate.isAfter(finalRepCutoff)) {
+                if (Math.abs(outstandingPrincipal) > 0.01) {
+                    // use periodStart as calcFrom and finalRepCutoff as due
+                    pushFinalRepayment(periodStart, finalRepCutoff);
+                    outstandingPrincipal = 0;
+                }
                 break;
             }
 
             currentDate = nextDate.clone();
         }
 
-        // --- Safety: Add final repayment after loop if anything remains (use lastPeriodStart and finalRepCutoff) ---
-        if (!finalAdded && Math.abs(outstandingPrincipal) > 0.01) {
-            pushFinalRepayment(lastPeriodStart, finalRepCutoff);
-            outstandingPrincipal = 0;
-            finalAdded = true;
+        // Safety: if anything remains unpaid after loop
+        if (Math.abs(outstandingPrincipal) > 0.01) {
+            // push final repayment on finalRepCutoff
+            pushFinalRepayment(moment(finalRepDate).startOf('month'), finalRepCutoff);
         }
 
         return schedule;
     }
 
 
+    // ----------------- test with your sample input -----------------
+    // const input = {
+    //     commitCapital: 100000, // loan amount
+    //     startDate: "01/01/2025",
+    //     endDate: "01/01/2027",
+    //     interestPeriods: [
+    //         { start: "01/01/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/02/2025", firstCaldate: "31/01/2025" },
+    //         { start: "01/01/2026", rate: 0.04, freqinmonths: 1, firstduedate: "01/02/2026", firstCaldate: "31/01/2026" }
+    //     ],
+    //     repaymentChanges: [
+    //         { start: "01/01/2026", amount: 6000, freqinmonths: 1, firstduedate: "01/01/2026", firstCaldate: "31/01/2026" },
+    //         { start: "01/03/2026", amount: 7000, freqinmonths: 1, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+    //     ],
+    //     finalRepaymentDate: "01/12/2026",
+    //     paymentFrequencyMonths: 1, // monthly schedule
+    //     interestCalcMethod: "360/360",
+    //     inclusive: true
+    // };
 
     const input = {
         commitCapital: 100000, // loan amount
         startDate: "01/01/2025",
         endDate: "01/01/2027",
         interestPeriods: [
-            { start: "01/01/2025", rate: 0.03, freqinmonths: 1 }, // yearly reset at 3%
-            { start: "01/01/2026", rate: 0.04, freqinmonths: 1 }   // monthly reset at 4%
+            { start: "01/01/2025", rate: 0.03, freqinmonths: 3, firstduedate: "01/04/2025", firstCaldate: "31/03/2025" },
+            { start: "01/01/2026", rate: 0.04, freqinmonths: 3, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
         ],
         repaymentChanges: [
-            { start: "01/01/2026", amount: 6000, freqinmonths: 1 }, // every 2 months
-            { start: "01/03/2026", amount: 7000, freqinmonths: 1 }  // overrides → monthly
+            { start: "01/01/2026", amount: 6000, freqinmonths: 1, firstduedate: "01/01/2026", firstCaldate: "31/01/2026" },
+            { start: "01/03/2026", amount: 7000, freqinmonths: 1, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
         ],
         finalRepaymentDate: "01/12/2026",
         paymentFrequencyMonths: 1, // monthly schedule
@@ -293,10 +641,7 @@ module.exports = cds.service.impl(async function () {
         inclusive: true
     };
 
-    // === Function Call ===
     const schedule = calculateLoanScheduleFlexible(input);
-
-    // === Output ===
     console.table(schedule);
 
 
@@ -556,14 +901,21 @@ module.exports = cds.service.impl(async function () {
                     case "Nominal Interest Fixed":
                         result.interestPeriods.push({
                             start: formatDate(oData.effectiveFrom),
-                            rate: parseFloat(oData.percentage) / 100 || 0
+                            rate: parseFloat(oData.percentage) / 100 || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
+
                         });
                         break;
 
                     case "Annuity repayment":
                         result.repaymentChanges.push({
                             start: formatDate(oData.effectiveFrom),
-                            amount: parseFloat(oData.conditionAmt) || 0
+                            amount: parseFloat(oData.conditionAmt) || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
                         });
                         break;
 
@@ -597,6 +949,23 @@ module.exports = cds.service.impl(async function () {
             return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
         }
 
+        //      const input = {
+        //     commitCapital: 100000, // loan amount
+        //     startDate: "01/01/2025",
+        //     endDate: "01/01/2027",
+        //     interestPeriods: [
+        //         { start: "01/01/2025", rate: 0.03, freqinmonths: 3, firstduedate: "01/04/2025", firstCaldate: "31/03/2025" },
+        //         { start: "01/01/2026", rate: 0.04, freqinmonths: 3, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+        //     ],
+        //     repaymentChanges: [
+        //         { start: "01/01/2026", amount: 6000, freqinmonths: 1, firstduedate: "01/01/2026", firstCaldate: "31/01/2026" },
+        //         { start: "01/03/2026", amount: 7000, freqinmonths: 1, firstduedate: "01/04/2026", firstCaldate: "31/03/2026" }
+        //     ],
+        //     finalRepaymentDate: "01/12/2026",
+        //     paymentFrequencyMonths: 1, // monthly schedule
+        //     interestCalcMethod: "360/360",
+        //     inclusive: true
+        // };
 
         const formattedSchedule = calculateLoanScheduleFlexible({
             commitCapital: Number(principal),
@@ -854,14 +1223,20 @@ module.exports = cds.service.impl(async function () {
                     case "Nominal Interest Fixed":
                         result.interestPeriods.push({
                             start: formatDate(oData.effectiveFrom),
-                            rate: parseFloat(oData.percentage) / 100 || 0
+                            rate: parseFloat(oData.percentage) / 100 || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
                         });
                         break;
 
                     case "Payment Amount":
                         result.repaymentChanges.push({
                             start: formatDate(oData.effectiveFrom),
-                            amount: parseFloat(oData.conditionAmt) || 0
+                            amount: parseFloat(oData.conditionAmt) || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
                         });
                         break;
 
@@ -1089,10 +1464,6 @@ module.exports = cds.service.impl(async function () {
         };
     }
     this.on('UPDATE', ConditionItems.drafts, async (req, next) => {
-
-
-
-
         try {
             function formatDateOnly(date) {
                 return date.toISOString().split("T")[0]; // "YYYY-MM-DD"
@@ -1201,6 +1572,39 @@ module.exports = cds.service.impl(async function () {
         return next();
     });
     this.on('UPDATE', ConditionItemsNew.drafts, async (req, next) => {
+
+        try {
+            function formatDateOnly(date) {
+                return date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+            }
+            var conditionData = await SELECT.from(ConditionItemsNew.drafts).where({ conditionId: req.data.conditionId })
+            var effectiveFrom = conditionData[0].effectiveFrom;
+
+            if (req.data.paymentFromExactDay) {
+                const schedule = await getSchedule(
+                    effectiveFrom,
+                    req.data.paymentFromExactDay // e.g. "LM(Monthly end of mo due next day)"
+                );
+
+                console.log("Schedule calculated:", schedule);
+
+
+                // if you want to update back into DB:
+                await UPDATE(ConditionItemsNew.drafts)
+                    .set({
+                        calculationDate: formatDateOnly(schedule.calculationDate),
+                        dueDate: formatDateOnly(schedule.dueDate),
+                        frequencyInMonths: `${schedule.frequencyMonths}`
+                    })
+                    .where({ conditionId: req.data.conditionId });
+
+                var selected_data = await SELECT.from(ConditionItemsNew.drafts).where({ conditionId: req.data.conditionId })
+                console.log("selecteddata", selected_data);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
         try {
             var conditionData = await SELECT.from(ConditionItemsNew.drafts).where({ conditionId: req.data.conditionId })
 
@@ -1401,7 +1805,9 @@ module.exports = cds.service.impl(async function () {
 
         if (annuityItems.length > 0) {
             // --- Find the item with the lowest sequence ---
-            const firstItem = annuityItems.reduce((prev, curr) => prev.sequence < curr.sequence ? prev : curr);
+            const firstItem = annuityItems.reduce((prev, curr) =>
+                prev.effectiveFrom < curr.effectiveFrom ? prev : curr
+            );
 
             const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
 
@@ -1435,6 +1841,105 @@ module.exports = cds.service.impl(async function () {
 
         return `Annuity calculation updated for Contract ${contractId}`;
     });
+    this.on('onRatePressB', async (req) => {
+        debugger;
+        const { contractId, isActiveEntity } = req.data;
+        console.log("Request data:", req.data);
+
+        // --- Helper: Format Date ---
+        const formatDate = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // --- Helper: Resolve active/draft table ---
+        const getTable = (entity) => (isActiveEntity === "true" ? entity : entity.drafts);
+
+        // --- Build interest periods ---
+        async function buildContractData(contractId) {
+            const itemData = await SELECT.from(getTable(ConditionItemsNew)).where({ contractId });
+            return itemData
+                .filter(oData => oData.conditionTypeText === "Nominal Interest Fixed")
+                .map(oData => ({
+                    start: formatDate(oData.effectiveFrom),
+                    rate: parseFloat(oData.percentage) / 100 || 0
+                }));
+        }
+
+        // --- Fetch parent contract & interest periods ---
+        const [oParent] = await SELECT.from(getTable(contractNew)).where({ ID: contractId });
+        const oConditionItems = await SELECT.from(getTable(ConditionItemsNew)).where({
+            contractId: contractId,
+            conditionTypeText: "Payment Amount"
+        });
+        const interestRates = await buildContractData(contractId);
+
+        console.log("Interest Rates:", interestRates);
+        console.log("Contract:", oParent);
+        console.log("Condition Items:", oConditionItems);
+
+        if (interestRates.length === 0) {
+            let oPrinciple = Number(oParent.commitCapital) || 0;
+            const fixedFrom = moment(oParent.fixedFrom);
+            const fixedUntil = moment(oParent.fixedUntil);
+
+            // Calculate the difference in months
+            const monthDifference = fixedUntil.diff(fixedFrom, 'months');
+            console.log(monthDifference);
+            let amount = oPrinciple / monthDifference;
+
+            await UPDATE(getTable(ConditionItemsNew))
+                .set({ conditionAmt: amount.toFixed(2) })
+                .where({ contractId: contractId, conditionTypeText: "Payment Amount" });
+
+            return `No interest rates found for Contract ${contractId}. Condition amounts set to ${amount.toFixed(2)}.`;
+        }
+
+        // --- Filter Annuity items ---
+        const annuityItems = oConditionItems.filter(item => item.conditionTypeText === 'Payment Amount');
+
+        if (annuityItems.length > 0) {
+            // --- Find the item with the lowest sequence ---
+            const firstItem = annuityItems.reduce((prev, curr) =>
+                prev.effectiveFrom < curr.effectiveFrom ? prev : curr
+            );
+
+            const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
+
+            // --- Calculate annuity using the earliest sequence's effectiveFrom ---
+            const result = calculateAnnuityRepayment({
+                principal: Number(oParent.commitCapital),
+                fixedFrom: new Date(oParent.fixedFrom),
+                fixedUntil: new Date(oParent.fixedUntil),
+                interestConditions: interestRates.map(r => ({
+                    start: new Date(r.start),
+                    rate: r.rate
+                })),
+                annuityStart: firstEffectiveFrom
+            });
+
+            console.log("Payment Amount (all items):", result);
+
+            // --- Single update for all Annuity repayment items in this contract ---
+            await UPDATE(getTable(ConditionItemsNew))
+                .set({ conditionAmt: result.annuityAmount.toFixed(2) })
+                .where({
+                    contractId: contractId,
+                    conditionTypeText: "Payment Amount"
+                });
+        }
+
+
+        // --- Final fetch for verification (optional) ---
+        const updatedItems = await SELECT.from(getTable(ConditionItemsNew)).where({ contractId });
+        console.log("Updated Condition Items:", updatedItems);
+
+        return `Payment Amount calculation updated for Contract ${contractId}`;
+    });
+
 
 
 });

@@ -59,10 +59,20 @@ service CashFlowService {
 
 
     //new application service
-    @odata.draft.enabled 
+    @odata.draft.enabled
     entity contractNew                    as projection on cfs.contractNew;
 
+    @Common.SideEffects: {
+        SourceProperties: ['paymentFromExactDay'], // when this field changes
+        TargetProperties: [
+            'dueDate',
+            'calculationDate',
+            'frequencyInMonths'
+        ] // refresh this entity
+    }
+
     entity ConditionItemsNew              as projection on cfs.ConditionItemsNew;
+
     entity LoanAmortizationNew            as projection on cfs.LoanAmortizationNew;
     entity AmortizationSchedule2New       as projection on cfs.AmortizationSchedule2New;
     entity ConditionTypeTextSearchHelpNew as projection on cfs.ConditionTypeTextSearchHelpNew;
@@ -85,4 +95,6 @@ service CashFlowService {
                                      loanData: LargeString)               returns String;
 
 
+    function onRatePressB(contractId: Contract:ID, isActiveEntity: String) returns String;
 }
+

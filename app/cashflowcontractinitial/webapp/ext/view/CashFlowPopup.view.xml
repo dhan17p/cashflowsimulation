@@ -33,10 +33,10 @@
             </f:SimpleForm>
 
             <!-- Loan Amortization Table -->
-            <ui:Table id="ConditionTablepopscreen" rows="{/AmortizationSchedule2}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" visibleRowCount="8" class="customTable">
+            <ui:Table id="ConditionTablepopscreen" rows="{/AmortizationSchedule2}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" visibleRowCount="12" class="customTable">
 
                 <ui:rowMode>
-                    <uirm:Fixed rowCount="8"/>
+                    <uirm:Fixed rowCount="12"/>
                 </ui:rowMode>
 
                 <ui:columns>
