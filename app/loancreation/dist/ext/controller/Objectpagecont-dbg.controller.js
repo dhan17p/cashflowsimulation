@@ -1,51 +1,121 @@
 sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExtension) {
 	'use strict';
 
-	function setWidth() {
-		debugger
-		// var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
-		// var table_ui = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4")
-		var conditionItemsColumns = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4").mAggregations._content.getColumns()
-		// conditionItems.getColumns()[0].setWidth("400px");
-		var columnWidths = [
-			"12.5rem",   // col 0
-			"8.2rem", // col 1
-			"5.5rem",  // col 2
-			"7rem",    // col 3
-			"19rem",   // col 4
-			"9.5rem",  // col 5
-			"8.2rem", // col 6
-			"8.2rem"     // col 7
-		];
-		// let oInnerTable = conditionItems;
-		// oInnerTable.addEventDelegate({
-		// 	onAfterRendering: function () {
-		// 		debugger
-		// 		var oTe = new sap.ui.table.TablePointerExtension(oInnerTable);
-		// 		oInnerTable.getColumns().forEach(function (oColumn, i) {
-		// 			oTe.doAutoResizeColumn(i);
-		// 		});
-		// 	}
-		// });
+	// function setWidth() {
+	// 	debugger
+	// 	// var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
+	// 	// var table_ui = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4")
+	// 	var conditionItemsColumns = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4").mAggregations._content.getColumns()
+	// 	// conditionItems.getColumns()[0].setWidth("400px");
+	// 	var columnWidths = [
+	// 		"12.5rem",   // col 0
+	// 		"8.2rem", // col 1
+	// 		"5.5rem",  // col 2
+	// 		"7rem",    // col 3
+	// 		"19rem",   // col 4
+	// 		"9.5rem",  // col 5
+	// 		"8.2rem", // col 6
+	// 		"8.2rem"     // col 7
+	// 	];
+	// 	// let oInnerTable = conditionItems;
+	// 	// oInnerTable.addEventDelegate({
+	// 	// 	onAfterRendering: function () {
+	// 	// 		debugger
+	// 	// 		var oTe = new sap.ui.table.TablePointerExtension(oInnerTable);
+	// 	// 		oInnerTable.getColumns().forEach(function (oColumn, i) {
+	// 	// 			oTe.doAutoResizeColumn(i);
+	// 	// 		});
+	// 	// 	}
+	// 	// });
 
-		// Apply widths
+	// 	// Apply widths
+	// 	conditionItemsColumns.forEach(function (oCol, index) {
+	// 		if (columnWidths[index]) {
+	// 			debugger
+	// 			// oCol.setAutoResizable(false);
+	// 			oCol.setWidth(columnWidths[index]);
+	// 			// oCol.addStyleClass("widthcss")
+
+	// 			// oCol.data("p13nMode", []);
+	// 			// oCol.setMinWidth(2);
+	// 		}
+	// 	});
+	// 	// conditionItemsColumns[1].setWidth("8.3rem");
+	// 	// console.log(conditionItemsColumns[1].getWidth());
+	// 	// debugger
+
+
+	// }
+	function debounce(func, delay) {
+		let timeout;
+		return function () {
+			const context = this;
+			const args = arguments;
+			clearTimeout(timeout);
+			timeout = setTimeout(() => func.apply(context, args), delay);
+		};
+	}
+
+	// Your existing setWidth function
+	function setWidth() {
+		var oSmartTable = sap.ui.getCore().byId(
+			"loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4"
+		);
+
+		if (!oSmartTable) {
+			console.warn("SmartTable not found");
+			return;
+		}
+
+		if (!oSmartTable.mAggregations || !oSmartTable.mAggregations._content) {
+			console.warn("No _content yet, skipping setWidth");
+			return;
+		}
+
+		var oInnerTable = oSmartTable.mAggregations._content;
+		if (!oInnerTable || !oInnerTable.getColumns) {
+			console.warn("Inner table not ready yet");
+			return;
+		}
+
+		var conditionItemsColumns = oInnerTable.getColumns();
+		var columnWidths;
+
+		// Check for large screens
+		var isLargeScreen = window.matchMedia("(min-width: 1400px)").matches;
+		if (isLargeScreen) {
+			// Use percentages for large monitors
+			columnWidths = [
+				"12%", // col 0
+				"8%",  // col 1
+				"5%",  // col 2
+				"7%",  // col 3
+				"20%", // col 4
+				"10%", // col 5
+				"8%",  // col 6
+				"8%"   // col 7
+			];
+		} else {
+			// Use 'rem' for small and medium monitors
+			columnWidths = [
+				"12.5rem", // col 0
+				"8.2rem",  // col 1
+				"5.5rem",  // col 2
+				"7rem",    // col 3
+				"19rem",   // col 4
+				"9.5rem",  // col 5
+				"8.2rem",  // col 6
+				"8.2rem"   // col 7
+			];
+		}
+
 		conditionItemsColumns.forEach(function (oCol, index) {
 			if (columnWidths[index]) {
-				debugger
-				// oCol.setAutoResizable(false);
 				oCol.setWidth(columnWidths[index]);
-				// oCol.addStyleClass("widthcss")
-
-				// oCol.data("p13nMode", []);
-				// oCol.setMinWidth(2);
 			}
 		});
-		// conditionItemsColumns[1].setWidth("8.3rem");
-		// console.log(conditionItemsColumns[1].getWidth());
-		// debugger
-
-
 	}
+
 
 	return ControllerExtension.extend('loancreation.ext.controller.Objectpagecont', {
 		// this section allows to extend lifecycle hooks or hooks provided by Fiori elements
@@ -63,16 +133,10 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			},
 			onAfterRendering: function () {
 				// Get the Object Page
-				var oObjectPage = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage");
-
-				// Attach the event
-				if (oObjectPage) {
-					oObjectPage.attachSectionChange(function (oEvent) {
-						var oSection = oEvent.getParameter("section");
-						setWidth()
-						// 👉 your logic here
-					});
-				}
+				debugger
+				var debouncedSetWidth = debounce(setWidth, 250); // Debounce with a 250ms delay
+				window.addEventListener("resize", debouncedSetWidth);
+				setWidth();
 			},
 			routing: {
 				onBeforeBinding1: function () {
@@ -217,6 +281,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 						// Attach the rowsUpdated event once
 						if (!oInnerTable._dateFormattingAttached) {
 							oInnerTable.attachRowsUpdated(() => {
+								setWidth();
 								updateRows(oInnerTable);
 							});
 							oInnerTable._dateFormattingAttached = true; // prevent multiple attachments

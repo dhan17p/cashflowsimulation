@@ -524,7 +524,7 @@ module.exports = cds.service.impl(async function () {
                 currentDate = nextDate.clone();
                 // guard final repayment if we passed finalRepCutoff
                 if (nextDate.isAfter(finalRepCutoff)) {
-                    if (Math.abs(outstandingPrincipal) > 1) pushFinalRepayment(periodStart, finalRepCutoff);
+                    if (Math.abs(outstandingPrincipal) >= 0.1) pushFinalRepayment(periodStart, finalRepCutoff);
                     break;
                 }
                 continue;
@@ -583,7 +583,7 @@ module.exports = cds.service.impl(async function () {
             // Advance currentDate to next month
             // Final period detection: if nextDate passes finalRepCutoff - push final and break
             if (inclusive ? nextDate.isSameOrAfter(finalRepCutoff) : nextDate.isAfter(finalRepCutoff)) {
-                if (Math.abs(outstandingPrincipal) > 1) {
+                if (Math.abs(outstandingPrincipal) >= 0.1) {
                     // use periodStart as calcFrom and finalRepCutoff as due
                     pushFinalRepayment(periodStart, finalRepCutoff);
                     outstandingPrincipal = 0;
@@ -595,7 +595,7 @@ module.exports = cds.service.impl(async function () {
         }
 
         // Safety: if anything remains unpaid after loop
-        if (Math.abs(outstandingPrincipal) > 1) {
+        if (Math.abs(outstandingPrincipal) >= 0.1) {
             // push final repayment on finalRepCutoff
             pushFinalRepayment(moment(finalRepDate).startOf('month'), finalRepCutoff);
         }
@@ -1740,6 +1740,74 @@ module.exports = cds.service.impl(async function () {
         }
     }
 
+
+    function calculateAnnuityRepaymentB({
+        principal,
+        fixedFrom,
+        fixedUntil,
+        interestConditions,
+        annuityStart,
+        interestCalcMethod = "360/360"
+    }) {
+        // --- Helper: UTC-safe inclusive day count ---
+        function daysBetweenInclusive(start, end) {
+            const msPerDay = 1000 * 60 * 60 * 24;
+            const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+            const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+            return Math.floor((utcEnd - utcStart) / msPerDay); // inclusive
+        }
+ 
+        // --- Determine applicable interest rate at annuityStart ---
+        interestConditions.sort((a, b) => a.start - b.start);
+        let annualInterestRate = interestConditions[0].rate;
+        for (let cond of interestConditions) {
+            if (cond.start <= annuityStart) annualInterestRate = cond.rate;
+            else break;
+        }
+ 
+        // --- Compute number of months for annuity ---
+        const annuityDurationMonths =
+            (fixedUntil.getFullYear() - annuityStart.getFullYear()) * 12 +
+            (fixedUntil.getMonth() - annuityStart.getMonth());
+ 
+        let fixedAnnuity = 0;
+ 
+        if (interestCalcMethod === "360/360") {
+            const monthlyRate = annualInterestRate / 12;
+            fixedAnnuity =
+                principal *
+                monthlyRate /
+                (1 - Math.pow(1 + monthlyRate, -annuityDurationMonths));
+        } else if (interestCalcMethod === "act/360") {
+            let current = new Date(annuityStart);
+            const discounts = [];
+            let df = 1;
+ 
+            // Build monthly discount factors
+            for (let i = 0; i < annuityDurationMonths; i++) {
+                const next = new Date(current);
+                next.setMonth(next.getMonth() + 1);
+ 
+                const days = daysBetweenInclusive(current, next);
+                const periodRate = annualInterestRate * (days / 360);
+ 
+                df /= (1 + periodRate);
+                discounts.push(df);
+ 
+                current = next;
+            }
+ 
+            // Annuity = PV / sum(discounts)
+            const denom = discounts.reduce((a, d) => a + d, 0);
+            fixedAnnuity = principal / denom;
+        }
+ 
+        return {
+            annuityAmount: fixedAnnuity
+        };
+    }
+ 
+
     // --- Example usage ---
     // const resultAct360 = calculateAnnuityRepayment({
     //     principal: 100000,
@@ -1754,7 +1822,7 @@ module.exports = cds.service.impl(async function () {
     // });
 
     // console.log("Annuity Amount:", resultAct360); // 10187.95
-    const resultAct360 = calculateAnnuityRepayment({
+    const resultAct360 = calculateAnnuityRepaymentB({
         principal: 100000,
         fixedFrom: new Date("2025-01-01"),
         fixedUntil: new Date("2027-01-01"),
@@ -1843,7 +1911,7 @@ module.exports = cds.service.impl(async function () {
             const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
 
             // --- Calculate annuity using the earliest sequence's effectiveFrom ---
-            const result = calculateAnnuityRepayment({
+            const result = calculateAnnuityRepaymentB({
                 principal: Number(oParent.commitCapital),
                 fixedFrom: new Date(oParent.fixedFrom),
                 fixedUntil: new Date(oParent.fixedUntil),
@@ -1942,7 +2010,7 @@ module.exports = cds.service.impl(async function () {
             const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
 
             // --- Calculate annuity using the earliest sequence's effectiveFrom ---
-            const result = calculateAnnuityRepayment({
+            const result = calculateAnnuityRepaymentB({
                 principal: Number(oParent.commitCapital),
                 fixedFrom: new Date(oParent.fixedFrom),
                 fixedUntil: new Date(oParent.fixedUntil),
