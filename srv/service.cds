@@ -27,6 +27,8 @@ service CashFlowService {
     }
     entity ConditionItems                 as projection on cfs.ConditionItems;
 
+    entity ConditionItemsAdjust           as projection on cfs.ConditionItemsAdjust;
+
     entity InterestCalSearchHelp          as projection on cfs.InterestCalSearchHelp;
     entity PledgedStatusSearchHelp        as projection on cfs.PledgedStatusSearchHelp;
     entity purposeOfLoanSearchHelp        as projection on cfs.purposeOfLoanSearchHelp;
@@ -52,10 +54,10 @@ service CashFlowService {
                                   conditionAmt: String,
                                   efffectiveDatefinalRepayment: String,
                                   isActiveEntity: String,
-                                  loanData: LargeString)                  returns String;
+                                  loanData: LargeString)                   returns String;
 
 
-    function onRatePress(contractId: Contract:ID, isActiveEntity: String) returns String;
+    function onRatePress(contractId: Contract:ID, isActiveEntity: String)  returns String;
 
 
     //new application service
@@ -92,9 +94,35 @@ service CashFlowService {
                                      conditionAmt: String,
                                      efffectiveDatefinalRepayment: String,
                                      isActiveEntity: String,
-                                     loanData: LargeString)               returns String;
+                                     loanData: LargeString)                returns String;
+
+    type AdjustType {
+        flowType : String;
+        name     : String;
+        dueDate1 : String;
+        amount1  : String;
+        dueDate2 : String; // or row2.baseAmount if you want amount here
+        amount2  : String;
+        index    : String;
+    };
+
+    function loadAmortizationFuncAdjust(principal: String,
+                                        annualRate: String,
+                                        startDate: String,
+                                        endDate: String,
+                                        interestFixedDate: String,
+                                        inclusiveIndicator: String,
+
+                                        contractId: String,
+                                        intCalMt: String,
+                                        calculationDate: String,
+                                        dueDate: String,
+                                        percentage: String,
+                                        conditionAmt: String,
+                                        efffectiveDatefinalRepayment: String,
+                                        isActiveEntity: String,
+                                        loanData: LargeString)             returns array of AdjustType;
 
 
     function onRatePressB(contractId: Contract:ID, isActiveEntity: String) returns String;
 }
-

@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
 module.exports = cds.service.impl(async function () {
-    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew } = this.entities;
+    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew, ConditionItemsAdjust } = this.entities;
     var DraftAdministrativeData_DraftUUID;
 
 
@@ -623,8 +623,8 @@ module.exports = cds.service.impl(async function () {
     //     inclusive: true
     // };
 
-    
-    
+
+
     // const input = {
     //     commitCapital: 100000, // loan amount
     //     startDate: "01/01/2025",
@@ -1054,7 +1054,12 @@ module.exports = cds.service.impl(async function () {
 
         await DELETE.from(AmortizationSchedule2);
         await INSERT.into(AmortizationSchedule2).entries(formattedData);
-        await SELECT.from(AmortizationSchedule2);
+
+
+
+        var conditionItemData = await SELECT.from(ConditionItems).where({ contractId: contractId });
+        await DELETE.from(ConditionItemsAdjust);
+        await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
         // return result;
     });
     this.on('loadAmortizationFuncNew', async (req) => {
@@ -1383,6 +1388,202 @@ module.exports = cds.service.impl(async function () {
         await SELECT.from(AmortizationSchedule2New);
         // return result;
     });
+    this.on('loadAmortizationFuncAdjust', async (req) => {
+        debugger;
+
+        // Extract from req.data (all strings initially)
+        let {
+            principal,
+            annualRate,
+            startDate,
+            endDate,
+            interestFixedDate,
+            inclusiveIndicator,
+            contractId,
+            intCalMt,
+            percentage,
+            dueDate,
+            calculationDate,
+            conditionAmt,
+            efffectiveDatefinalRepayment,
+            loanData,
+            isActiveEntity
+        } = req.data;
+
+        console.log("paramssss", req.data)
+
+        function getFirstPaymentDate(fixedFrom) {
+            const firstPayment = addMonths(fixedFrom, 1); // next month
+            firstPayment.setDate(1); // first day of next month
+            return firstPayment;
+        }
+
+
+        async function buildContractData(contractId) {
+            // Fetch rows from DB
+            if (isActiveEntity === "true") {
+                var data = await SELECT.from(ConditionItemsAdjust).where({ contractId: contractId });
+
+            }
+            else {
+                var data = await SELECT.from(ConditionItemsAdjust.drafts).where({ contractId: contractId });
+            }
+
+            const result = {
+                interestPeriods: [],
+                repaymentChanges: [],
+                finalRepaymentDate: null
+            };
+
+            data.forEach(oData => {
+                switch (oData.conditionTypeText) {
+                    case "Nominal Interest Fixed":
+                        result.interestPeriods.push({
+                            start: formatDate(oData.effectiveFrom),
+                            rate: parseFloat(oData.percentage) / 100 || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
+                        });
+                        break;
+
+                    case "Payment Amount":
+                        result.repaymentChanges.push({
+                            start: formatDate(oData.effectiveFrom),
+                            amount: parseFloat(oData.conditionAmt) || 0,
+                            firstduedate: formatDate(oData.dueDate),
+                            firstCaldate: formatDate(oData.calculationDate),
+                            freqinmonths: Number(oData.frequencyInMonths)
+                        });
+                        break;
+
+                    case "Final Repayment":
+                        result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+                        break;
+                }
+            });
+
+            return result;
+        }
+        var data_items = await buildContractData(contractId);
+        console.log("backend data", data_items)
+
+        // Helper: format date from JS Date or string → dd/MM/yyyy
+        function formatDate(dateValue) {
+            if (!dateValue) return null;
+
+            const oDate = new Date(dateValue);
+            if (isNaN(oDate.getTime())) return null;
+
+            const dd = String(oDate.getDate()).padStart(2, "0");
+            const mm = String(oDate.getMonth() + 1).padStart(2, "0");
+            const yyyy = oDate.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        function formatToDDMMYYYY(dateStr) {
+            if (!dateStr) return dateStr;
+            const [year, month, day] = dateStr.split("-");
+            return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+        }
+
+
+        let oInput = {
+            commitCapital: Number(principal),
+            startDate: formatToDDMMYYYY(startDate),
+            endDate: formatToDDMMYYYY(endDate),
+            interestPeriods: data_items.interestPeriods,
+            repaymentChanges: data_items.repaymentChanges,
+            finalRepaymentDate: data_items.finalRepaymentDate,
+            paymentFrequencyMonths: 1,
+            interestCalcMethod: intCalMt,
+            inclusive: inclusiveIndicator == 'true' ? true : false
+        }
+
+        console.log(oInput);
+
+
+        const formattedSchedule = calculateLoanScheduleFlexible(oInput);
+
+        console.table(formattedSchedule);
+
+        let formattedData = formattedSchedule.map(item => {
+            // safely get "Due Date" (with space in key)
+            let [day, month, year] = item["Due Date"].split("/");
+            // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+            function convertDateToUSFormat(dateStr) {
+                if (!dateStr) return null;
+                let [day, month, year] = dateStr.split("/");
+                let shortYear = year;
+                return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+            }
+
+
+            return {
+                index: item.Index,
+                flowType: item.flowType,
+                calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                baseAmount: item["Outstanding Principal Start"],
+                percentageRate: item["Interest Rate (%)"],
+                numberOfDays: item.Days,
+                name: item.Name,
+                settlementAmount: item.Amount,         // renamed
+                repaymentAmount: item["Repayment Amount"],
+                principalRepayment: item["Principal Repayment"],
+                interestAmount: item["Interest Amount"],
+                outstandingPrincipalEnd: item["Outstanding Principal End"],
+                contractId: contractId,
+                settlementCurrency: "USD",
+                planActualRec: item["Planned/Incurred Status"]
+            };
+        });
+        console.table(formattedData);
+
+
+        // var AmortizationSchedule2 = await SELECT.from(AmortizationSchedule2);
+        // var final_data = AmortizationSchedule2[0];
+
+
+        var table1 = formattedData
+        var table2 = await SELECT.from(AmortizationSchedule2);
+
+        var mergedArray = [];
+
+        // Create a map of table2 by index for quick lookup
+        var table2Map = {};
+        table2.forEach(row => {
+            table2Map[row.index] = row;
+        });
+
+        // Loop through table1 and combine with matching index from table2
+        table1.forEach(row1 => {
+            const row2 = table2Map[row1.index];
+            if (row2) {
+                mergedArray.push({
+                    flowType: row1.flowType,
+                    name: row1.name,
+                    dueDate1: row1.dueDate,
+                    amount1: row1.settlementAmount,
+                    dueDate2: row2.dueDate,      // or row2.baseAmount if you want amount here
+                    amount2: row2.settlementAmount,
+                    index: row1.index.toString()
+                });
+            }
+        });
+        return mergedArray;
+
+
+        // await DELETE.from(AmortizationSchedule2New);
+        // await INSERT.into(AmortizationSchedule2New).entries(formattedData);
+        // await SELECT.from(AmortizationSchedule2New);
+        // return result;
+    });
+
+
+
+
 
     const freqMap = {
         "LM(Monthly end of mo due next day)": { code: "LM", months: 1 },
@@ -1756,7 +1957,7 @@ module.exports = cds.service.impl(async function () {
             const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
             return Math.floor((utcEnd - utcStart) / msPerDay); // inclusive
         }
- 
+
         // --- Determine applicable interest rate at annuityStart ---
         interestConditions.sort((a, b) => a.start - b.start);
         let annualInterestRate = interestConditions[0].rate;
@@ -1764,14 +1965,14 @@ module.exports = cds.service.impl(async function () {
             if (cond.start <= annuityStart) annualInterestRate = cond.rate;
             else break;
         }
- 
+
         // --- Compute number of months for annuity ---
         const annuityDurationMonths =
             (fixedUntil.getFullYear() - annuityStart.getFullYear()) * 12 +
             (fixedUntil.getMonth() - annuityStart.getMonth());
- 
+
         let fixedAnnuity = 0;
- 
+
         if (interestCalcMethod === "360/360") {
             const monthlyRate = annualInterestRate / 12;
             fixedAnnuity =
@@ -1782,31 +1983,31 @@ module.exports = cds.service.impl(async function () {
             let current = new Date(annuityStart);
             const discounts = [];
             let df = 1;
- 
+
             // Build monthly discount factors
             for (let i = 0; i < annuityDurationMonths; i++) {
                 const next = new Date(current);
                 next.setMonth(next.getMonth() + 1);
- 
+
                 const days = daysBetweenInclusive(current, next);
                 const periodRate = annualInterestRate * (days / 360);
- 
+
                 df /= (1 + periodRate);
                 discounts.push(df);
- 
+
                 current = next;
             }
- 
+
             // Annuity = PV / sum(discounts)
             const denom = discounts.reduce((a, d) => a + d, 0);
             fixedAnnuity = principal / denom;
         }
- 
+
         return {
             annuityAmount: fixedAnnuity
         };
     }
- 
+
 
     // --- Example usage ---
     // const resultAct360 = calculateAnnuityRepayment({

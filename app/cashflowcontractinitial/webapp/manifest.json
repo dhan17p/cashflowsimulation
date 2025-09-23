@@ -115,6 +115,16 @@
           "name": "AmortizationScheduleCashFlowPopupPage",
           "pattern": "Contract({key})/popup",
           "target": "AmortizationScheduleCashFlowPopupPage"
+        },
+        {
+          "name": "ConditionItemsAdjustmentflowPage",
+          "pattern": "Contract({key})/adjustment",
+          "target": "ConditionItemsAdjustmentflowPage"
+        },
+        {
+          "name": "LoanAmortizationCompareCalcFlowPage",
+          "pattern": "Contract({key})/compcalcFlow",
+          "target": "LoanAmortizationCompareCalcFlowPage"
         }
       ],
       "targets": {
@@ -208,6 +218,16 @@
                         "placement": "Before",
                         "anchor": "EditAction"
                       }
+                    },
+                    "adjustmentpayment": {
+                      "press": "cashflowcontractinitial.ext.controller.AdjustmentPayment.adjustmentPayment",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Adjustment Payment",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "calCashFlow"
+                      }
                     }
                   }
                 }
@@ -216,6 +236,16 @@
                 "contractToLoanAmortizationSchedule": {
                   "detail": {
                     "route": "AmortizationScheduleCashFlowPopupPage"
+                  }
+                },
+                "contractToCondition": {
+                  "detail": {
+                    "route": "ConditionItemsAdjustmentflowPage"
+                  }
+                },
+                "contractToLoanAmortization": {
+                  "detail": {
+                    "route": "LoanAmortizationCompareCalcFlowPage"
                   }
                 }
               }
@@ -231,6 +261,30 @@
               "navigation": {},
               "contextPath": "/Contract/contractToLoanAmortizationSchedule",
               "viewName": "cashflowcontractinitial.ext.view.CashFlowPopup"
+            }
+          }
+        },
+        "ConditionItemsAdjustmentflowPage": {
+          "type": "Component",
+          "id": "ConditionItemsAdjustmentflowPage",
+          "name": "sap.fe.core.fpm",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/Contract",
+              "viewName": "cashflowcontractinitial.ext.view.Adjustmentflow"
+            }
+          }
+        },
+        "LoanAmortizationCompareCalcFlowPage": {
+          "type": "Component",
+          "id": "LoanAmortizationCompareCalcFlowPage",
+          "name": "sap.fe.core.fpm",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/Contract",
+              "viewName": "cashflowcontractinitial.ext.view.CompareCalcFlow"
             }
           }
         }

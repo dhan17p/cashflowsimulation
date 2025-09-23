@@ -37,8 +37,7 @@
   },
   "cds": {
     "requires": {
-      "auth": "dummy",
-      "db":"hana"
+      "auth": "dummy"
     }
   },
   "sapux": [

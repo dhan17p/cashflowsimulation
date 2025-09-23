@@ -1,0 +1,102 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:l="sap.ui.layout.form"
+    xmlns:core="sap.ui.core" controllerName="cashflowcontractinitial.ext.view.Adjustmentflow">
+
+    <f:DynamicPage id="Adjustmentflow">
+        <f:title>
+            <f:DynamicPageTitle>
+                <f:heading>
+                    <Title text="{i18n>AdjustmentflowTitle}" level="H1"/>
+                </f:heading>
+                <f:actions>
+                    <Button text="Compare" type="Emphasized" press=".onComparePress"/>
+                </f:actions>
+            </f:DynamicPageTitle>
+        </f:title>
+
+        <f:content>
+            <VBox fitContainer="true" renderType="Bare">                <!-- wrapper for form + table -->
+
+                <!-- SimpleForm instead of Form -->
+                <l:SimpleForm id="Formadjustment" layout="ResponsiveGridLayout" title="Loan Details" labelSpanM="3" labelSpanL="2" adjustLabelSpan="false">
+
+                    <Label text="Commit Capital"/>
+                    <Input id="commitCap" value="{keyData>/loanNumber}" />
+
+                    <Label text="Fixed From"/>
+                    <DatePicker id="fixedFrom" value="{keyData>/fixedFrom}" displayFormat="yyyy-MM-dd" valueFormat="yyyy-MM-dd" />
+
+                    <Label text="Fixed Until"/>
+                    <DatePicker id="fixedUntil" value="{keyData>/fixedUntil}" displayFormat="yyyy-MM-dd" valueFormat="yyyy-MM-dd" />
+
+                    <Label text="Int. Cal. Mt"/>
+                    <Select id="intCalMt" selectedKey="{keyData>/interestCalcMethod}">
+                        <core:Item key="act360" text="act/360"/>
+                        <core:Item key="360360" text="360/360"/>
+                    </Select>
+                </l:SimpleForm>
+
+                <!-- Spacer between form and table -->
+                <Toolbar>
+                    <Title text="Condition Items" level="H2"/>
+                </Toolbar>
+
+                <!-- Table -->
+                <Table id="conditionItemsTable" items="{path: '/ConditionItemsAdjust'}" inset="false" mode="None">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Items" />
+                            <ToolbarSpacer/>
+                            <Button icon="sap-icon://add" text="Add"/>
+                            <Button icon="sap-icon://delete" text="Remove"/>
+                        </Toolbar>
+                    </headerToolbar>
+
+                    <columns>
+                        <Column>
+                            <Text text="Condition Type"/>
+                        </Column>
+                        <Column>
+                            <Text text="Effective From"/>
+                        </Column>
+                        <Column>
+                            <Text text="Percentage"/>
+                        </Column>
+                        <Column>
+                            <Text text="Condition Amount"/>
+                        </Column>
+                        <Column>
+                            <Text text="Payment From Exact Day"/>
+                        </Column>
+                        <Column>
+                            <Text text="Frequency (Months)"/>
+                        </Column>
+                        <Column>
+                            <Text text="Due Date"/>
+                        </Column>
+                        <Column>
+                            <Text text="Calculation Date"/>
+                        </Column>
+                    </columns>
+
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Input value="{conditionTypeText}" />
+                                <DatePicker value="{path:'effectiveFrom', type:'sap.ui.model.type.Date', formatOptions:{pattern:'yyyy-MM-dd'}}" />
+                                <Input value="{percentage}" />
+                                <Input value="{conditionAmt}" />
+                                <Input value="{paymentFromExactDay}" />
+                                <Input value="{frequencyInMonths}" />
+                                <DatePicker value="{path:'dueDate', type:'sap.ui.model.type.Date', formatOptions:{pattern:'yyyy-MM-dd'}}" />
+                                <DatePicker value="{path:'calculationDate', type:'sap.ui.model.type.Date', formatOptions:{pattern:'yyyy-MM-dd'}}" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </f:content>
+    </f:DynamicPage>
+</mvc:View>

@@ -72,6 +72,8 @@ entity contract {
         intCalMt                           : String  @mandatory;
         contractToCondition                : Composition of many ConditionItems
                                                  on contractToCondition.contractId = ID;
+        contractToConditionAdjust          : Association to many ConditionItemsAdjust
+                                                 on contractToConditionAdjust.contractId = ID;
         contractToLoanAmortization         : Association to many LoanAmortization
                                                  on contractToLoanAmortization.contractId = ID;
         contractToLoanAmortizationSchedule : Association to many AmortizationSchedule
@@ -81,6 +83,23 @@ entity contract {
 }
 
 entity ConditionItems : managed {
+    key conditionId         : UUID;
+        contractId          : UUID;
+        conditionTypeText   : String;
+        effectiveFrom       : Date;
+        percentage          : String;
+        conditionAmt        : String;
+        paymentFromExactDay : String;
+        frequencyInMonths   : String;
+        dueDate             : Date;
+        calculationDate     : Date;
+        sequence            : Integer;
+        conditionToContract : Association to contract;
+
+
+}
+
+entity ConditionItemsAdjust : managed {
     key conditionId         : UUID;
         contractId          : UUID;
         conditionTypeText   : String;
@@ -148,7 +167,6 @@ entity AmortizationSchedule2 {
 
 
 }
-
 
 entity InterestCalSearchHelp {
     key ID    : UUID;
@@ -266,6 +284,7 @@ entity AmortizationSchedule2New {
 
 
 }
+
 entity ConditionTypeTextSearchHelpNew {
     key ID    : UUID;
         value : String;

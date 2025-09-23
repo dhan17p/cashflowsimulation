@@ -1,0 +1,90 @@
+<mvc:View xmlns:core="sap.ui.core"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:ui="sap.ui.table"
+    xmlns:uirm="sap.ui.table.rowmodes" controllerName="cashflowcontractinitial.ext.view.CompareCalcFlow">
+
+    <Page id="CompareCalcFlow" title="{i18n>CompareCalcFlowTitle}">
+        <content>
+            <HBox width="100%" class="myTablesContainer" fitContainer="true">
+
+                <!-- Table 1: FlowType & Name -->
+                <Table id="tableFlowName" items="{test>/rows}" width="100%">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text=" "/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <columns>
+                        <Column styleClass="myTableClass">
+                            <Text text="FlowType"/>
+                        </Column>
+                        <Column styleClass="myTableClass">
+                            <Text text="Name"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{test>flowType}" class="myCell"/>
+                                <Text text="{test>name}" class="myCell"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+
+                <!-- Table 2: First Adjustment Group -->
+                <Table id="tableAdjust1" class="myTableClass" items="{test>/rows}" width="100%">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Fixed From: {fixedDates>/startFromOld}  |  Fixed Until: {fixedDates>/EndFromOld}"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <columns>
+                        <Column styleClass="myTableClass">
+                            <Text text="Due Date"/>
+                        </Column>
+                        <Column styleClass="myTableClass">
+                            <Text text="Amount"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{test>dueDate1}" class="myCell"/>
+                                <Text text="{test>amount1}" class="myCell"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+
+                <!-- Table 3: Second Adjustment Group -->
+                <Table id="tableAdjust2" class="myTableClass" items="{test>/rows}" width="100%">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="AdjustFrom: 17-09-2025  |  AdjustUntil: 17-09-2027"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <columns>
+                        <Column styleClass="myTableClass">
+                            <Text text="Due Date"/>
+                        </Column>
+                        <Column styleClass="myTableClass">
+                            <Text text="Amount"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{test>dueDate2}" class="myCell"/>
+                                <Text text="{test>amount2}" class="myCell"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+
+            </HBox>
+
+        </content>
+    </Page>
+</mvc:View>
