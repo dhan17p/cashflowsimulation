@@ -155,18 +155,6 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				// }
 			},
 			routing: {
-				onBeforeBinding1: function () {
-					debugger
-					try {
-						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
-						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
-						// sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::FormContainer::_").getTitle().destroy()
-
-					} catch (error) {
-						console.log(error);
-					}
-					// sap.ui.getCore().byId("CreateDialog::Contract")?.setTitle("false");
-				},
 				onAfterBinding: function () {
 					debugger
 
@@ -201,7 +189,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 									const dd = String(oDate.getDate()).padStart(2, "0");
 									const mm = String(oDate.getMonth() + 1).padStart(2, "0");
 									const yyyy = oDate.getFullYear();
-									oDisplayField.setText(`${dd}/${mm}/${yyyy}`);
+									oDisplayField.setText(`${mm}/${dd}/${yyyy}`);
 								}
 							}
 						}, 1000);
@@ -273,6 +261,16 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 					}
 
 					const bIsActiveEntity = getIsActiveEntityFromUrl();
+					let oButtonAdjust = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment")
+
+					if (bIsActiveEntity == true) {
+						oButtonAdjust.setVisible(true)
+
+					}
+					else {
+						oButtonAdjust.setVisible(false)
+					}
+
 					function formatDateColumn() {
 						const oFacet = sap.ui.getCore().byId(
 							"cashflowcontractinitial::ContractObjectPage--fe::FacetSubSection::ConditionItems"
@@ -361,6 +359,21 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 
 
+				}
+			},
+			editFlow: {
+				onBeforeEdit: function () {
+					debugger
+					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(false)
+				},
+				onAfterSave: function () {
+					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(true)
+
+				},
+				// This function is called after the save action is completed.
+				// It hides the custom action button for adjustment payment in the UI.
+				onBeforeDiscard: function () {
+					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(true);
 				}
 			}
 		}

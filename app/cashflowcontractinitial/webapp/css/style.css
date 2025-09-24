@@ -13,7 +13,8 @@
 .FormCashflowpop {
   padding-left: 1rem;
   padding-right: 1rem;
-  padding-top:  2rem;;
+  padding-top: 2rem;
+  ;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
 }
@@ -212,7 +213,7 @@
 }
 
 
-.widthcss{
+.widthcss {
   width: 200px !important;
   background-color: red !important;
   align-items: center !important;
@@ -221,14 +222,52 @@
 #tableFlowName,
 #tableAdjust1,
 #tableAdjust2 {
-    margin-bottom: 10px;  /* spacing between tables */
+  margin-bottom: 10px;
+  /* spacing between tables */
 }
- 
+
 .sapMTitle {
-    font-weight: bold;
-    text-align: center;
+  font-weight: bold;
+  text-align: center;
 }
- 
-.myTableClass{
+
+.myTableClass {
   border: solid 1px;
+}
+
+/* Compare Cal App */
+
+/* Put all tables together as if they were one */
+.myTablesContainer {
+  display: flex;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: scroll;
+  background-color: white !important;
+}
+
+/* Each table inside container */
+.myTablesContainer .sapMTable {
+  border-right: 1px solid #ccc;
+  flex: 1;
+}
+
+/* Remove right border from last table */
+.myTablesContainer .sapMTable:last-child {
+  border-right: none;
+}
+
+/* Harmonize headers */
+.myTablesContainer .sapMListTblHeaderCell {
+  background-color: #f5f6f7;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Harmonize rows */
+.myTablesContainer .sapMListTblCell {
+  text-align: center;
+  border-bottom: 1px solid #eee;
 }

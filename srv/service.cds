@@ -27,6 +27,15 @@ service CashFlowService {
     }
     entity ConditionItems                 as projection on cfs.ConditionItems;
 
+    @Common.SideEffects: {
+        SourceProperties: ['paymentFromExactDay'], // when this field changes
+        TargetProperties: [
+            'dueDate',
+            'calculationDate',
+            'frequencyInMonths'
+        ] // refresh this entity
+    }
+
     entity ConditionItemsAdjust           as projection on cfs.ConditionItemsAdjust;
 
     entity InterestCalSearchHelp          as projection on cfs.InterestCalSearchHelp;
@@ -54,10 +63,11 @@ service CashFlowService {
                                   conditionAmt: String,
                                   efffectiveDatefinalRepayment: String,
                                   isActiveEntity: String,
-                                  loanData: LargeString)                   returns String;
+                                  loanData: LargeString)                         returns String;
 
 
-    function onRatePress(contractId: Contract:ID, isActiveEntity: String)  returns String;
+    function onRatePress(contractId: Contract:ID, isActiveEntity: String)        returns String;
+    function onRatePressAdjust(contractId: Contract:ID, isActiveEntity: String)        returns String;
 
 
     //new application service
@@ -79,6 +89,10 @@ service CashFlowService {
     entity AmortizationSchedule2New       as projection on cfs.AmortizationSchedule2New;
     entity ConditionTypeTextSearchHelpNew as projection on cfs.ConditionTypeTextSearchHelpNew;
 
+
+    @odata.draft.enabled
+    entity contractAdjust                 as projection on cfs.contractAdjust;
+
     function loadAmortizationFuncNew(principal: String,
                                      annualRate: String,
                                      startDate: String,
@@ -94,7 +108,7 @@ service CashFlowService {
                                      conditionAmt: String,
                                      efffectiveDatefinalRepayment: String,
                                      isActiveEntity: String,
-                                     loanData: LargeString)                returns String;
+                                     loanData: LargeString)                      returns String;
 
     type AdjustType {
         flowType : String;
@@ -121,8 +135,8 @@ service CashFlowService {
                                         conditionAmt: String,
                                         efffectiveDatefinalRepayment: String,
                                         isActiveEntity: String,
-                                        loanData: LargeString)             returns array of AdjustType;
+                                        loanData: LargeString)                   returns array of AdjustType;
 
 
-    function onRatePressB(contractId: Contract:ID, isActiveEntity: String) returns String;
+    function getcontractDetails(contractId: Contract:ID, isActiveEntity: String) returns String;
 }

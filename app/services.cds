@@ -8,3 +8,5 @@ using from './cashflowcontract/annotations';
 using from './cashflowcontractinitial/annotations';
 
 using from './loancreation/annotations';
+
+using from './adjustmentflow/annotations';

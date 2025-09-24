@@ -73,6 +73,10 @@ modules:
       - loancreation.zip
       name: loancreation
       target-path: resources/
+    - artifacts:
+      - adjustmentflow.zip
+      name: adjustmentflow
+      target-path: resources/
 - name: cashflowcontractinitial
   type: html5
   path: app/cashflowcontractinitial
@@ -86,6 +90,16 @@ modules:
 - name: loancreation
   type: html5
   path: app/loancreation
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: adjustmentflow
+  type: html5
+  path: app/adjustmentflow
   build-parameters:
     build-result: dist
     builder: custom
