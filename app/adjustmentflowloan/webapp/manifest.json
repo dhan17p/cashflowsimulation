@@ -169,6 +169,13 @@
                     }
                   }
                 }
+              },
+              "controlConfiguration": {
+                "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                }
               }
             }
           }
@@ -182,16 +189,6 @@
               "navigation": {},
               "contextPath": "/contractAdjustLoan/contractToConditionAdjust",
               "viewName": "adjustmentflowloan.ext.view.AdjustmentCashFlow"
-            }
-          }
-              "navigation": {},
-              "controlConfiguration": {
-                "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
-                  "tableSettings": {
-                    "type": "GridTable"
-                  }
-                }
-              }
             }
           }
         }
