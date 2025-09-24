@@ -63,8 +63,8 @@ annotate service.contractAdjust with @(
         },
     ],
     UI.HeaderInfo : {
-        TypeNamePlural : '   ',
-        TypeName : '',
+        TypeNamePlural : ' ',
+        TypeName : ' ',
     },
     UI.DeleteHidden : true,
 );

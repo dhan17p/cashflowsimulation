@@ -110,6 +110,35 @@ entity contractAdjust{
         contractToConditionAdjust          : Composition of many ConditionItemsAdjust
                                                  on contractToConditionAdjust.contractId = ID;
 }
+entity contractAdjustLoan{
+    key ID                                 : UUID;
+        companyCode                        : String  @Common.Label: 'Company Code';
+    key loanNumber                         : String  @mandatory  @Common.Label: 'Loan Number';
+    key productType                        : String  @mandatory  @Common.Label: 'Product Type';
+    key loanType                           : String  @mandatory  @Common.Label: 'Loan Type';
+    key loanPartner                        : String  @mandatory  @Common.Label: 'Loan Partner';
+        status                             : String;
+        disbursementStatus                 : String;
+
+        //basic data
+        pledgedStatus                      : String;
+        //analysis
+        purposeOfLoan                      : String;
+        arBillingJob                       : String;
+        //conditions
+        commitCapital                      : String  @mandatory;
+        repaymentType                      : String;
+
+        //term/fixed Period
+        fixedFrom                          : Date    @mandatory;
+        fixedUntil                         : Date    @mandatory;
+        include                            : Boolean;
+
+        //Interest Calculation
+        intCalMt                           : String  @mandatory;
+        contractToConditionAdjust          : Composition of many ConditionItemsAdjustLoan
+                                                 on contractToConditionAdjust.contractId = ID;
+}
 
 entity ConditionItems : managed {
     key conditionId         : UUID;
@@ -129,6 +158,22 @@ entity ConditionItems : managed {
 }
 
 entity ConditionItemsAdjust : managed {
+    key conditionId         : UUID;
+        contractId          : UUID;
+        conditionTypeText   : String;
+        effectiveFrom       : Date;
+        percentage          : String;
+        conditionAmt        : String;
+        paymentFromExactDay : String;
+        frequencyInMonths   : String;
+        dueDate             : Date;
+        calculationDate     : Date;
+        sequence            : Integer;
+        conditionToContract : Association to contract;
+
+
+}
+entity ConditionItemsAdjustLoan : managed {
     key conditionId         : UUID;
         contractId          : UUID;
         conditionTypeText   : String;

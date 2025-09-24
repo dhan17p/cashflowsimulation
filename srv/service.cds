@@ -92,6 +92,9 @@ service CashFlowService {
 
     @odata.draft.enabled
     entity contractAdjust                 as projection on cfs.contractAdjust;
+    @odata.draft.enabled
+    entity contractAdjustLoan                 as projection on cfs.contractAdjustLoan;
+    entity ConditionItemsAdjustLoan                 as projection on cfs.ConditionItemsAdjustLoan;
 
     function loadAmortizationFuncNew(principal: String,
                                      annualRate: String,

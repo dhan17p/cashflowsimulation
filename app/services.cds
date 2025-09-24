@@ -10,3 +10,5 @@ using from './cashflowcontractinitial/annotations';
 using from './loancreation/annotations';
 
 using from './adjustmentflow/annotations';
+
+using from './adjustmentflowloan/annotations';

@@ -77,6 +77,10 @@ modules:
       - adjustmentflow.zip
       name: adjustmentflow
       target-path: resources/
+    - artifacts:
+      - adjustmentflowloan.zip
+      name: adjustmentflowloan
+      target-path: resources/
 - name: cashflowcontractinitial
   type: html5
   path: app/cashflowcontractinitial
@@ -100,6 +104,16 @@ modules:
 - name: adjustmentflow
   type: html5
   path: app/adjustmentflow
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: adjustmentflowloan
+  type: html5
+  path: app/adjustmentflowloan
   build-parameters:
     build-result: dist
     builder: custom

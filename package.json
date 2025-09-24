@@ -34,12 +34,12 @@
     "watch-cashflowsimulation2": "cds watch --open cashflowsimulation2/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-cashflowcontract": "cds watch --open cashflowcontract/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-cashflowcontractinitial": "cds watch --open cashflowcontractinitial/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-adjustmentflow": "cds watch --open adjustmentflow/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-adjustmentflow": "cds watch --open adjustmentflow/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-adjustmentflowloan": "cds watch --open adjustmentflowloan/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "cds": {
     "requires": {
       "auth": "dummy"
-     
     }
   },
   "sapux": [
@@ -47,7 +47,8 @@
     "app/cashflowsimulation2",
     "app/cashflowcontract",
     "app/cashflowcontractinitial",
-    "app/adjustmentflow"
+    "app/adjustmentflow",
+    "app/adjustmentflowloan"
   ],
   "workspaces": [
     "app/*"
