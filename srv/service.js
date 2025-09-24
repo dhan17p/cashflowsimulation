@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
 module.exports = cds.service.impl(async function () {
-    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew, ConditionItemsAdjust, contractAdjust } = this.entities;
+    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew, ConditionItemsAdjust, contractAdjust ,ConditionItemsAdjustLoan,contractAdjustLoan} = this.entities;
     var DraftAdministrativeData_DraftUUID;
 
 
@@ -2034,6 +2034,114 @@ module.exports = cds.service.impl(async function () {
         }
         return next();
     });
+    this.on('UPDATE', ConditionItemsAdjustLoan.drafts, async (req, next) => {
+        try {
+            function formatDateOnly(date) {
+                return date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+            }
+            var conditionData = await SELECT.from(ConditionItemsAdjustLoan.drafts).where({ conditionId: req.data.conditionId })
+            var effectiveFrom = conditionData[0].effectiveFrom;
+
+            if (req.data.paymentFromExactDay) {
+                const schedule = await getSchedule(
+                    effectiveFrom,
+                    req.data.paymentFromExactDay // e.g. "LM(Monthly end of mo due next day)"
+                );
+
+                console.log("Schedule calculated:", schedule);
+
+
+                // if you want to update back into DB:
+                await UPDATE(ConditionItemsAdjustLoan.drafts)
+                    .set({
+                        calculationDate: formatDateOnly(schedule.calculationDate),
+                        dueDate: formatDateOnly(schedule.dueDate),
+                        frequencyInMonths: `${schedule.frequencyMonths}`
+                    })
+                    .where({ conditionId: req.data.conditionId });
+
+                var selected_data = await SELECT.from(ConditionItemsAdjustLoan.drafts).where({ conditionId: req.data.conditionId })
+                console.log("selecteddata", selected_data);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+
+
+        try {
+            var conditionData = await SELECT.from(ConditionItemsAdjustLoan.drafts).where({ conditionId: req.data.conditionId })
+
+            var contractData = await SELECT.from(contractAdjustLoan.drafts).where({ ID: conditionData[0].contractId })
+            var fixedFrom = contractData[0].fixedFrom;
+            var fixedUntil = contractData[0].fixedUntil;
+
+            if (!fixedFrom || !fixedUntil) {
+                return req.error(
+                    400,
+                    `You cannot set dates until both Fixed From and Fixed Until are maintained.`
+                );
+            }
+
+
+            // Helper to check range inclusively
+            const isOutOfRange = (date) =>
+                date < fixedFrom || date > fixedUntil;
+
+            // ---- effectiveFrom check ----
+
+            if (req.data.effectiveFrom) {
+                const effectiveFrom = req.data.effectiveFrom;
+                if (isOutOfRange(effectiveFrom)) {
+                    req.data.effectiveFrom = null; // or ""
+                    // await UPDATE(ConditionItems.drafts).set({ effectiveFrom: null, percentage: "1111" }).where({ conditionId: req.data.conditionId });
+                    return req.reject({
+                        code: "VALIDATION_ERROR",
+                        status: 400,
+                        message: `Effective From  must be between Fixed From and Fixed Until ).`,
+                        target: "effectiveFrom",
+                        details: [{ field: "effectiveFrom", value: null }]
+                    });
+                }
+            }
+
+            // ---- dueDate check ----
+            if (req.data.dueDate) {
+                const dueDate = req.data.dueDate;
+                if (isOutOfRange(dueDate)) {
+                    req.data.dueDate = null;
+                    return req.reject({
+                        code: "VALIDATION_ERROR",
+                        status: 400,
+                        message: `Due Date must be between Fixed From and Fixed Until ).`,
+                        target: "dueDate",
+                        details: [{ field: "dueDate", value: null }]
+                    });
+                }
+            }
+
+            // ---- calculationDate check ----
+            if (req.data.calculationDate) {
+                const calculationDate = req.data.calculationDate;
+                if (isOutOfRange(calculationDate)) {
+                    req.data.calculationDate = null;
+                    return req.reject({
+                        code: "VALIDATION_ERROR",
+                        status: 400,
+                        message: `Calculation Date  must be between Fixed From and Fixed Until ).`,
+                        target: "calculationDate",
+                        details: [{ field: "calculationDate", value: null }]
+                    });
+                }
+            }
+
+
+            return next();
+        } catch (error) {
+        }
+        return next();
+    });
 
     this.on('UPDATE', ConditionItemsNew.drafts, async (req, next) => {
 
@@ -2597,6 +2705,78 @@ module.exports = cds.service.impl(async function () {
         if (adjustFrom || adjustUntil) {
             const oldContractDetails = await SELECT
                 .from(Contract)
+                .where({ ID: req.data.ID });
+
+            if (!oldContractDetails.length) {
+                return req.reject({
+                    code: "NOT_FOUND",
+                    status: 404,
+                    message: "Original contract not found",
+                    target: "ID",
+                    details: []
+                });
+            }
+
+            const oldstartFrom = oldContractDetails[0].fixedFrom;
+            const oldstartUntil = oldContractDetails[0].fixedUntil;
+
+            const oldFrom = new Date(oldstartFrom);
+            const oldUntil = new Date(oldstartUntil);
+
+            // Helper to format date to MM/dd/yyyy
+            const formatDateMMDDYYYY = (date) => {
+                const d = new Date(date);
+                const mm = String(d.getMonth() + 1).padStart(2, "0");
+                const dd = String(d.getDate()).padStart(2, "0");
+                const yyyy = d.getFullYear();
+                return `${mm}/${dd}/${yyyy}`;
+            };
+
+            const oldFromFormatted = formatDateMMDDYYYY(oldFrom);
+            const oldUntilFormatted = formatDateMMDDYYYY(oldUntil);
+
+            // If adjustFrom exists, validate it
+            if (adjustFrom) {
+                const newFrom = new Date(adjustFrom);
+                if (newFrom < oldFrom || newFrom > oldUntil) {
+                    return req.reject({
+                        code: "VALIDATION_ERROR",
+                        status: 400,
+                        message: `Adjust From date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
+                        target: "fixedFrom",
+                        details: [{ field: "fixedFrom", value: adjustFrom }]
+                    });
+                }
+            }
+
+            // If adjustUntil exists, validate it
+            if (adjustUntil) {
+                const newUntil = new Date(adjustUntil);
+                if (newUntil < oldFrom || newUntil > oldUntil) {
+                    return req.reject({
+                        code: "VALIDATION_ERROR",
+                        status: 400,
+                        message: `Adjust Until date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
+                        target: "fixedUntil",
+                        details: [{ field: "fixedUntil", value: adjustUntil }]
+                    });
+                }
+            }
+
+            console.log("✅ Dates are valid");
+        }
+
+        return next();
+    });
+    this.on('UPDATE', contractAdjustLoan.drafts, async (req, next) => {
+        console.log("Inside contractAdjust");
+
+        const adjustFrom = req.data.fixedFrom;
+        const adjustUntil = req.data.fixedUntil;
+
+        if (adjustFrom || adjustUntil) {
+            const oldContractDetails = await SELECT
+                .from(contractNew)
                 .where({ ID: req.data.ID });
 
             if (!oldContractDetails.length) {

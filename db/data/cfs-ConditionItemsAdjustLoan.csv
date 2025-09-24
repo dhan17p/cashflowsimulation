@@ -1,0 +1,9 @@
+contractId,conditionTypeText,effectiveFrom,percentage,conditionAmt,paymentFromExactDay,frequencyInMonths,dueDate,calculationDate
+550e8400-e29b-41d4-a716-446655440000,Nominal Interest Fixed,2025-09-01,5,,LM(Monthly end of mo due next day),1,2025-09-30,2025-09-29
+550e8400-e29b-41d4-a716-446655440000,Final Repayment,2027-01-01,2,,LM(Monthly end of mo due next day),1,2027-01-31,2027-01-30
+550e8400-e29b-41d4-a716-446655440000,Annuity repayment,2025-09-01,,5000,LM(Monthly end of mo due next day),1,2025-09-30,2025-09-29
+
+
+
+
+

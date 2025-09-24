@@ -94,6 +94,15 @@ service CashFlowService {
     entity contractAdjust                 as projection on cfs.contractAdjust;
     @odata.draft.enabled
     entity contractAdjustLoan                 as projection on cfs.contractAdjustLoan;
+
+     @Common.SideEffects: {
+        SourceProperties: ['paymentFromExactDay'], // when this field changes
+        TargetProperties: [
+            'dueDate',
+            'calculationDate',
+            'frequencyInMonths'
+        ] // refresh this entity
+    }
     entity ConditionItemsAdjustLoan                 as projection on cfs.ConditionItemsAdjustLoan;
 
     function loadAmortizationFuncNew(principal: String,

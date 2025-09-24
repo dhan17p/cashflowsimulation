@@ -141,8 +141,24 @@
             "settings": {
               "editableHeaderContent": false,
               "contextPath": "/contractAdjustLoan",
-              "navigation": {}
+              "navigation": {},
+              "controlConfiguration": {
+                "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
+                  "tableSettings": {
+                    "type": "GridTable"
+                  }
+                }
+              }
             }
+          }
+        }
+      }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController#adjustmentflowloan::contractAdjustLoanObjectPage": {
+            "controllerName": "adjustmentflowloan.ext.controller.Objectpagecontroller"
           }
         }
       }
