@@ -62,7 +62,8 @@
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "sap.fe.templates": {}
+        "sap.fe.templates": {},
+        "sap.fe.core": {}
       }
     },
     "contentDensities": {
@@ -91,7 +92,11 @@
       }
     },
     "resources": {
-      "css": []
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
     },
     "routing": {
       "config": {},
@@ -105,6 +110,11 @@
           "pattern": "contractAdjustLoan({key}):?query:",
           "name": "contractAdjustLoanObjectPage",
           "target": "contractAdjustLoanObjectPage"
+        },
+        {
+          "name": "ConditionItemsAdjustLoanAdjustmentCashFlowPage",
+          "pattern": "contractAdjustLoan({key})/adjust",
+          "target": "ConditionItemsAdjustLoanAdjustmentCashFlowPage"
         }
       ],
       "targets": {
@@ -141,6 +151,39 @@
             "settings": {
               "editableHeaderContent": false,
               "contextPath": "/contractAdjustLoan",
+              "navigation": {
+                "contractToConditionAdjust": {
+                  "detail": {
+                    "route": "ConditionItemsAdjustLoanAdjustmentCashFlowPage"
+                  }
+                }
+              },
+              "content": {
+                "header": {
+                  "actions": {
+                    "comparecf": {
+                      "press": "adjustmentflowloan.ext.controller.Cashflow.calculatecashflow",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Simulated Adjusted CF"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ConditionItemsAdjustLoanAdjustmentCashFlowPage": {
+          "type": "Component",
+          "id": "ConditionItemsAdjustLoanAdjustmentCashFlowPage",
+          "name": "sap.fe.core.fpm",
+          "options": {
+            "settings": {
+              "navigation": {},
+              "contextPath": "/contractAdjustLoan/contractToConditionAdjust",
+              "viewName": "adjustmentflowloan.ext.view.AdjustmentCashFlow"
+            }
+          }
               "navigation": {},
               "controlConfiguration": {
                 "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
