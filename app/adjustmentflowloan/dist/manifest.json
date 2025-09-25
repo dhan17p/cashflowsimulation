@@ -1,7 +1,7 @@
 {
   "_version": "1.76.0",
   "sap.app": {
-    "id": "loancreation",
+    "id": "adjustmentflowloan",
     "type": "application",
     "i18n": {
       "bundleUrl": "i18n/i18n.properties",
@@ -17,8 +17,8 @@
     "resources": "resources.json",
     "sourceTemplate": {
       "id": "@sap/generator-fiori:lrop",
-      "version": "1.18.6",
-      "toolsId": "69258b83-a009-43a6-aa8a-410cf24f4aea"
+      "version": "1.18.7",
+      "toolsId": "6d270a97-257d-43ac-bda8-307d68cbecbc"
     },
     "dataSources": {
       "mainService": {
@@ -32,10 +32,10 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "loancreationsem-display": {
-          "semanticObject": "loancreationsem",
+        "adjustmentloansem-display": {
+          "semanticObject": "adjustmentloansem",
           "action": "display",
-          "title": "{{loancreationsem-display.flpTitle}}",
+          "title": "{{adjustmentloansem-display.flpTitle}}",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
@@ -79,7 +79,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "loancreation.i18n.i18n",
+          "bundleName": "adjustmentflowloan.i18n.i18n",
           "supportedLocales": [
             ""
           ]
@@ -116,33 +116,33 @@
       "routes": [
         {
           "pattern": ":?query:",
-          "name": "contractNewList",
-          "target": "contractNewList"
+          "name": "contractAdjustLoanList",
+          "target": "contractAdjustLoanList"
         },
         {
-          "pattern": "contractNew({key}):?query:",
-          "name": "contractNewObjectPage",
-          "target": "contractNewObjectPage"
+          "pattern": "contractAdjustLoan({key}):?query:",
+          "name": "contractAdjustLoanObjectPage",
+          "target": "contractAdjustLoanObjectPage"
         },
         {
-          "name": "LoanAmortizationNewCashFlowPopupPage",
-          "pattern": "contractNew({key})/popup",
-          "target": "LoanAmortizationNewCashFlowPopupPage"
+          "name": "ConditionItemsAdjustLoanAdjustmentCashFlowPage",
+          "pattern": "contractAdjustLoan({key})/adjust",
+          "target": "ConditionItemsAdjustLoanAdjustmentCashFlowPage"
         }
       ],
       "targets": {
-        "contractNewList": {
+        "contractAdjustLoanList": {
           "type": "Component",
-          "id": "contractNewList",
+          "id": "contractAdjustLoanList",
           "name": "sap.fe.templates.ListReport",
           "options": {
             "settings": {
-              "contextPath": "/contractNew",
+              "contextPath": "/contractAdjustLoan",
               "variantManagement": "Page",
               "navigation": {
-                "contractNew": {
+                "contractAdjustLoan": {
                   "detail": {
-                    "route": "contractNewObjectPage"
+                    "route": "contractAdjustLoanObjectPage"
                   }
                 }
               },
@@ -156,87 +156,61 @@
             }
           }
         },
-        "contractNewObjectPage": {
+        "contractAdjustLoanObjectPage": {
           "type": "Component",
-          "id": "contractNewObjectPage",
+          "id": "contractAdjustLoanObjectPage",
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/contractNew",
-              "content": {
-                "header": {
-                  "facets": {
-                    "Header": {
-                      "template": "loancreation.ext.fragment.Header",
-                      "position": {
-                        "placement": "After",
-                        "anchor": "HeaderSection"
-                      },
-                      "title": "Cash Flow Details",
-                      "stashed": false,
-                      "requestGroupId": "Heroes",
-                      "flexSettings": {
-                        "designtime": "Default"
-                      }
-                    }
-                  },
-                  "actions": {
-                    "calcualtecashflow": {
-                      "press": "loancreation.ext.controller.CalCashFlow.onCalCashFlow",
-                      "visible": true,
-                      "enabled": true,
-                      "text": "Calculate Cash Flow",
-                      "position": {
-                        "placement": "Before",
-                        "anchor": "EditAction"
-                      }
-                    },
-                    "adjustmentpaymentloan": {
-                      "press": "loancreation.ext.controller.AdjustmentPaymentloan.adjustmentPaymentloanPress",
-                      "visible": true,
-                      "enabled": true,
-                      "text": "Adjustment Payment",
-                      "position": {
-                        "anchor": "calcualtecashflow",
-                        "placement": "Before"
-                      }
-                    }
+              "contextPath": "/contractAdjustLoan",
+              "navigation": {
+                "contractToConditionAdjust": {
+                  "detail": {
+                    "route": "ConditionItemsAdjustLoanAdjustmentCashFlowPage"
                   }
                 }
               },
-              "navigation": {
-                "contractToLoanAmortization": {
-                  "detail": {
-                    "route": "LoanAmortizationNewCashFlowPopupPage"
+              "content": {
+                "header": {
+                  "actions": {
+                    "comparecf": {
+                      "press": "adjustmentflowloan.ext.controller.Cashflow.calculatecashflow",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Simulated Adjusted CF"
+                    }
                   }
                 }
               },
               "controlConfiguration": {
-                "contractToCondition/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems4": {
-                  "actions": {
-                    "rateCal": {
-                      "press": "loancreation.ext.controller.RateCalc.onRatePress",
-                      "text": "Rate"
-                    }
-                  },
+                "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
                   "tableSettings": {
                     "type": "GridTable"
+                  },
+                  "actions": {
+                    "rateadjustloan": {
+                      "press": "adjustmentflowloan.ext.controller.Ratecal.onRatePress",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Rate"
+                    }
                   }
                 }
               }
             }
           }
         },
-        "LoanAmortizationNewCashFlowPopupPage": {
+        "ConditionItemsAdjustLoanAdjustmentCashFlowPage": {
           "type": "Component",
-          "id": "LoanAmortizationNewCashFlowPopupPage",
+          "id": "ConditionItemsAdjustLoanAdjustmentCashFlowPage",
           "name": "sap.fe.core.fpm",
           "options": {
             "settings": {
               "navigation": {},
-              "contextPath": "/contractNew/contractToLoanAmortization",
-              "viewName": "loancreation.ext.view.CashFlowPopup"
+              "contextPath": "/contractAdjustLoan/contractToConditionAdjust",
+              "viewName": "adjustmentflowloan.ext.view.AdjustmentCashFlow"
             }
           }
         }
@@ -245,11 +219,11 @@
     "extends": {
       "extensions": {
         "sap.ui.controllerExtensions": {
-          "sap.fe.templates.ObjectPage.ObjectPageController": {
-            "controllerName": "loancreation.ext.controller.Objectpagecont"
+          "sap.fe.templates.ObjectPage.ObjectPageController#adjustmentflowloan::contractAdjustLoanObjectPage": {
+            "controllerName": "adjustmentflowloan.ext.controller.Objectpagecontroller"
           },
-          "sap.fe.templates.ListReport.ListReportController": {
-            "controllerName": "loancreation.ext.controller.ListReport"
+          "sap.fe.templates.ListReport.ListReportController#adjustmentflowloan::contractAdjustLoanList": {
+            "controllerName": "adjustmentflowloan.ext.controller.ListReportPage"
           }
         }
       }

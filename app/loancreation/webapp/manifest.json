@@ -178,6 +178,16 @@
                         "placement": "Before",
                         "anchor": "EditAction"
                       }
+                    },
+                    "adjustmentpaymentloan": {
+                      "press": "loancreation.ext.controller.AdjustmentPaymentloan.adjustmentPaymentloanPress",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Adjustment Payment",
+                      "position": {
+                        "anchor": "calcualtecashflow",
+                        "placement": "Before"
+                      }
                     }
                   }
                 }

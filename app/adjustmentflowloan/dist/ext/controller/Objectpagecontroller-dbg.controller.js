@@ -1,51 +1,6 @@
 sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExtension) {
 	'use strict';
 
-	// function setWidth() {
-	// 	debugger
-	// 	// var conditionItems = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4");
-	// 	// var table_ui = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4")
-	// 	var conditionItemsColumns = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4").mAggregations._content.getColumns()
-	// 	// conditionItems.getColumns()[0].setWidth("400px");
-	// 	var columnWidths = [
-	// 		"12.5rem",   // col 0
-	// 		"8.2rem", // col 1
-	// 		"5.5rem",  // col 2
-	// 		"7rem",    // col 3
-	// 		"19rem",   // col 4
-	// 		"9.5rem",  // col 5
-	// 		"8.2rem", // col 6
-	// 		"8.2rem"     // col 7
-	// 	];
-	// 	// let oInnerTable = conditionItems;
-	// 	// oInnerTable.addEventDelegate({
-	// 	// 	onAfterRendering: function () {
-	// 	// 		debugger
-	// 	// 		var oTe = new sap.ui.table.TablePointerExtension(oInnerTable);
-	// 	// 		oInnerTable.getColumns().forEach(function (oColumn, i) {
-	// 	// 			oTe.doAutoResizeColumn(i);
-	// 	// 		});
-	// 	// 	}
-	// 	// });
-
-	// 	// Apply widths
-	// 	conditionItemsColumns.forEach(function (oCol, index) {
-	// 		if (columnWidths[index]) {
-	// 			debugger
-	// 			// oCol.setAutoResizable(false);
-	// 			oCol.setWidth(columnWidths[index]);
-	// 			// oCol.addStyleClass("widthcss")
-
-	// 			// oCol.data("p13nMode", []);
-	// 			// oCol.setMinWidth(2);
-	// 		}
-	// 	});
-	// 	// conditionItemsColumns[1].setWidth("8.3rem");
-	// 	// console.log(conditionItemsColumns[1].getWidth());
-	// 	// debugger
-
-
-	// }
 	function debounce(func, delay) {
 		let timeout;
 		return function () {
@@ -58,9 +13,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 	// Your existing setWidth function
 	function setWidth() {
-		var oSmartTable = sap.ui.getCore().byId(
-			"loancreation::contractNewObjectPage--fe::table::contractToCondition::LineItem::ConditionItems4"
-		);
+		var oSmartTable = sap.ui.getCore().byId("adjustmentflowloan::contractAdjustLoanObjectPage--fe::table::contractToConditionAdjust::LineItem::ConditionItems")
 
 		if (!oSmartTable) {
 			console.warn("SmartTable not found");
@@ -83,6 +36,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 		// Check for large screens
 		var isLargeScreen = window.matchMedia("(min-width: 1400px)").matches;
+
 		if (isLargeScreen) {
 			// Use percentages for large monitors
 			columnWidths = [
@@ -116,58 +70,45 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 		});
 	}
 
-
-	return ControllerExtension.extend('loancreation.ext.controller.Objectpagecont', {
+	return ControllerExtension.extend('adjustmentflowloan.ext.controller.Objectpagecontroller', {
 		// this section allows to extend lifecycle hooks or hooks provided by Fiori elements
 		override: {
 			/**
 			 * Called when a controller is instantiated and its View controls (if available) are already created.
 			 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
-			 * @memberOf loancreation.ext.controller.Objectpagecont
+			 * @memberOf adjustmentflowloan.ext.controller.Objectpagecontroller
 			 */
-
-
 			onInit: function () {
 				// you can access the Fiori elements extensionAPI via this.base.getExtensionAPI
 				var oModel = this.base.getExtensionAPI().getModel();
 			},
-			onAfterRendering: function () {
+			onAfterRendering1: function () {
+				debugger
+
 				// Get the Object Page
+				// var oObjectPage = sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::ObjectPage");
 				debugger
 				var debouncedSetWidth = debounce(setWidth, 250); // Debounce with a 250ms delay
 				window.addEventListener("resize", debouncedSetWidth);
 				setWidth();
 			},
 			routing: {
-				onBeforeBinding1: function () {
-					debugger
-					try {
-						// sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").firePress();
-						// sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::ObjectPage-OPHeaderContent-pinBtn").setPressed(true);
-						sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::Form::Conditions1::Content").mAggregations.formContainers[0].getTitle().destroy()
-
-					} catch (error) {
-						console.log(error);
-					}
-					// sap.ui.getCore().byId("CreateDialog::Contract")?.setTitle("false");
-				},
 				onAfterBinding: function () {
 					debugger
 
-
 					// setWidth();
 					const oDatePicker = sap.ui.getCore().byId(
-						"loancreation::contractNewObjectPage--fe::FormContainer::Fixed::FormElement::DataField::fixedFrom::Field-edit"
+						"adjustmentflowloan::contractAdjustLoanObjectPage--fe::FormContainer::GeneratedFacet1::FormElement::DataField::fixedFrom::Field-edit"
 					);
 					const oDisplayField = sap.ui.getCore().byId(
-						"loancreation::contractNewObjectPage--fe::FormContainer::Fixed::FormElement::DataField::fixedFrom::Field-display"
+						"adjustmentflowloan::contractAdjustLoanObjectPage--fe::FormContainer::GeneratedFacet1::FormElement::DataField::fixedFrom::Field-display"
 					);
 
 					const oDatePicker1 = sap.ui.getCore().byId(
-						"loancreation::contractNewObjectPage--fe::FormContainer::Fixed::FormElement::DataField::fixedUntil::Field-edit"
+						"adjustmentflowloan::contractAdjustLoanObjectPage--fe::FormContainer::GeneratedFacet1::FormElement::DataField::fixedUntil::Field-edit"
 					);
 					const oDisplayField1 = sap.ui.getCore().byId(
-						"loancreation::contractNewObjectPage--fe::FormContainer::Fixed::FormElement::DataField::fixedUntil::Field-display"
+						"adjustmentflowloan::contractAdjustLoanObjectPage--fe::FormContainer::GeneratedFacet1::FormElement::DataField::fixedUntil::Field-display"
 					);
 
 					// ---- fixedFrom ----
@@ -258,20 +199,9 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 					}
 
 					const bIsActiveEntity = getIsActiveEntityFromUrl();
-
-					let oButtonAdjust = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan")
-
-					if (bIsActiveEntity == true) {
-						oButtonAdjust.setVisible(true)
-
-					}
-					else {
-						oButtonAdjust.setVisible(false)
-					}
-
 					function formatDateColumn() {
 						const oFacet = sap.ui.getCore().byId(
-							"loancreation::contractNewObjectPage--fe::FacetSubSection::ConditionItems"
+							"adjustmentflowloan::contractAdjustLoanObjectPage--fe::FacetSubSection::ConditionItems"
 						);
 
 						if (!oFacet) return;
@@ -357,22 +287,6 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 
 
-				}
-			},
-			editFlow: {
-				onBeforeEdit: function () {
-					debugger
-					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(false)
-
-				},
-				onAfterSave: function () {
-					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(true)
-
-				},
-				// This function is called after the save action is completed.
-				// It hides the custom action button for adjustment payment in the UI.
-				onBeforeDiscard: function () {
-					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(true);
 				}
 			}
 		}

@@ -174,6 +174,15 @@
                 "contractToConditionAdjust/@com.sap.vocabularies.UI.v1.LineItem#ConditionItems": {
                   "tableSettings": {
                     "type": "GridTable"
+                  },
+                  "actions": {
+                    "rateadjustloan": {
+                      "press": "adjustmentflowloan.ext.controller.Ratecal.onRatePress",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Rate"
+                    }
                   }
                 }
               }
@@ -199,6 +208,9 @@
         "sap.ui.controllerExtensions": {
           "sap.fe.templates.ObjectPage.ObjectPageController#adjustmentflowloan::contractAdjustLoanObjectPage": {
             "controllerName": "adjustmentflowloan.ext.controller.Objectpagecontroller"
+          },
+          "sap.fe.templates.ListReport.ListReportController#adjustmentflowloan::contractAdjustLoanList": {
+            "controllerName": "adjustmentflowloan.ext.controller.ListReportPage"
           }
         }
       }

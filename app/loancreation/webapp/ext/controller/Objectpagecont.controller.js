@@ -186,7 +186,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 									const dd = String(oDate.getDate()).padStart(2, "0");
 									const mm = String(oDate.getMonth() + 1).padStart(2, "0");
 									const yyyy = oDate.getFullYear();
-									oDisplayField.setText(`${dd}/${mm}/${yyyy}`);
+									oDisplayField.setText(`${mm}/${dd}/${yyyy}`);
 								}
 							}
 						}, 1000);
@@ -258,6 +258,17 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 					}
 
 					const bIsActiveEntity = getIsActiveEntityFromUrl();
+
+					let oButtonAdjust = sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan")
+
+					if (bIsActiveEntity == true) {
+						oButtonAdjust.setVisible(true)
+
+					}
+					else {
+						oButtonAdjust.setVisible(false)
+					}
+
 					function formatDateColumn() {
 						const oFacet = sap.ui.getCore().byId(
 							"loancreation::contractNewObjectPage--fe::FacetSubSection::ConditionItems"
@@ -346,6 +357,22 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 
 
 
+				}
+			},
+			editFlow: {
+				onBeforeEdit: function () {
+					debugger
+					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(false)
+
+				},
+				onAfterSave: function () {
+					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(true)
+
+				},
+				// This function is called after the save action is completed.
+				// It hides the custom action button for adjustment payment in the UI.
+				onBeforeDiscard: function () {
+					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(true);
 				}
 			}
 		}

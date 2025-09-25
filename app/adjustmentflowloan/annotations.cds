@@ -6,7 +6,7 @@ annotate service.contractAdjustLoan with @(
         Data : [
             {
                 $Type: 'UI.DataField',
-                Label: 'Effective Capital',
+                Label: 'Principal Balance',
                 Value: commitCapital,
             },
             {
@@ -132,7 +132,7 @@ annotate service.ConditionItemsAdjustLoan with {
     conditionTypeText @(
         Common.ValueList               : {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'ConditionTypeTextSearchHelp',
+            CollectionPath: 'ConditionTypeTextSearchHelpNew',
             Parameters    : [{
                 $Type            : 'Common.ValueListParameterInOut',
                 LocalDataProperty: conditionTypeText,

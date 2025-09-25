@@ -67,7 +67,9 @@ service CashFlowService {
 
 
     function onRatePress(contractId: Contract:ID, isActiveEntity: String)        returns String;
+    function onRatePressB(contractId: Contract:ID, isActiveEntity: String)        returns String;
     function onRatePressAdjust(contractId: Contract:ID, isActiveEntity: String)        returns String;
+    function onRatePressAdjustLoan(contractId: Contract:ID, isActiveEntity: String)        returns String;
 
 
     //new application service
@@ -148,7 +150,24 @@ service CashFlowService {
                                         efffectiveDatefinalRepayment: String,
                                         isActiveEntity: String,
                                         loanData: LargeString)                   returns array of AdjustType;
+    function loadAmortizationFuncAdjustLoan(principal: String,
+                                        annualRate: String,
+                                        startDate: String,
+                                        endDate: String,
+                                        interestFixedDate: String,
+                                        inclusiveIndicator: String,
+
+                                        contractId: String,
+                                        intCalMt: String,
+                                        calculationDate: String,
+                                        dueDate: String,
+                                        percentage: String,
+                                        conditionAmt: String,
+                                        efffectiveDatefinalRepayment: String,
+                                        isActiveEntity: String,
+                                        loanData: LargeString)                   returns array of AdjustType;
 
 
     function getcontractDetails(contractId: Contract:ID, isActiveEntity: String) returns String;
+    function getcontractDetailsLoan(contractId: Contract:ID, isActiveEntity: String) returns String;
 }

@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
 module.exports = cds.service.impl(async function () {
-    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew, ConditionItemsAdjust, contractAdjust ,ConditionItemsAdjustLoan,contractAdjustLoan} = this.entities;
+    let { Contract, ConditionItems, LoanAmortization, AmortizationSchedule, AmortizationSchedule2, AmortizationSchedule2New, contractNew, ConditionItemsNew, ConditionItemsAdjust, contractAdjust, ConditionItemsAdjustLoan, contractAdjustLoan } = this.entities;
     var DraftAdministrativeData_DraftUUID;
 
 
@@ -1399,7 +1399,15 @@ module.exports = cds.service.impl(async function () {
 
             await DELETE.from(AmortizationSchedule2New);
             await INSERT.into(AmortizationSchedule2New).entries(formattedData);
-            await SELECT.from(AmortizationSchedule2New);
+
+            var conditionItemData = await SELECT.from(ConditionItemsNew).where({ contractId: contractId });
+            var contractData = await SELECT.from(contractNew);
+
+            await DELETE.from(contractAdjustLoan);
+            await INSERT.into(contractAdjustLoan).entries(contractData);
+
+            await DELETE.from(ConditionItemsAdjustLoan);
+            await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
             // return result;
         } catch (error) {
             console.log("loadAmortizationFuncNew", error)
@@ -1705,6 +1713,305 @@ module.exports = cds.service.impl(async function () {
         }
 
     });
+    this.on('loadAmortizationFuncAdjustLoan', async (req) => {
+
+
+        try {
+            debugger;
+
+            // Extract from req.data (all strings initially)
+            let {
+                principal,
+                annualRate,
+                startDate,
+                endDate,
+                interestFixedDate,
+                inclusiveIndicator,
+                contractId,
+                intCalMt,
+                percentage,
+                dueDate,
+                calculationDate,
+                conditionAmt,
+                efffectiveDatefinalRepayment,
+                loanData,
+                isActiveEntity
+            } = req.data;
+
+            console.log("paramssss", req.data)
+
+            function getFirstPaymentDate(fixedFrom) {
+                const firstPayment = addMonths(fixedFrom, 1); // next month
+                firstPayment.setDate(1); // first day of next month
+                return firstPayment;
+            }
+
+
+            async function buildContractData(contractId) {
+                // Fetch rows from DB
+                if (isActiveEntity === "true") {
+                    var data = await SELECT.from(ConditionItemsAdjustLoan).where({ contractId: contractId });
+
+                }
+                else {
+                    var data = await SELECT.from(ConditionItemsAdjustLoan.drafts).where({ contractId: contractId });
+                }
+
+                const result = {
+                    interestPeriods: [],
+                    repaymentChanges: [],
+                    finalRepaymentDate: null
+                };
+
+                data.forEach(oData => {
+                    switch (oData.conditionTypeText) {
+                        case "Nominal Interest Fixed":
+                            result.interestPeriods.push({
+                                start: formatDate(oData.effectiveFrom),
+                                rate: parseFloat(oData.percentage) / 100 || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Payment Amount":
+                            result.repaymentChanges.push({
+                                start: formatDate(oData.effectiveFrom),
+                                amount: parseFloat(oData.conditionAmt) || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Final Repayment":
+                            result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+                            break;
+                    }
+                });
+
+                return result;
+            }
+            var data_items = await buildContractData(contractId);
+            console.log("backend data", data_items)
+
+            // Helper: format date from JS Date or string → dd/MM/yyyy
+            function formatDate(dateValue) {
+                if (!dateValue) return null;
+
+                const oDate = new Date(dateValue);
+                if (isNaN(oDate.getTime())) return null;
+
+                const dd = String(oDate.getDate()).padStart(2, "0");
+                const mm = String(oDate.getMonth() + 1).padStart(2, "0");
+                const yyyy = oDate.getFullYear();
+                return `${dd}/${mm}/${yyyy}`;
+            }
+
+            function formatToDDMMYYYY(dateStr) {
+                if (!dateStr) return dateStr;
+                const [year, month, day] = dateStr.split("-");
+                return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+            }
+
+
+            let oInput = {
+                commitCapital: Number(principal),
+                startDate: formatToDDMMYYYY(startDate),
+                endDate: formatToDDMMYYYY(endDate),
+                interestPeriods: data_items.interestPeriods,
+                repaymentChanges: data_items.repaymentChanges,
+                finalRepaymentDate: data_items.finalRepaymentDate,
+                paymentFrequencyMonths: 1,
+                interestCalcMethod: intCalMt,
+                inclusive: inclusiveIndicator == 'true' ? true : false
+            }
+
+            console.log(oInput);
+
+
+            const formattedSchedule = calculateLoanScheduleFlexible(oInput);
+
+            console.table(formattedSchedule);
+
+            let formattedData = formattedSchedule.map(item => {
+                // safely get "Due Date" (with space in key)
+                let [day, month, year] = item["Due Date"].split("/");
+                // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                function convertDateToUSFormat(dateStr) {
+                    if (!dateStr) return null;
+                    let [day, month, year] = dateStr.split("/");
+                    let shortYear = year;
+                    return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                }
+
+
+                return {
+                    index: item.Index,
+                    flowType: item.flowType,
+                    calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                    dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                    calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    baseAmount: item["Outstanding Principal Start"],
+                    percentageRate: item["Interest Rate (%)"],
+                    numberOfDays: item.Days,
+                    name: item.Name,
+                    settlementAmount: item.Amount,         // renamed
+                    repaymentAmount: item["Repayment Amount"],
+                    principalRepayment: item["Principal Repayment"],
+                    interestAmount: item["Interest Amount"],
+                    outstandingPrincipalEnd: item["Outstanding Principal End"],
+                    contractId: contractId,
+                    settlementCurrency: "USD",
+                    planActualRec: item["Planned/Incurred Status"]
+                };
+            });
+            console.table(formattedData);
+
+
+            // var AmortizationSchedule2 = await SELECT.from(AmortizationSchedule2);
+            // var final_data = AmortizationSchedule2[0];
+
+
+            // var table1 = formattedData
+            // var table2 = await SELECT.from(AmortizationSchedule2);
+
+            // var mergedArray = [];
+
+            // // Create a map of table2 by index for quick lookup
+            // var table2Map = {};
+            // table2.forEach(row => {
+            //     table2Map[row.index] = row;
+            // });
+
+            // // Loop through table1 and combine with matching index from table2
+            // table1.forEach(row1 => {
+            //     const row2 = table2Map[row1.index]; //old one
+            //     if (row2) {
+            //         mergedArray.push({
+            //             flowType: row1.flowType,
+            //             name: row1.name,
+            //             dueDate1: row2.dueDate,
+            //             amount1: row2.settlementAmount,
+            //             dueDate2: row1.dueDate,      // or row2.baseAmount if you want amount here
+            //             amount2: row1.settlementAmount,
+            //             index: row1.index.toString()
+            //         });
+            //     }
+            // });
+            // console.table(mergedArray);
+            // return mergedArray;
+
+
+            var table1 = formattedData;//new
+            var table2 = await SELECT.from(AmortizationSchedule2New);//old
+
+            var mergedArray = [];
+            var finalRepaymentRow = null;
+
+            var maxLength = Math.max(table1.length, table2.length);
+
+            for (let i = 0; i < maxLength; i++) {
+                let row1 = table1[i] || {};//new
+                let row2 = table2[i] || {};//old
+
+                const isFinal1 = row1.name === "Final Repayment";
+                const isFinal2 = row2.name === "Final Repayment";
+
+                if (isFinal1 && isFinal2) {
+                    // Both have Final Repayment → merge them
+                    finalRepaymentRow = {
+                        flowType: row1.flowType || row2.flowType || "",
+                        name: "Final Repayment",
+                        dueDate1: row2.dueDate || "",
+                        amount1: row2.settlementAmount || "",
+                        dueDate2: row1.dueDate || "",
+                        amount2: row1.settlementAmount || "",
+                        index: (row1.index || row2.index || (i + 1)).toString()
+                    };
+                }
+                else if (isFinal1 && !isFinal2) {
+                    // Only row1 is Final Repayment → store it for later
+                    finalRepaymentRow = {
+                        flowType: row1.flowType || row2.flowType || "",
+                        name: "Final Repayment",
+                        dueDate2: row1.dueDate || "",
+                        amount2: row1.settlementAmount || "",
+                        index: (row1.index || row2.index || (i + 1)).toString()
+                    };
+
+                    // Still push row2 normally if exists and not final repayment
+                    if (Object.keys(row2).length) {
+                        mergedArray.push({
+                            flowType: row2.flowType || "",
+                            name: row2.name || "",
+                            dueDate1: row2.dueDate || "",
+                            amount1: row2.settlementAmount || "",
+                            dueDate2: "",
+                            amount2: "",
+                            index: (row2.index || (i + 1)).toString()
+                        });
+                    }
+                }
+                else if (!isFinal1 && isFinal2) {
+                    // Only row2 is Final Repayment → store it for later
+                    finalRepaymentRow = {
+                        flowType: row1.flowType || row2.flowType || "",
+                        name: "Final Repayment",
+                        dueDate1: row2.dueDate || "",
+                        amount1: row2.settlementAmount || "",
+                        index: (row1.index || row2.index || (i + 1)).toString()
+                    };
+
+                    // Still push row1 normally if exists and not final repayment
+                    if (Object.keys(row1).length) {
+                        mergedArray.push({
+                            flowType: row1.flowType || "",
+                            name: row1.name || "",
+                            dueDate1: "",
+                            amount1: "",
+                            dueDate2: row1.dueDate || "",
+                            amount2: row1.settlementAmount || "",
+                            index: (row1.index || (i + 1)).toString()
+                        });
+                    }
+                }
+                else {
+                    // Neither are Final Repayment → normal row merge
+                    mergedArray.push({
+                        flowType: row1.flowType || row2.flowType || "",
+                        name: row1.name || row2.name || "",
+                        dueDate1: row2.dueDate || "",
+                        amount1: row2.settlementAmount || "",
+                        dueDate2: row1.dueDate || "",
+                        amount2: row1.settlementAmount || "",
+                        index: (row1.index || row2.index || (i + 1)).toString()
+                    });
+                }
+            }
+            // Append Final Repayment only if it exists
+            if (finalRepaymentRow) {
+                mergedArray.push(finalRepaymentRow);
+            }
+
+            console.table(mergedArray);
+            return mergedArray;
+
+
+
+            console.table(mergedArray);
+
+
+            // await DELETE.from(AmortizationSchedule2New);
+            // await INSERT.into(AmortizationSchedule2New).entries(formattedData);
+            // await SELECT.from(AmortizationSchedule2New);
+            // return result;
+        } catch (error) {
+            console.log("loadAmortizationFuncAdjust", error);
+        }
+
+    });
 
 
     this.on("getcontractDetails", async (req) => {
@@ -1714,6 +2021,16 @@ module.exports = cds.service.impl(async function () {
             contractId,
         } = req.data;
         var datacontract = await SELECT.from(Contract).where({ ID: contractId })
+        return datacontract;
+    })
+
+    this.on("getcontractDetailsLoan", async (req) => {
+        debugger
+        let {
+
+            contractId,
+        } = req.data;
+        var datacontract = await SELECT.from(contractNew).where({ ID: contractId })
         return datacontract;
     })
 
@@ -2695,9 +3012,110 @@ module.exports = cds.service.impl(async function () {
 
         return `Annuity calculation updated for Contract ${contractId}`;
     });
+    this.on('onRatePressAdjustLoan', async (req) => {
+        debugger;
+        const { contractId, isActiveEntity } = req.data;
+        console.log("Request data:", req.data);
+
+        // --- Helper: Format Date ---
+        const formatDate = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        // --- Helper: Resolve active/draft table ---
+        const getTable = (entity) => (isActiveEntity === "true" ? entity : entity.drafts);
+
+        // --- Build interest periods ---
+        async function buildContractData(contractId) {
+            const itemData = await SELECT.from(getTable(ConditionItemsAdjustLoan)).where({ contractId });
+            return itemData
+                .filter(oData => oData.conditionTypeText === "Nominal Interest Fixed")
+                .map(oData => ({
+                    start: formatDate(oData.effectiveFrom),
+                    rate: parseFloat(oData.percentage) / 100 || 0
+                }));
+        }
+
+        // --- Fetch parent contract & interest periods ---
+        const [oParent] = await SELECT.from(getTable(contractAdjustLoan)).where({ ID: contractId });
+        const oConditionItems = await SELECT.from(getTable(ConditionItemsAdjustLoan)).where({
+            contractId: contractId,
+            conditionTypeText: "Payment Amount"
+        });
+        const interestRates = await buildContractData(contractId);
+
+        console.log("Interest Rates:", interestRates);
+        console.log("Contract:", oParent);
+        console.log("Condition Items:", oConditionItems);
+
+        if (interestRates.length === 0) {
+            let oPrinciple = Number(oParent.commitCapital) || 0;
+            const fixedFrom = moment(oParent.fixedFrom);
+            const fixedUntil = moment(oParent.fixedUntil);
+
+            // Calculate the difference in months
+            const monthDifference = fixedUntil.diff(fixedFrom, 'months');
+            console.log(monthDifference);
+            let amount = oPrinciple / monthDifference;
+
+            await UPDATE(getTable(ConditionItemsAdjustLoan))
+                .set({ conditionAmt: amount.toFixed(2) })
+                .where({ contractId: contractId, conditionTypeText: "Payment Amount" });
+
+            return `No interest rates found for Contract ${contractId}. Condition amounts set to ${amount.toFixed(2)}.`;
+        }
+
+        // --- Filter Annuity items ---
+        const annuityItems = oConditionItems.filter(item => item.conditionTypeText === 'Payment Amount');
+
+        if (annuityItems.length > 0) {
+            // --- Find the item with the lowest sequence ---
+            const firstItem = annuityItems.reduce((prev, curr) =>
+                prev.effectiveFrom < curr.effectiveFrom ? prev : curr
+            );
+
+            const firstEffectiveFrom = new Date(firstItem.effectiveFrom);
+
+            // --- Calculate annuity using the earliest sequence's effectiveFrom ---
+            const result = calculateAnnuityRepaymentB({
+                principal: Number(oParent.commitCapital),
+                fixedFrom: new Date(oParent.fixedFrom),
+                fixedUntil: new Date(oParent.fixedUntil),
+                interestConditions: interestRates.map(r => ({
+                    start: new Date(r.start),
+                    rate: r.rate
+                })),
+                annuityStart: firstEffectiveFrom,
+                interestCalcMethod: oParent.intCalMt || "360/360"
+            });
+
+            console.log("Payment Amount (all items):", result);
+
+            // --- Single update for all Annuity repayment items in this contract ---
+            await UPDATE(getTable(ConditionItemsAdjustLoan))
+                .set({ conditionAmt: result.annuityAmount.toFixed(2) })
+                .where({
+                    contractId: contractId,
+                    conditionTypeText: "Payment Amount"
+                });
+        }
+
+
+        // --- Final fetch for verification (optional) ---
+        const updatedItems = await SELECT.from(getTable(ConditionItemsAdjustLoan)).where({ contractId });
+        console.log("Updated Condition Items:", updatedItems);
+
+        return `Payment Amount calculation updated for Contract ${contractId}`;
+
+    });
 
     this.on('UPDATE', contractAdjust.drafts, async (req, next) => {
         console.log("Inside contractAdjust");
+        console.log('req', req.data);
 
         const adjustFrom = req.data.fixedFrom;
         const adjustUntil = req.data.fixedUntil;
@@ -2706,6 +3124,7 @@ module.exports = cds.service.impl(async function () {
             const oldContractDetails = await SELECT
                 .from(Contract)
                 .where({ ID: req.data.ID });
+            console.log("contractdddd", oldContractDetails);
 
             if (!oldContractDetails.length) {
                 return req.reject({
@@ -2744,7 +3163,7 @@ module.exports = cds.service.impl(async function () {
                         status: 400,
                         message: `Adjust From date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
                         target: "fixedFrom",
-                        details: [{ field: "fixedFrom", value: adjustFrom }]
+                        details: [{ field: "fixedFrom", value: formatDateMMDDYYYY(newFrom) }]
                     });
                 }
             }
@@ -2758,7 +3177,7 @@ module.exports = cds.service.impl(async function () {
                         status: 400,
                         message: `Adjust Until date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
                         target: "fixedUntil",
-                        details: [{ field: "fixedUntil", value: adjustUntil }]
+                        details: [{ field: "fixedUntil", value: formatDateMMDDYYYY(newUntil) }]
                     });
                 }
             }
@@ -2768,8 +3187,10 @@ module.exports = cds.service.impl(async function () {
 
         return next();
     });
+
     this.on('UPDATE', contractAdjustLoan.drafts, async (req, next) => {
         console.log("Inside contractAdjust");
+        console.log('req', req.data);
 
         const adjustFrom = req.data.fixedFrom;
         const adjustUntil = req.data.fixedUntil;
@@ -2778,6 +3199,7 @@ module.exports = cds.service.impl(async function () {
             const oldContractDetails = await SELECT
                 .from(contractNew)
                 .where({ ID: req.data.ID });
+            console.log("contractdddd", oldContractDetails);
 
             if (!oldContractDetails.length) {
                 return req.reject({
@@ -2816,7 +3238,7 @@ module.exports = cds.service.impl(async function () {
                         status: 400,
                         message: `Adjust From date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
                         target: "fixedFrom",
-                        details: [{ field: "fixedFrom", value: adjustFrom }]
+                        details: [{ field: "fixedFrom", value: formatDateMMDDYYYY(newFrom) }]
                     });
                 }
             }
@@ -2830,14 +3252,12 @@ module.exports = cds.service.impl(async function () {
                         status: 400,
                         message: `Adjust Until date must be between ${oldFromFormatted} and ${oldUntilFormatted}.`,
                         target: "fixedUntil",
-                        details: [{ field: "fixedUntil", value: adjustUntil }]
+                        details: [{ field: "fixedUntil", value: formatDateMMDDYYYY(newUntil) }]
                     });
                 }
             }
-
             console.log("✅ Dates are valid");
         }
-
         return next();
     });
 
