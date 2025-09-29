@@ -12,6 +12,8 @@
             <f:DynamicPageTitle>
                 <f:heading>
                     <Title text="{i18n>AdjustmentCashFlowTitle}"/>
+                    <!-- <Title text="cccccccccccccccccccccccc"/> -->
+                    <!-- <Title text="Actual CF from {NewfixedDates>/startFromNew} to {NewfixedDates>/EndFromOldNew}"/> -->
                 </f:heading>
             </f:DynamicPageTitle>
         </f:title>
@@ -22,10 +24,11 @@
 
                 <!-- Table 1: Fixed -->
                 <VBox width="48%" class="tableWithTotals">
-                    <Table id="tableFixed" items="{OldTableAdjustScreen>/rows}"   growing="true" growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
+                    <Table id="tableFixed" items="{OldTableAdjustScreen>/rows}" growing="true" growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
                         <headerToolbar>
                             <Toolbar>
-                                <Title text="Fixed From: {OldfixedDates>/startFromOld}  |  Fixed Until: {OldfixedDates>/EndFromOld}"/>
+                                <Title text="Actual CF from {NewfixedDates>/startFromNew} to {NewfixedDates>/EndFromOldNew}"/>
+                                <!-- <Title text="Fixed From: {OldfixedDates>/startFromOld}  |  Fixed Until: {OldfixedDates>/EndFromOld}"/> -->
                             </Toolbar>
                         </headerToolbar>
                         <columns>
@@ -55,20 +58,25 @@
                     </Table>
 
                     <!-- Totals -->
-                    <VBox class="totalsSection" width="100%" >
-                        <Label text="Total Loan disbursement: {OldTableTotals>/Loan disbursement}"/>
-                        <Label text="Total Principal Receivable: {OldTableTotals>/Principal Receivable}"/>
-                        <Label text="Total Interest Receivable: {OldTableTotals>/Interest Receivable}"/>
-                        <Label text="Total Final Repayment: {OldTableTotals>/Final Repayment}"/>
+                    <VBox class="totalsSection" width="100%">
+                        <Label text="Total Loan disbursement: {OldTableTotals>/Loan disbursement}" visible="{= !!${OldTableTotals>/Loan disbursement} }" />
+
+                        <Label text="Total Principal Receivable: {OldTableTotals>/Principal Receivable}" visible="{= !!${OldTableTotals>/Principal Receivable} }" />
+
+                        <Label text="Total Interest Receivable: {OldTableTotals>/Interest Receivable}" visible="{= !!${OldTableTotals>/Interest Receivable} }" />
+
+                        <Label text="Total Final Repayment: {OldTableTotals>/Final Repayment}" visible="{= !!${OldTableTotals>/Final Repayment} }" />
+
                     </VBox>
                 </VBox>
 
                 <!-- Table 2: Adjust -->
                 <VBox width="48%" class="tableWithTotals">
-                    <Table id="tableAdjust" items="{NewTableAdjustScreen>/rows}"  growing="true"  growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
+                    <Table id="tableAdjust" items="{NewTableAdjustScreen>/rows}" growing="true" growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
                         <headerToolbar>
                             <Toolbar>
-                                <Title text="Adjust From: {NewfixedDates>/startFromNew}   |  Adjust Until: {NewfixedDates>/EndFromOldNew}"/>
+                                <Title text="Adjusted CF from {NewfixedDates>/startFromNew} to {NewfixedDates>/EndFromOldNew}"/>
+                                <!-- <Title text="Adjust From: {NewfixedDates>/startFromNew}   |  Adjust Until: {NewfixedDates>/EndFromOldNew}"/> -->
                             </Toolbar>
                         </headerToolbar>
                         <columns>
@@ -99,10 +107,14 @@
 
                     <!-- Totals -->
                     <VBox class="totalsSection" width="100%">
-                        <Label text="Total Loan disbursement: {NewTableTotals>/Loan disbursement}"/>
-                        <Label text="Total Principal Receivable: {NewTableTotals>/Principal Receivable}"/>
-                        <Label text="Total Interest Receivable: {NewTableTotals>/Interest Receivable}"/>
-                        <Label text="Total Final Repayment: {NewTableTotals>/Final Repayment}"/>
+                        <Label id="newLoanDis" text="Total Loan disbursement: {NewTableTotals>/Loan disbursement}" visible="{= !!${NewTableTotals>/Loan disbursement} }" />
+
+                        <Label id="newPrincipalRec" text="Total Principal Receivable: {NewTableTotals>/Principal Receivable}" visible="{= !!${NewTableTotals>/Principal Receivable} }" />
+
+                        <Label id="newInterestRec" text="Total Interest Receivable: {NewTableTotals>/Interest Receivable}" visible="{= !!${NewTableTotals>/Interest Receivable} }" />
+
+                        <Label id="newFinalRepayment" text="Total Final Repayment: {NewTableTotals>/Final Repayment}" visible="{= !!${NewTableTotals>/Final Repayment} }" />
+
                     </VBox>
                 </VBox>
 

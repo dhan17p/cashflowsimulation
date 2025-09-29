@@ -526,7 +526,9 @@ module.exports = cds.service.impl(async function () {
                 currentDate = nextDate.clone();
                 // guard final repayment if we passed finalRepCutoff
                 if (nextDate.isAfter(finalRepCutoff)) {
-                    if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) pushFinalRepayment(periodStart, finalRepCutoff);
+                    if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0 && finalRepDate.isSameOrBefore(finalDate)) {
+                        pushFinalRepayment(periodStart, finalRepCutoff);
+                    }
                     break;
                 }
                 continue;
@@ -556,22 +558,25 @@ module.exports = cds.service.impl(async function () {
 
             // Principal/Annuity row if repayment scheduled this month
             let scheduledAnnuity = (repaymentActive) ? repaymentPlan.amount : 0;
+
             if (scheduledAnnuity && scheduledAnnuity > 0) {
-                // total payment = scheduledAnnuity; interest portion already charged above; principal = scheduledAnnuity - interest
-                // Use monthlyInterest as interest for this month so principal portion:
-                const principalPortion = Math.max(0, parseFloat((scheduledAnnuity - monthlyInterest).toFixed(2)));
-                // reduce outstanding principal
+                let principalPortion = parseFloat((scheduledAnnuity - monthlyInterest).toFixed(2));
+
+                // Clamp repayment to outstanding principal
+                if (principalPortion > outstandingPrincipal) {
+                    principalPortion = outstandingPrincipal;
+                }
+
                 outstandingPrincipal = parseFloat((outstandingPrincipal - principalPortion).toFixed(8));
 
                 let adjustedPrincipalPortion = principalPortion;
-                let adjustedScheduledAnnuity = scheduledAnnuity;
+                let adjustedScheduledAnnuity = parseFloat((monthlyInterest + principalPortion).toFixed(2));
 
-                // Check if this is the last repayment and small leftover exists
-
+                // Apply tolerance logic
                 if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
                     adjustedPrincipalPortion = parseFloat((principalPortion + outstandingPrincipal).toFixed(2));
                     adjustedScheduledAnnuity = parseFloat((scheduledAnnuity + outstandingPrincipal).toFixed(2));
-                    outstandingPrincipal = 0; // merged leftover
+                    outstandingPrincipal = 0;
                 }
 
                 schedule.push({
@@ -584,8 +589,8 @@ module.exports = cds.service.impl(async function () {
                     "Interest Rate (%)": "",
                     "Days": days,
                     "Name": "Principal Receivable",
-                    "Amount": adjustedPrincipalPortion,           // principal part shown as "Amount"
-                    "Repayment Amount": adjustedScheduledAnnuity, // total payment
+                    "Amount": adjustedPrincipalPortion,
+                    "Repayment Amount": adjustedScheduledAnnuity,
                     "Principal Repayment": adjustedPrincipalPortion,
                     "Interest Amount": "",
                     "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
@@ -593,10 +598,11 @@ module.exports = cds.service.impl(async function () {
                 });
             }
 
+
             // Advance currentDate to next month
             // Final period detection: if nextDate passes finalRepCutoff - push final and break
             if (inclusive ? nextDate.isSameOrAfter(finalRepCutoff) : nextDate.isAfter(finalRepCutoff)) {
-                if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) {
+                if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0 && finalRepDate.isSameOrBefore(finalDate)) {
                     // use periodStart as calcFrom and finalRepCutoff as due
                     pushFinalRepayment(periodStart, finalRepCutoff);
                     outstandingPrincipal = 0;
@@ -608,11 +614,10 @@ module.exports = cds.service.impl(async function () {
         }
 
         // Safety: if anything remains unpaid after loop
-        if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) {
+        if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0 && finalRepDate.isSameOrBefore(finalDate)) {
             // push final repayment on finalRepCutoff
             pushFinalRepayment(moment(finalRepDate).startOf('month'), finalRepCutoff);
         }
-
         // const tolerance = tolerance; // Small leftover threshold
         // if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
         //     // Find last principal repayment row
@@ -673,36 +678,36 @@ module.exports = cds.service.impl(async function () {
 
     // const schedule = calculateLoanScheduleFlexible(input);
     // console.table(schedule);
-    const input = {
-        commitCapital: 100000, // loan amount
-        startDate: "09/01/2025",
-        endDate: "01/01/2027",
-        interestPeriods: [
-            { start: "01/01/2025", rate: 0.04, freqinmonths: 1, firstduedate: "01/02/2025", firstCaldate: "31/01/2025" }
-        ],
-        repaymentChanges: [
-            { start: "01/01/2025", amount: 4342.49, freqinmonths: 1, firstduedate: "03/02/2025", firstCaldate: "31/01/2025" },
-        ],
-        finalRepaymentDate: "01/12/2026",
-        paymentFrequencyMonths: 1, // monthly schedule
-        interestCalcMethod: "360/360",
-        inclusive: true
-    };
     // const input = {
     //     commitCapital: 100000, // loan amount
     //     startDate: "09/01/2025",
     //     endDate: "01/01/2027",
     //     interestPeriods: [
-    //         { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+    //         { start: "01/01/2025", rate: 0.04, freqinmonths: 1, firstduedate: "01/02/2025", firstCaldate: "31/01/2025" }
     //     ],
     //     repaymentChanges: [
-    //         { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+    //         { start: "01/01/2025", amount: 4342.49, freqinmonths: 1, firstduedate: "03/02/2025", firstCaldate: "31/01/2025" },
     //     ],
     //     finalRepaymentDate: "01/12/2026",
     //     paymentFrequencyMonths: 1, // monthly schedule
-    //     interestCalcMethod: "act/360",
+    //     interestCalcMethod: "360/360",
     //     inclusive: true
     // };
+    const input = {
+        commitCapital: 100000, // loan amount
+        startDate: "09/01/2025",
+        endDate: "01/01/2027",
+        interestPeriods: [
+            { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+        ],
+        repaymentChanges: [
+            { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+        ],
+        finalRepaymentDate: "01/12/2026",
+        paymentFrequencyMonths: 1, // monthly schedule
+        interestCalcMethod: "act/360",
+        inclusive: true
+    };
 
     const schedule = calculateLoanScheduleFlexible(input);
     console.table(schedule);

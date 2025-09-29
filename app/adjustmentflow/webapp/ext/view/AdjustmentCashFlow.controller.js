@@ -85,7 +85,9 @@ sap.ui.define(
 
                 var odata = sap.ui.getCore().getModel("OldTable");
                 var otestdata = odata.getData().rows;
-                this.setModel(new JSONModel({ rows: otestdata }), "OldTableAdjustScreen");
+
+                var oldData = otestdata;
+                // this.setModel(new JSONModel({ rows: otestdata }), "OldTableAdjustScreen");
 
                 // Group by name and sum amounts for Old Table
                 const oldTableTotals = otestdata.reduce((acc, item) => {
@@ -108,10 +110,89 @@ sap.ui.define(
                 console.log(oldTableTotals);
                 this.setModel(new JSONModel(oldTableTotals), "OldTableTotals");
 
-                // New Table
                 var odata = sap.ui.getCore().getModel("NewTable");
                 var otestdata = odata.getData().rows;
-                this.setModel(new JSONModel({ rows: otestdata }), "NewTableAdjustScreen");
+                // this.setModel(new JSONModel({ rows: otestdata }), "NewTableAdjustScreen");
+
+
+
+                var newData = otestdata;
+                console.log("New Table", otestdata)
+                // this.setModel(new JSONModel({ rows: otestdata }), "NewTableAdjustScreen");
+
+                debugger;
+
+                //allign function
+                function alignTables(oldData, newData) {
+                    // 1. Ensure arrays and filter out SAP metadata ($count, $created, etc.)
+                    oldData = Array.isArray(oldData) ? oldData.filter(x => x.flowType) : [];
+                    newData = Array.isArray(newData) ? newData.filter(x => x.flowType) : [];
+
+                    // 2. Collect all unique keys (MM/YYYY + flowType)
+                    const makeKey = (item) => {
+                        const [MM, , YYYY] = item.dueDate.split("/");
+                        return `${MM}/${YYYY}_${item.flowType}`;
+                    };
+
+                    const allKeys = new Set([
+                        ...oldData.map(makeKey),
+                        ...newData.map(makeKey)
+                    ]);
+
+                    // 3. Create lookup maps
+                    const oldMap = new Map(oldData.map(item => [makeKey(item), item]));
+                    const newMap = new Map(newData.map(item => [makeKey(item), item]));
+
+                    // 4. Build aligned tables with missing entries filled as amount = 0
+                    const fillMissing = (map, otherMap) => {
+                        const result = [];
+                        allKeys.forEach(key => {
+                            if (map.has(key)) {
+                                result.push(map.get(key));
+                            } else {
+                                const [datePart, flowType] = key.split("_");
+                                const [MM, YYYY] = datePart.split("/");
+                                result.push({
+                                    dueDate: `${MM}/01/${YYYY}`, // use 1st of month
+                                    flowType,
+                                    name: otherMap.get(key)?.name || "",
+                                    amount: 0
+                                });
+                            }
+                        });
+                        return result;
+                    };
+
+                    const alignedOld = fillMissing(oldMap, newMap);
+                    const alignedNew = fillMissing(newMap, oldMap);
+
+                    // 5. Sort by Year, Month, then flowType
+                    const sortFn = (a, b) => {
+                        const [aM, , aY] = a.dueDate.split("/").map(Number);
+                        const [bM, , bY] = b.dueDate.split("/").map(Number);
+                        if (aY !== bY) return aY - bY;
+                        if (aM !== bM) return aM - bM;
+                        return a.flowType.localeCompare(b.flowType);
+                    };
+
+                    alignedOld.sort(sortFn);
+                    alignedNew.sort(sortFn);
+
+                    console.log("✅ Aligned lengths", alignedOld.length, alignedNew.length);
+                    return { oldData: alignedOld, newData: alignedNew };
+                }
+
+                // Example usage
+                const { oldData: alignedOld, newData: alignedNew } = alignTables(oldData, newData);
+                console.log("Old Table", alignedOld);
+                console.log("New Table", alignedNew);
+                this.setModel(new JSONModel({ rows: alignedOld }), "OldTableAdjustScreen");
+                this.setModel(new JSONModel({ rows: alignedNew }), "NewTableAdjustScreen");
+
+
+
+                // New Table
+
 
                 // Group by name and sum amounts for New Table
                 const newTableTotals = otestdata.reduce((acc, item) => {
