@@ -13,8 +13,7 @@
 .FormCashflowpop {
   padding-left: 1rem;
   padding-right: 1rem;
-  padding-top: 2rem;
-  ;
+  /* padding-top: 2rem; */
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
 }
@@ -52,10 +51,11 @@
 
 /* Page background and padding */
 .customPage {
-  background-color: #f9fafb;
+  /* background-color: red; */
   /* light gray */
-  padding: 1rem;
-  padding-right: 1rem;
+  /* padding: 1rem; */
+  /* padding-right: 1rem; */
+  max-height: 100vh !important;
 }
 
 /* Header Form Styling */
@@ -80,8 +80,8 @@
 /* Table Styling */
 .customTable {
   border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);/
 }
 
 .customTable .sapUiTableColHdrCnt {
@@ -270,4 +270,9 @@
 .myTablesContainer .sapMListTblCell {
   text-align: center;
   border-bottom: 1px solid #eee;
+}
+
+#cashflowcontractinitial\:\:AmortizationScheduleCashFlowPopupPage--ConditionTablepopscreen {
+  height: 400px;
+  /* overflow-x: scroll; */
 }

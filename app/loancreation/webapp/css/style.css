@@ -13,7 +13,7 @@
 .FormCashflowpop {
   padding-left: 1rem;
   padding-right: 1rem;
-  padding-top: 2rem;
+  /* padding-top: 2rem; */
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
 }
@@ -82,6 +82,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  /* height: 365px !important; */
 }
 
 .customTable .sapUiTableColHdrCnt {
@@ -113,8 +114,8 @@
   display: none !important;
 }
 
-#loancreation\:\:contractNewObjectPage--fe\:\:FacetSubSection\:\:Conditions1-header{
- display: none !important; 
+#loancreation\:\:contractNewObjectPage--fe\:\:FacetSubSection\:\:Conditions1-header {
+  display: none !important;
 }
 
 
@@ -183,3 +184,7 @@
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+/* 
+#loancreation\:\:LoanAmortizationNewCashFlowPopupPage--ConditionTablepopscreen {
+  height: 400px;
+} */

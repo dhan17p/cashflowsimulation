@@ -92,12 +92,27 @@ sap.ui.define([
             await backendcall.call(this);
             console.log(result);
 
-            let aFinalData = result.getBoundContext().getValue().value;
+            // let aFinalData = result.getBoundContext().getValue().value;
+            // var oData = {
+            //     rows: aFinalData
+            // };
+
+            // sap.ui.getCore().setModel(new JSONModel(oData), "test1");
+
+            
+            let aFinalData = result.getBoundContext().getValue();
+            let aAdjustTypeOld = aFinalData.aAdjustTypeOld
+            let aAdjustTypeNew = aFinalData.aAdjustTypeNew
             var oData = {
-                rows: aFinalData
+                rows: aAdjustTypeOld
             };
 
-            sap.ui.getCore().setModel(new JSONModel(oData), "test1");
+            sap.ui.getCore().setModel(new JSONModel(oData), "OldTable");
+            var oData = {
+                rows: aAdjustTypeNew
+            };
+
+            sap.ui.getCore().setModel(new JSONModel(oData), "NewTable");
 
 
 

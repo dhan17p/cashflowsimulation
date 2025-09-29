@@ -4,8 +4,9 @@
     xmlns:ui="sap.ui.table"
     xmlns:uirm="sap.ui.table.rowmodes"
     xmlns:html="http://www.w3.org/1999/xhtml"
-    xmlns:f="sap.f" controllerName="adjustmentflowloan.ext.view.AdjustmentCashFlow">
-    <f:DynamicPage id="AdjustmentCashFlowLoan" headerExpanded="true" preserveHeaderStateOnScroll="true" fitContent="true">
+    xmlns:f="sap.f" controllerName="adjustmentflow.ext.view.AdjustmentCashFlow">
+
+    <f:DynamicPage id="AdjustmentCashFlow" headerExpanded="true" preserveHeaderStateOnScroll="true" fitContent="true">
 
         <f:title>
             <f:DynamicPageTitle>
@@ -21,7 +22,7 @@
 
                 <!-- Table 1: Fixed -->
                 <VBox width="48%" class="tableWithTotals">
-                    <Table id="tableFixedLoan" items="{OldTableAdjustScreen>/rows}" growing="true" growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
+                    <Table id="tableFixed" items="{OldTableAdjustScreen>/rows}" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
                         <headerToolbar>
                             <Toolbar>
                                 <Title text="Fixed From: {OldfixedDates>/startFromOld}  |  Fixed Until: {OldfixedDates>/EndFromOld}"/>
@@ -54,7 +55,7 @@
                     </Table>
 
                     <!-- Totals -->
-                    <VBox class="totalsSection" width="100%">
+                    <VBox class="totalsSection" width="100%" >
                         <Label text="Total Loan disbursement: {OldTableTotals>/Loan disbursement}"/>
                         <Label text="Total Principal Receivable: {OldTableTotals>/Principal Receivable}"/>
                         <Label text="Total Interest Receivable: {OldTableTotals>/Interest Receivable}"/>
@@ -64,7 +65,7 @@
 
                 <!-- Table 2: Adjust -->
                 <VBox width="48%" class="tableWithTotals">
-                    <Table id="tableAdjustLoan" items="{NewTableAdjustScreen>/rows}" growing="true" growingThreshold="500" growingScrollToLoad="true" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
+                    <Table id="tableAdjust" items="{NewTableAdjustScreen>/rows}" width="100%" class="styledTable" sticky="ColumnHeaders,HeaderToolbar">
                         <headerToolbar>
                             <Toolbar>
                                 <Title text="Adjust From: {NewfixedDates>/startFromNew}   |  Adjust Until: {NewfixedDates>/EndFromOldNew}"/>

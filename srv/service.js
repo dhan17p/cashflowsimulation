@@ -317,6 +317,8 @@ module.exports = cds.service.impl(async function () {
         interestPeriods = (interestPeriods || []).slice();
         repaymentChanges = (repaymentChanges || []).slice();
 
+        const tolerance = 0.1; // threshold for leftover principal
+
         interestPeriods.sort((a, b) => moment(a.start, 'DD/MM/YYYY').diff(moment(b.start, 'DD/MM/YYYY')));
         repaymentChanges.sort((a, b) => moment(a.start, 'DD/MM/YYYY').diff(moment(b.start, 'DD/MM/YYYY')));
 
@@ -524,7 +526,7 @@ module.exports = cds.service.impl(async function () {
                 currentDate = nextDate.clone();
                 // guard final repayment if we passed finalRepCutoff
                 if (nextDate.isAfter(finalRepCutoff)) {
-                    if (Math.abs(outstandingPrincipal) >= 0.1 && outstandingPrincipal > 0) pushFinalRepayment(periodStart, finalRepCutoff);
+                    if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) pushFinalRepayment(periodStart, finalRepCutoff);
                     break;
                 }
                 continue;
@@ -561,6 +563,17 @@ module.exports = cds.service.impl(async function () {
                 // reduce outstanding principal
                 outstandingPrincipal = parseFloat((outstandingPrincipal - principalPortion).toFixed(8));
 
+                let adjustedPrincipalPortion = principalPortion;
+                let adjustedScheduledAnnuity = scheduledAnnuity;
+
+                // Check if this is the last repayment and small leftover exists
+
+                if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
+                    adjustedPrincipalPortion = parseFloat((principalPortion + outstandingPrincipal).toFixed(2));
+                    adjustedScheduledAnnuity = parseFloat((scheduledAnnuity + outstandingPrincipal).toFixed(2));
+                    outstandingPrincipal = 0; // merged leftover
+                }
+
                 schedule.push({
                     "Index": index++,
                     "flowType": "0125",
@@ -571,9 +584,9 @@ module.exports = cds.service.impl(async function () {
                     "Interest Rate (%)": "",
                     "Days": days,
                     "Name": "Principal Receivable",
-                    "Amount": parseFloat(principalPortion.toFixed(2)),          // principal part shown as "Amount"
-                    "Repayment Amount": parseFloat(scheduledAnnuity.toFixed(2)), // total payment
-                    "Principal Repayment": parseFloat(principalPortion.toFixed(2)),
+                    "Amount": adjustedPrincipalPortion,           // principal part shown as "Amount"
+                    "Repayment Amount": adjustedScheduledAnnuity, // total payment
+                    "Principal Repayment": adjustedPrincipalPortion,
                     "Interest Amount": "",
                     "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
                     "Planned/Incurred Status": getStatus("0125")
@@ -583,7 +596,7 @@ module.exports = cds.service.impl(async function () {
             // Advance currentDate to next month
             // Final period detection: if nextDate passes finalRepCutoff - push final and break
             if (inclusive ? nextDate.isSameOrAfter(finalRepCutoff) : nextDate.isAfter(finalRepCutoff)) {
-                if (Math.abs(outstandingPrincipal) >= 0.1 && outstandingPrincipal > 0) {
+                if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) {
                     // use periodStart as calcFrom and finalRepCutoff as due
                     pushFinalRepayment(periodStart, finalRepCutoff);
                     outstandingPrincipal = 0;
@@ -595,10 +608,25 @@ module.exports = cds.service.impl(async function () {
         }
 
         // Safety: if anything remains unpaid after loop
-        if (Math.abs(outstandingPrincipal) >= 0.1 && outstandingPrincipal > 0) {
+        if (Math.abs(outstandingPrincipal) >= tolerance && outstandingPrincipal > 0) {
             // push final repayment on finalRepCutoff
             pushFinalRepayment(moment(finalRepDate).startOf('month'), finalRepCutoff);
         }
+
+        // const tolerance = tolerance; // Small leftover threshold
+        // if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
+        //     // Find last principal repayment row
+        //     for (let i = schedule.length - 1; i >= 0; i--) {
+        //         if (schedule[i].flowType === "0125") {
+        //             schedule[i].Amount = parseFloat((parseFloat(schedule[i].Amount) + outstandingPrincipal).toFixed(2));
+        //             schedule[i]["Principal Repayment"] = parseFloat((parseFloat(schedule[i]["Principal Repayment"]) + outstandingPrincipal).toFixed(2));
+        //             schedule[i]["Repayment Amount"] = parseFloat((parseFloat(schedule[i]["Repayment Amount"]) + outstandingPrincipal).toFixed(2));
+        //             schedule[i]["Outstanding Principal End"] = 0;
+        //             outstandingPrincipal = 0;
+        //             break;
+        //         }
+        //     }
+        // }
 
         return schedule;
     }
@@ -650,16 +678,31 @@ module.exports = cds.service.impl(async function () {
         startDate: "09/01/2025",
         endDate: "01/01/2027",
         interestPeriods: [
-            { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+            { start: "01/01/2025", rate: 0.04, freqinmonths: 1, firstduedate: "01/02/2025", firstCaldate: "31/01/2025" }
         ],
         repaymentChanges: [
-            { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+            { start: "01/01/2025", amount: 4342.49, freqinmonths: 1, firstduedate: "03/02/2025", firstCaldate: "31/01/2025" },
         ],
         finalRepaymentDate: "01/12/2026",
         paymentFrequencyMonths: 1, // monthly schedule
-        interestCalcMethod: "act/360",
+        interestCalcMethod: "360/360",
         inclusive: true
     };
+    // const input = {
+    //     commitCapital: 100000, // loan amount
+    //     startDate: "09/01/2025",
+    //     endDate: "01/01/2027",
+    //     interestPeriods: [
+    //         { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+    //     ],
+    //     repaymentChanges: [
+    //         { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+    //     ],
+    //     finalRepaymentDate: "01/12/2026",
+    //     paymentFrequencyMonths: 1, // monthly schedule
+    //     interestCalcMethod: "act/360",
+    //     inclusive: true
+    // };
 
     const schedule = calculateLoanScheduleFlexible(input);
     console.table(schedule);
@@ -987,6 +1030,15 @@ module.exports = cds.service.impl(async function () {
             //     interestCalcMethod: "360/360",
             //     inclusive: true
             // };
+            var datacontract;
+            if (isActiveEntity === "true") {
+                datacontract = await SELECT.from(Contract).where({ ID: contractId });
+
+            }
+            else {
+                datacontract = await SELECT.from(Contract.drafts).where({ ID: contractId });
+            }
+
 
             const formattedSchedule = calculateLoanScheduleFlexible({
                 commitCapital: Number(principal),
@@ -996,7 +1048,7 @@ module.exports = cds.service.impl(async function () {
                 repaymentChanges: data_items.repaymentChanges,
                 finalRepaymentDate: data_items.finalRepaymentDate,
                 paymentFrequencyMonths: 1,
-                interestCalcMethod: intCalMt,
+                interestCalcMethod: datacontract[0].intCalMt,
                 inclusive: inclusiveIndicator == 'true' ? true : false
             });
 
@@ -1324,6 +1376,15 @@ module.exports = cds.service.impl(async function () {
             //     interestCalcMethod: "360/360",
             //     inclusive: true
             // };
+            var datacontract;
+            if (isActiveEntity === "true") {
+                datacontract = await SELECT.from(contractNew).where({ ID: contractId });
+
+            }
+            else {
+                datacontract = await SELECT.from(contractNew.drafts).where({ ID: contractId });
+            }
+
 
             let oInput = {
                 commitCapital: Number(principal),
@@ -1333,7 +1394,7 @@ module.exports = cds.service.impl(async function () {
                 repaymentChanges: data_items.repaymentChanges,
                 finalRepaymentDate: data_items.finalRepaymentDate,
                 paymentFrequencyMonths: 1,
-                interestCalcMethod: intCalMt,
+                interestCalcMethod: datacontract[0].intCalMt,
                 inclusive: inclusiveIndicator == 'true' ? true : false
             }
 
@@ -1571,6 +1632,121 @@ module.exports = cds.service.impl(async function () {
             console.table(formattedData);
 
 
+
+            ///New Table data
+            async function buildContractDataOld(contractId) {
+                // Fetch rows from DB
+                // if (isActiveEntity === "true") {
+                var data = await SELECT.from(ConditionItems).where({ contractId: contractId });
+
+                // }
+                // else {
+                //     var data = await SELECT.from(ConditionItems.drafts).where({ contractId: contractId });
+                // }
+
+                const result = {
+                    interestPeriods: [],
+                    repaymentChanges: [],
+                    finalRepaymentDate: null
+                };
+
+                data.forEach(oData => {
+                    switch (oData.conditionTypeText) {
+                        case "Nominal Interest Fixed":
+                            result.interestPeriods.push({
+                                start: formatDate(oData.effectiveFrom),
+                                rate: parseFloat(oData.percentage) / 100 || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Annuity repayment":
+                            result.repaymentChanges.push({
+                                start: formatDate(oData.effectiveFrom),
+                                amount: parseFloat(oData.conditionAmt) || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Final Repayment":
+                            result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+                            break;
+                    }
+                });
+
+                return result;
+            }
+            var data_items_old = await buildContractDataOld(contractId);
+            console.log("backend dataolddddddddddddddddddddddd", data_items_old)
+            var contractAdjustData = await SELECT.from(Contract).where({ ID: contractId });
+            console.log("contractAdjustData", contractAdjustData)
+            var fixedFromAdjust = contractAdjustData[0].fixedFrom
+            var fixedUntillAdjust = contractAdjustData[0].fixedUntil;
+
+
+            let oInput_old = {
+                commitCapital: Number(contractAdjustData[0].commitCapital),
+                startDate: formatToDDMMYYYY(startDate),
+                endDate: formatToDDMMYYYY(endDate),
+                interestPeriods: data_items_old.interestPeriods,
+                repaymentChanges: data_items_old.repaymentChanges,
+                finalRepaymentDate: data_items_old.finalRepaymentDate,
+                paymentFrequencyMonths: 1,
+                interestCalcMethod: contractAdjustData[0].intCalMt,
+                inclusive: inclusiveIndicator == 'true' ? true : false
+            }
+
+            console.log(oInput_old);
+
+
+            const formattedScheduleOld = calculateLoanScheduleFlexible(oInput_old);
+            console.log("77777777777777777777777")
+            console.table(formattedScheduleOld);
+
+
+            let formattedDataOld = formattedScheduleOld.map(item => {
+                // safely get "Due Date" (with space in key)
+                let [day, month, year] = item["Due Date"].split("/");
+                // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                function convertDateToUSFormat(dateStr) {
+                    if (!dateStr) return null;
+                    let [day, month, year] = dateStr.split("/");
+                    let shortYear = year;
+                    return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                }
+
+
+                return {
+                    index: item.Index,
+                    flowType: item.flowType,
+                    calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                    dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                    calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    baseAmount: item["Outstanding Principal Start"],
+                    percentageRate: item["Interest Rate (%)"],
+                    numberOfDays: item.Days,
+                    name: item.Name,
+                    settlementAmount: item.Amount,         // renamed
+                    repaymentAmount: item["Repayment Amount"],
+                    principalRepayment: item["Principal Repayment"],
+                    interestAmount: item["Interest Amount"],
+                    outstandingPrincipalEnd: item["Outstanding Principal End"],
+                    contractId: contractId,
+                    settlementCurrency: "USD",
+                    planActualRec: item["Planned/Incurred Status"]
+                };
+            });
+            console.table(formattedDataOld);
+
+
+
+            //old table data
+
+
             // var AmortizationSchedule2 = await SELECT.from(AmortizationSchedule2);
             // var final_data = AmortizationSchedule2[0];
 
@@ -1604,45 +1780,117 @@ module.exports = cds.service.impl(async function () {
             // console.table(mergedArray);
             // return mergedArray;
 
+            // var contractAdjustData = await SELECT.from(contractAdjust).where({ ID: contractId });
+            // console.log("contractAdjustData", contractAdjustData)
+            // var fixedFromAdjust = contractAdjustData[0].fixedFrom
+            // var fixedUntillAdjust = contractAdjustData[0].fixedUntil;
 
-            var table1 = formattedData;//new
-            var table2 = await SELECT.from(AmortizationSchedule2);//old
+            // console.log("fixedUntillAdjust", fixedUntillAdjust);
+
+            // var table1 = formattedData;//new
+            // console.log("fixedFromAdjust", fixedFromAdjust)
+            // var table2 = await SELECT.from(AmortizationSchedule2);//old
+            // console.log("table 2 selectedhgnhhhhhhhhhhhhhhhhhhhhhhh")
+            // console.table(table2);
+
+            // // Parse fixedFromAdjust and fixedUntillAdjust to Date objects
+            // let fromDate = new Date(fixedFromAdjust);     // yyyy-mm-dd -> Date
+            // let untilDate = new Date(fixedUntillAdjust);  // yyyy-mm-dd -> Date
+
+
+            // // Filter records based on fixedFrom date and 'Final Repayment'
+            // let filteredData = [];
+            // let finalRepaymentRows = [];
+
+            // for (let row of table2) {
+            //     if (row.calculationDate) {
+            //         // Convert mm/dd/yyyy to Date
+            //         let rowDate = new Date(row.calculationDate);
+
+            //         // Check if within range
+            //         let inRange = rowDate >= fromDate && rowDate <= untilDate;
+
+            //         // if (row.name === 'Final Repayment') {
+            //         //     // Always push to finalRepaymentRows
+            //         //     finalRepaymentRows.push(row);
+            //         // } else if (inRange) {
+            //         if (inRange) {
+            //             // Push only if in range
+            //             filteredData.push(row);
+            //         }
+            //     }
+            // }
+
+            // // Combine in-range rows + Final Repayment rows
+            // let resultOld = [...filteredData, ...finalRepaymentRows];
+            // console.log("Old Data Filtered by Date Range + Final Repayment:");
+            // console.table(resultOld);
+
+            const selectedFieldsOld = formattedDataOld.map(row => ({
+                flowType: row.flowType,
+                name: row.name,
+                dueDate: row.dueDate,
+                amount: row.settlementAmount
+            }));
+
+            const selectedFieldsNew = formattedData.map(row => ({
+                flowType: row.flowType,
+                name: row.name,
+                dueDate: row.dueDate,
+                amount: row.settlementAmount
+            }));
+
+            console.log("Selected Fields for Comparison:");
+            console.table(selectedFieldsOld);
+            console.table(selectedFieldsNew);
+
+
+            return {
+                aAdjustTypeOld: selectedFieldsOld,
+                aAdjustTypeNew: selectedFieldsNew
+            }
+
+
+            var table1 = formattedData; // new
+            var table2 = await SELECT.from(AmortizationSchedule2); // old
 
             var mergedArray = [];
-            var finalRepaymentRow = null;
+            var finalRepaymentRow = {
+                flowType: "",
+                name: "Final Repayment",
+                dueDate1: "",
+                amount1: "",
+                dueDate2: "",
+                amount2: "",
+                index: ""
+            };
 
             var maxLength = Math.max(table1.length, table2.length);
 
             for (let i = 0; i < maxLength; i++) {
-                let row1 = table1[i] || {};//new
-                let row2 = table2[i] || {};//old
+                let row1 = table1[i] || {};
+                let row2 = table2[i] || {};
 
                 const isFinal1 = row1.name === "Final Repayment";
                 const isFinal2 = row2.name === "Final Repayment";
 
                 if (isFinal1 && isFinal2) {
                     // Both have Final Repayment → merge them
-                    finalRepaymentRow = {
-                        flowType: row1.flowType || row2.flowType || "",
-                        name: "Final Repayment",
-                        dueDate1: row2.dueDate || "",
-                        amount1: row2.settlementAmount || "",
-                        dueDate2: row1.dueDate || "",
-                        amount2: row1.settlementAmount || "",
-                        index: (row1.index || row2.index || (i + 1)).toString()
-                    };
+                    finalRepaymentRow.flowType = row1.flowType || row2.flowType || "";
+                    finalRepaymentRow.dueDate1 = row2.dueDate || finalRepaymentRow.dueDate1;
+                    finalRepaymentRow.amount1 = row2.settlementAmount || finalRepaymentRow.amount1;
+                    finalRepaymentRow.dueDate2 = row1.dueDate || finalRepaymentRow.dueDate2;
+                    finalRepaymentRow.amount2 = row1.settlementAmount || finalRepaymentRow.amount2;
+                    finalRepaymentRow.index = (row1.index || row2.index || (i + 1)).toString();
                 }
                 else if (isFinal1 && !isFinal2) {
-                    // Only row1 is Final Repayment → store it for later
-                    finalRepaymentRow = {
-                        flowType: row1.flowType || row2.flowType || "",
-                        name: "Final Repayment",
-                        dueDate2: row1.dueDate || "",
-                        amount2: row1.settlementAmount || "",
-                        index: (row1.index || row2.index || (i + 1)).toString()
-                    };
+                    // Only row1 is Final Repayment → keep values on side 2
+                    finalRepaymentRow.flowType = row1.flowType || finalRepaymentRow.flowType;
+                    finalRepaymentRow.dueDate2 = row1.dueDate || finalRepaymentRow.dueDate2;
+                    finalRepaymentRow.amount2 = row1.settlementAmount || finalRepaymentRow.amount2;
+                    finalRepaymentRow.index = (row1.index || (i + 1)).toString();
 
-                    // Still push row2 normally if exists and not final repayment
+                    // Push row2 if exists
                     if (Object.keys(row2).length) {
                         mergedArray.push({
                             flowType: row2.flowType || "",
@@ -1656,16 +1904,13 @@ module.exports = cds.service.impl(async function () {
                     }
                 }
                 else if (!isFinal1 && isFinal2) {
-                    // Only row2 is Final Repayment → store it for later
-                    finalRepaymentRow = {
-                        flowType: row1.flowType || row2.flowType || "",
-                        name: "Final Repayment",
-                        dueDate1: row2.dueDate || "",
-                        amount1: row2.settlementAmount || "",
-                        index: (row1.index || row2.index || (i + 1)).toString()
-                    };
+                    // Only row2 is Final Repayment → keep values on side 1
+                    finalRepaymentRow.flowType = row2.flowType || finalRepaymentRow.flowType;
+                    finalRepaymentRow.dueDate1 = row2.dueDate || finalRepaymentRow.dueDate1;
+                    finalRepaymentRow.amount1 = row2.settlementAmount || finalRepaymentRow.amount1;
+                    finalRepaymentRow.index = (row2.index || (i + 1)).toString();
 
-                    // Still push row1 normally if exists and not final repayment
+                    // Push row1 if exists
                     if (Object.keys(row1).length) {
                         mergedArray.push({
                             flowType: row1.flowType || "",
@@ -1679,7 +1924,7 @@ module.exports = cds.service.impl(async function () {
                     }
                 }
                 else {
-                    // Neither are Final Repayment → normal row merge
+                    // Normal merge
                     mergedArray.push({
                         flowType: row1.flowType || row2.flowType || "",
                         name: row1.name || row2.name || "",
@@ -1691,16 +1936,14 @@ module.exports = cds.service.impl(async function () {
                     });
                 }
             }
-            // Append Final Repayment only if it exists
-            if (finalRepaymentRow) {
+
+            // Append Final Repayment only if values exist
+            if (finalRepaymentRow.dueDate1 || finalRepaymentRow.dueDate2) {
                 mergedArray.push(finalRepaymentRow);
             }
 
             console.table(mergedArray);
             return mergedArray;
-
-
-
             console.table(mergedArray);
 
 
@@ -1902,6 +2145,145 @@ module.exports = cds.service.impl(async function () {
             // });
             // console.table(mergedArray);
             // return mergedArray;
+
+
+
+            //new 
+            ///New Table data
+            async function buildContractDataOld(contractId) {
+                // Fetch rows from DB
+                // if (isActiveEntity === "true") {
+                var data = await SELECT.from(ConditionItemsNew).where({ contractId: contractId });
+
+                // }
+                // else {
+                //     var data = await SELECT.from(ConditionItems.drafts).where({ contractId: contractId });
+                // }
+
+                const result = {
+                    interestPeriods: [],
+                    repaymentChanges: [],
+                    finalRepaymentDate: null
+                };
+
+                data.forEach(oData => {
+                    switch (oData.conditionTypeText) {
+                        case "Nominal Interest Fixed":
+                            result.interestPeriods.push({
+                                start: formatDate(oData.effectiveFrom),
+                                rate: parseFloat(oData.percentage) / 100 || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Payment Amount":
+                            result.repaymentChanges.push({
+                                start: formatDate(oData.effectiveFrom),
+                                amount: parseFloat(oData.conditionAmt) || 0,
+                                firstduedate: formatDate(oData.dueDate),
+                                firstCaldate: formatDate(oData.calculationDate),
+                                freqinmonths: Number(oData.frequencyInMonths)
+                            });
+                            break;
+
+                        case "Final Repayment":
+                            result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+                            break;
+                    }
+                });
+
+                return result;
+            }
+            var data_items_old = await buildContractDataOld(contractId);
+            console.log("backend dataolddddddddddddddddddddddd", data_items_old)
+            var contractAdjustData = await SELECT.from(contractNew).where({ ID: contractId });
+            console.log("contractAdjustData", contractAdjustData)
+            var fixedFromAdjust = contractAdjustData[0].fixedFrom
+            var fixedUntillAdjust = contractAdjustData[0].fixedUntil;
+
+
+            let oInput_old = {
+                commitCapital: Number(contractAdjustData[0].commitCapital),
+                startDate: formatToDDMMYYYY(startDate),
+                endDate: formatToDDMMYYYY(endDate),
+                interestPeriods: data_items_old.interestPeriods,
+                repaymentChanges: data_items_old.repaymentChanges,
+                finalRepaymentDate: data_items_old.finalRepaymentDate,
+                paymentFrequencyMonths: 1,
+                interestCalcMethod: contractAdjustData[0].intCalMt,
+                inclusive: inclusiveIndicator == 'true' ? true : false
+            }
+
+            console.log(oInput_old);
+
+
+            const formattedScheduleOld = calculateLoanScheduleFlexible(oInput_old);
+            console.log("77777777777777777777777")
+            console.table(formattedScheduleOld);
+
+
+            let formattedDataOld = formattedScheduleOld.map(item => {
+                // safely get "Due Date" (with space in key)
+                let [day, month, year] = item["Due Date"].split("/");
+                // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                function convertDateToUSFormat(dateStr) {
+                    if (!dateStr) return null;
+                    let [day, month, year] = dateStr.split("/");
+                    let shortYear = year;
+                    return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                }
+
+
+                return {
+                    index: item.Index,
+                    flowType: item.flowType,
+                    calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                    dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                    calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    baseAmount: item["Outstanding Principal Start"],
+                    percentageRate: item["Interest Rate (%)"],
+                    numberOfDays: item.Days,
+                    name: item.Name,
+                    settlementAmount: item.Amount,         // renamed
+                    repaymentAmount: item["Repayment Amount"],
+                    principalRepayment: item["Principal Repayment"],
+                    interestAmount: item["Interest Amount"],
+                    outstandingPrincipalEnd: item["Outstanding Principal End"],
+                    contractId: contractId,
+                    settlementCurrency: "USD",
+                    planActualRec: item["Planned/Incurred Status"]
+                };
+            });
+            console.table(formattedDataOld);
+
+            const selectedFieldsOld = formattedDataOld.map(row => ({
+                flowType: row.flowType,
+                name: row.name,
+                dueDate: row.dueDate,
+                amount: row.settlementAmount
+            }));
+
+            const selectedFieldsNew = formattedData.map(row => ({
+                flowType: row.flowType,
+                name: row.name,
+                dueDate: row.dueDate,
+                amount: row.settlementAmount
+            }));
+
+            console.log("Selected Fields for Comparison:");
+            console.table(selectedFieldsOld);
+            console.table(selectedFieldsNew);
+
+
+            return {
+                aAdjustTypeOld: selectedFieldsOld,
+                aAdjustTypeNew: selectedFieldsNew
+            }
+
+
+            //new end 
 
 
             var table1 = formattedData;//new

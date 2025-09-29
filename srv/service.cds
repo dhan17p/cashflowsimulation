@@ -63,13 +63,13 @@ service CashFlowService {
                                   conditionAmt: String,
                                   efffectiveDatefinalRepayment: String,
                                   isActiveEntity: String,
-                                  loanData: LargeString)                         returns String;
+                                  loanData: LargeString)                             returns String;
 
 
-    function onRatePress(contractId: Contract:ID, isActiveEntity: String)        returns String;
-    function onRatePressB(contractId: Contract:ID, isActiveEntity: String)        returns String;
-    function onRatePressAdjust(contractId: Contract:ID, isActiveEntity: String)        returns String;
-    function onRatePressAdjustLoan(contractId: Contract:ID, isActiveEntity: String)        returns String;
+    function onRatePress(contractId: Contract:ID, isActiveEntity: String)            returns String;
+    function onRatePressB(contractId: Contract:ID, isActiveEntity: String)           returns String;
+    function onRatePressAdjust(contractId: Contract:ID, isActiveEntity: String)      returns String;
+    function onRatePressAdjustLoan(contractId: Contract:ID, isActiveEntity: String)  returns String;
 
 
     //new application service
@@ -94,10 +94,11 @@ service CashFlowService {
 
     @odata.draft.enabled
     entity contractAdjust                 as projection on cfs.contractAdjust;
-    @odata.draft.enabled
-    entity contractAdjustLoan                 as projection on cfs.contractAdjustLoan;
 
-     @Common.SideEffects: {
+    @odata.draft.enabled
+    entity contractAdjustLoan             as projection on cfs.contractAdjustLoan;
+
+    @Common.SideEffects: {
         SourceProperties: ['paymentFromExactDay'], // when this field changes
         TargetProperties: [
             'dueDate',
@@ -105,7 +106,7 @@ service CashFlowService {
             'frequencyInMonths'
         ] // refresh this entity
     }
-    entity ConditionItemsAdjustLoan                 as projection on cfs.ConditionItemsAdjustLoan;
+    entity ConditionItemsAdjustLoan       as projection on cfs.ConditionItemsAdjustLoan;
 
     function loadAmortizationFuncNew(principal: String,
                                      annualRate: String,
@@ -122,17 +123,26 @@ service CashFlowService {
                                      conditionAmt: String,
                                      efffectiveDatefinalRepayment: String,
                                      isActiveEntity: String,
-                                     loanData: LargeString)                      returns String;
+                                     loanData: LargeString)                          returns String;
 
-    type AdjustType {
+    type AdjustTypeOld {
         flowType : String;
         name     : String;
-        dueDate1 : String;
-        amount1  : String;
-        dueDate2 : String; // or row2.baseAmount if you want amount here
-        amount2  : String;
-        index    : String;
+        dueDate  : String;
+        amount   : String;
     };
+
+    type AdjustTypeNew {
+        flowType : String;
+        name     : String;
+        dueDate  : String;
+        amount   : String;
+    };
+
+    type finalAdjust {
+        aAdjustTypeOld : array of AdjustTypeOld;
+        aAdjustTypeNew : array of AdjustTypeNew;
+    }
 
     function loadAmortizationFuncAdjust(principal: String,
                                         annualRate: String,
@@ -149,25 +159,39 @@ service CashFlowService {
                                         conditionAmt: String,
                                         efffectiveDatefinalRepayment: String,
                                         isActiveEntity: String,
-                                        loanData: LargeString)                   returns array of AdjustType;
+                                        loanData: LargeString)                       returns finalAdjust;
+
+    type AdjustType {
+        flowType : String;
+        name     : String;
+        dueDate1 : String;
+        amount1  : String;
+        dueDate2 : String;
+        amount2  : String;
+        index    : String;
+    };
+
+
+
+
     function loadAmortizationFuncAdjustLoan(principal: String,
-                                        annualRate: String,
-                                        startDate: String,
-                                        endDate: String,
-                                        interestFixedDate: String,
-                                        inclusiveIndicator: String,
+                                            annualRate: String,
+                                            startDate: String,
+                                            endDate: String,
+                                            interestFixedDate: String,
+                                            inclusiveIndicator: String,
 
-                                        contractId: String,
-                                        intCalMt: String,
-                                        calculationDate: String,
-                                        dueDate: String,
-                                        percentage: String,
-                                        conditionAmt: String,
-                                        efffectiveDatefinalRepayment: String,
-                                        isActiveEntity: String,
-                                        loanData: LargeString)                   returns array of AdjustType;
+                                            contractId: String,
+                                            intCalMt: String,
+                                            calculationDate: String,
+                                            dueDate: String,
+                                            percentage: String,
+                                            conditionAmt: String,
+                                            efffectiveDatefinalRepayment: String,
+                                            isActiveEntity: String,
+                                            loanData: LargeString)                   returns finalAdjust;
 
 
-    function getcontractDetails(contractId: Contract:ID, isActiveEntity: String) returns String;
+    function getcontractDetails(contractId: Contract:ID, isActiveEntity: String)     returns String;
     function getcontractDetailsLoan(contractId: Contract:ID, isActiveEntity: String) returns String;
 }

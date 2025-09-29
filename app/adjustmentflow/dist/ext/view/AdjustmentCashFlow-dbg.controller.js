@@ -1,9 +1,9 @@
 sap.ui.define(
     [
         'sap/fe/core/PageController',
-           "sap/ui/model/json/JSONModel"
+        "sap/ui/model/json/JSONModel"
     ],
-    function (PageController,JSONModel) {
+    function (PageController, JSONModel) {
         'use strict';
 
         return PageController.extend('adjustmentflow.ext.view.AdjustmentCashFlow', {
@@ -83,9 +83,57 @@ sap.ui.define(
                 // // Set the model to the view (so you can use in XML/JS)
                 // sap.ui.getCore().setModel(oModel, "NewStartEnd");
 
-                let odata = sap.ui.getCore().getModel("test1");
-                let otestdata = odata.getData().rows;
-                this.setModel(new JSONModel({ rows: otestdata }), "test");
+                var odata = sap.ui.getCore().getModel("OldTable");
+                var otestdata = odata.getData().rows;
+                this.setModel(new JSONModel({ rows: otestdata }), "OldTableAdjustScreen");
+
+                // Group by name and sum amounts for Old Table
+                const oldTableTotals = otestdata.reduce((acc, item) => {
+                    const name = item.name;
+                    const amount = parseFloat(item.amount) || 0;
+
+                    if (!acc[name]) {
+                        acc[name] = 0;
+                    }
+                    acc[name] += amount;
+
+                    return acc;
+                }, {});
+
+                // Fix to 2 decimal places
+                Object.keys(oldTableTotals).forEach(key => {
+                    oldTableTotals[key] = parseFloat(oldTableTotals[key].toFixed(2));
+                });
+
+                console.log(oldTableTotals);
+                this.setModel(new JSONModel(oldTableTotals), "OldTableTotals");
+
+                // New Table
+                var odata = sap.ui.getCore().getModel("NewTable");
+                var otestdata = odata.getData().rows;
+                this.setModel(new JSONModel({ rows: otestdata }), "NewTableAdjustScreen");
+
+                // Group by name and sum amounts for New Table
+                const newTableTotals = otestdata.reduce((acc, item) => {
+                    const name = item.name;
+                    const amount = parseFloat(item.amount) || 0;
+
+                    if (!acc[name]) {
+                        acc[name] = 0;
+                    }
+                    acc[name] += amount;
+
+                    return acc;
+                }, {});
+
+                // Fix to 2 decimal places
+                Object.keys(newTableTotals).forEach(key => {
+                    newTableTotals[key] = parseFloat(newTableTotals[key].toFixed(2));
+                });
+
+                console.log(newTableTotals);
+                this.setModel(new JSONModel(newTableTotals), "NewTableTotals");
+
 
 
 

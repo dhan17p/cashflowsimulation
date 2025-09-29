@@ -12,7 +12,7 @@
     xmlns:uirm="sap.ui.table.rowmodes"
     xmlns:html="http://www.w3.org/1999/xhtml" controllerName="loancreation.ext.view.CashFlowPopup">
 
-    <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}" class="customPage">
+    <Page id="CashFlowPopup" title="{i18n>CashFlowPopupTitle}" showHeader="false" class="customPage">
         <content>
 
             <!-- Loan Header Details -->
@@ -131,7 +131,7 @@
             <ui:Table id="ConditionTablepopscreen" rows="{/AmortizationSchedule2New}" width="100%" selectionMode="None" columnHeaderVisible="true" enableColumnReordering="false" visibleRowCount="8" class="customTable">
 
                 <ui:rowMode>
-                    <uirm:Fixed rowCount="12"/>
+                    <uirm:Fixed rowCount="11"/>
                 </ui:rowMode>
 
                 <ui:columns>

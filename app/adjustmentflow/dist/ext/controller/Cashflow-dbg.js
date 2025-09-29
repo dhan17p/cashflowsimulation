@@ -1,7 +1,7 @@
 sap.ui.define([
     "sap/m/MessageToast",
     "sap/ui/model/json/JSONModel"
-], function (MessageToast,JSONModel) {
+], function (MessageToast, JSONModel) {
     'use strict';
 
     return {
@@ -156,7 +156,7 @@ sap.ui.define([
                 oFunction.setParameter("inclusiveIndicator", "true");
                 oFunction.setParameter("contractId", String(data.ID));
                 oFunction.setParameter("intCalMt", String(data.intCalMt));
-                oFunction.setParameter("isActiveEntity",String(isActiveEntity) );
+                oFunction.setParameter("isActiveEntity", String(isActiveEntity));
                 // oFunction.setParameter("loanData", JSON.stringify(aResult));
 
                 // oFunction.setParameter("dueDate", dueDate);
@@ -171,12 +171,19 @@ sap.ui.define([
             await backendcall.call(this);
             console.log(result);
 
-            let aFinalData = result.getBoundContext().getValue().value;
+            let aFinalData = result.getBoundContext().getValue();
+            let aAdjustTypeOld = aFinalData.aAdjustTypeOld
+            let aAdjustTypeNew = aFinalData.aAdjustTypeNew
             var oData = {
-                rows: aFinalData
+                rows: aAdjustTypeOld
             };
 
-            sap.ui.getCore().setModel(new JSONModel(oData), "test1");
+            sap.ui.getCore().setModel(new JSONModel(oData), "OldTable");
+            var oData = {
+                rows: aAdjustTypeNew
+            };
+
+            sap.ui.getCore().setModel(new JSONModel(oData), "NewTable");
 
 
 
