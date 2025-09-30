@@ -573,11 +573,13 @@ module.exports = cds.service.impl(async function () {
                 let adjustedScheduledAnnuity = parseFloat((monthlyInterest + principalPortion).toFixed(2));
 
                 // Apply tolerance logic
-                if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
-                    adjustedPrincipalPortion = parseFloat((principalPortion + outstandingPrincipal).toFixed(2));
-                    adjustedScheduledAnnuity = parseFloat((scheduledAnnuity + outstandingPrincipal).toFixed(2));
-                    outstandingPrincipal = 0;
-                }
+                // if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
+                //     adjustedPrincipalPortion = parseFloat((principalPortion + outstandingPrincipal).toFixed(2));
+                //     adjustedScheduledAnnuity = parseFloat((scheduledAnnuity + outstandingPrincipal).toFixed(2));
+                //     outstandingPrincipal = 0;
+                // }
+
+
 
                 schedule.push({
                     "Index": index++,
@@ -596,6 +598,34 @@ module.exports = cds.service.impl(async function () {
                     "Outstanding Principal End": parseFloat(outstandingPrincipal.toFixed(2)),
                     "Planned/Incurred Status": getStatus("0125")
                 });
+
+                if (outstandingPrincipal > 0 && outstandingPrincipal < tolerance) {
+                    const finalRepDateMoment = moment(finalRepaymentDate, 'DD/MM/YYYY'); // use your loan final date
+                    const calcFrom = moment(schedule[schedule.length - 1]["Due Date"], 'DD/MM/YYYY'); // last period
+                    const dueDate = finalRepDateMoment.clone(); // make due date = final repayment date
+
+                    schedule.push({
+                        "Index": index++,
+                        "flowType": "0115",
+                        "Calculation From": periodStart.format('DD/MM/YYYY'),
+                        "Due Date": repaymentBucketInfo.due.format('DD/MM/YYYY'),
+                        "Calculation Date": repaymentBucketInfo.calc.format('DD/MM/YYYY'),
+                        "Outstanding Principal Start": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Interest Rate (%)": "",
+                        "Days": days,           // actual days from last period
+                        "Name": "Final Repayment",
+                        "Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Repayment Amount": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Principal Repayment": parseFloat(outstandingPrincipal.toFixed(2)),
+                        "Interest Amount": 0,
+                        "Outstanding Principal End": 0,
+                        "Planned/Incurred Status": getStatus("0115")
+                    });
+
+                    outstandingPrincipal = 0;
+                }
+
+
             }
 
 
@@ -693,21 +723,38 @@ module.exports = cds.service.impl(async function () {
     //     interestCalcMethod: "360/360",
     //     inclusive: true
     // };
+
     const input = {
         commitCapital: 100000, // loan amount
-        startDate: "09/01/2025",
-        endDate: "01/01/2027",
+        startDate: "01/01/2025",
+        endDate: "01/01/2028",
         interestPeriods: [
-            { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+            { start: "01/01/2025", rate: 0.03, freqinmonths: 1, firstduedate: "03/02/2025", firstCaldate: "31/01/2025" }
         ],
         repaymentChanges: [
-            { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+            { start: "01/01/2025", amount: 2908.12, freqinmonths: 1, firstduedate: "03/02/2025", firstCaldate: "31/01/2025" },
         ],
-        finalRepaymentDate: "01/12/2026",
+        finalRepaymentDate: "01/01/2028",
         paymentFrequencyMonths: 1, // monthly schedule
-        interestCalcMethod: "act/360",
+        interestCalcMethod: "360/360",
         inclusive: true
     };
+
+    // const input = {
+    //     commitCapital: 100000, // loan amount
+    //     startDate: "09/01/2025",
+    //     endDate: "01/01/2027",
+    //     interestPeriods: [
+    //         { start: "01/09/2025", rate: 0.03, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" }
+    //     ],
+    //     repaymentChanges: [
+    //         { start: "01/09/2025", amount: 6385.32, freqinmonths: 1, firstduedate: "01/10/2025", firstCaldate: "30/09/2025" },
+    //     ],
+    //     finalRepaymentDate: "01/12/2026",
+    //     paymentFrequencyMonths: 1, // monthly schedule
+    //     interestCalcMethod: "act/360",
+    //     inclusive: true
+    // };
 
     const schedule = calculateLoanScheduleFlexible(input);
     console.table(schedule);
@@ -1112,19 +1159,33 @@ module.exports = cds.service.impl(async function () {
             //     contractId: contractId
             // }));
 
-            await DELETE.from(AmortizationSchedule2);
+            await DELETE.from(AmortizationSchedule2).where({ contractId: contractId });
             await INSERT.into(AmortizationSchedule2).entries(formattedData);
 
 
 
             var conditionItemData = await SELECT.from(ConditionItems).where({ contractId: contractId });
-            var contractData = await SELECT.from(Contract);
+            var contractData = await SELECT.from(Contract).where({ ID: contractId });
 
-            await DELETE.from(contractAdjust);
-            await INSERT.into(contractAdjust).entries(contractData);
 
-            await DELETE.from(ConditionItemsAdjust);
-            await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
+            var contractAjustDetails = await SELECT.from(contractAdjust).where({ ID: contractId });
+            if (contractAjustDetails.length == 0) {
+                await INSERT.into(contractAdjust).entries(contractData);
+            }
+
+            // await DELETE.from(contractAdjust);
+            // await INSERT.into(contractAdjust).entries(contractData);
+
+
+            var conditionItemAdjust = await SELECT.from(ConditionItemsAdjust).where({ contractId: contractId });
+
+            if (conditionItemAdjust.length == 0) {
+                await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
+            }
+
+
+            // await DELETE.from(ConditionItemsAdjust);
+            // await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
             // return result;
         } catch (error) {
             console.log("loadAmortizationFunc", error)
@@ -1467,13 +1528,22 @@ module.exports = cds.service.impl(async function () {
             await INSERT.into(AmortizationSchedule2New).entries(formattedData);
 
             var conditionItemData = await SELECT.from(ConditionItemsNew).where({ contractId: contractId });
-            var contractData = await SELECT.from(contractNew);
+            var contractData = await SELECT.from(contractNew).where({ ID: contractId });
 
-            await DELETE.from(contractAdjustLoan);
-            await INSERT.into(contractAdjustLoan).entries(contractData);
 
-            await DELETE.from(ConditionItemsAdjustLoan);
-            await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
+            var contractAjustDetailsLoan = await SELECT.from(contractAdjustLoan).where({ ID: contractId });
+            if (contractAjustDetailsLoan.length == 0) {
+                await INSERT.into(contractAdjustLoan).entries(contractData);
+            }
+
+            // await DELETE.from(contractAdjustLoan);
+            // await INSERT.into(contractAdjustLoan).entries(contractData);
+            var conditionItemAdjust = await SELECT.from(ConditionItemsAdjustLoan).where({ contractId: contractId });
+            if (conditionItemAdjust.length == 0) {
+                await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
+            }
+            // await DELETE.from(ConditionItemsAdjustLoan);
+            // await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
             // return result;
         } catch (error) {
             console.log("loadAmortizationFuncNew", error)

@@ -52,6 +52,7 @@ sap.ui.define(
 
                 var key = oEvent.getParameter("arguments").key;
                 var keyData = parseKeyString(key);
+                   var contractId = keyData.ID;
 
                 var oModel = new sap.ui.model.json.JSONModel(keyData);
                 this.getView().setModel(oModel, "keyData");
@@ -64,8 +65,11 @@ sap.ui.define(
 
                 if (oBinding) {
                     // Create a sorter on the "index" field (ascending)
+                    
+                    var oFilter = new sap.ui.model.Filter("contractId", sap.ui.model.FilterOperator.EQ, contractId);
                     var oSorter = new sap.ui.model.Sorter("index", false);
-                    oBinding.sort(oSorter);
+                    oBinding.sort(oSorter); 
+                    oBinding.filter([oFilter]);
                     oBinding.refresh();
                 }
                 oTable.getModel().refresh(true);

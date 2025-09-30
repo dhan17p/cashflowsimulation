@@ -81,63 +81,65 @@ entity contract {
 
 
 }
-entity contractAdjust{
-    key ID                                 : UUID;
-        companyCode                        : String  @Common.Label: 'Company Code';
-    key loanNumber                         : String  @mandatory  @Common.Label: 'Loan Number';
-    key productType                        : String  @mandatory  @Common.Label: 'Product Type';
-    key loanType                           : String  @mandatory  @Common.Label: 'Loan Type';
-    key loanPartner                        : String  @mandatory  @Common.Label: 'Loan Partner';
-        status                             : String;
-        disbursementStatus                 : String;
+
+entity contractAdjust {
+    key ID                        : UUID;
+        companyCode               : String  @Common.Label: 'Company Code';
+    key loanNumber                : String  @mandatory  @Common.Label: 'Loan Number';
+    key productType               : String  @mandatory  @Common.Label: 'Product Type';
+    key loanType                  : String  @mandatory  @Common.Label: 'Loan Type';
+    key loanPartner               : String  @mandatory  @Common.Label: 'Loan Partner';
+        status                    : String;
+        disbursementStatus        : String;
 
         //basic data
-        pledgedStatus                      : String;
+        pledgedStatus             : String;
         //analysis
-        purposeOfLoan                      : String;
-        arBillingJob                       : String;
+        purposeOfLoan             : String;
+        arBillingJob              : String;
         //conditions
-        commitCapital                      : String  @mandatory;
-        repaymentType                      : String;
+        commitCapital             : String  @mandatory;
+        repaymentType             : String;
 
         //term/fixed Period
-        fixedFrom                          : Date    @mandatory;
-        fixedUntil                         : Date    @mandatory;
-        include                            : Boolean;
+        fixedFrom                 : Date    @mandatory;
+        fixedUntil                : Date    @mandatory;
+        include                   : Boolean;
 
         //Interest Calculation
-        intCalMt                           : String  @mandatory;
-        contractToConditionAdjust          : Composition of many ConditionItemsAdjust
-                                                 on contractToConditionAdjust.contractId = ID;
+        intCalMt                  : String  @mandatory;
+        contractToConditionAdjust : Composition of many ConditionItemsAdjust
+                                        on contractToConditionAdjust.contractId = ID;
 }
-entity contractAdjustLoan{
-    key ID                                 : UUID;
-        companyCode                        : String  @Common.Label: 'Company Code';
-    key loanNumber                         : String  @mandatory  @Common.Label: 'Loan Number';
-    key productType                        : String  @mandatory  @Common.Label: 'Product Type';
-    key loanType                           : String  @mandatory  @Common.Label: 'Loan Type';
-    key loanPartner                        : String  @mandatory  @Common.Label: 'Loan Partner';
-        status                             : String;
-        disbursementStatus                 : String;
+
+entity contractAdjustLoan {
+    key ID                        : UUID;
+        companyCode               : String  @Common.Label: 'Company Code';
+    key loanNumber                : String  @mandatory  @Common.Label: 'Loan Number';
+    key productType               : String  @mandatory  @Common.Label: 'Product Type';
+    key loanType                  : String  @mandatory  @Common.Label: 'Loan Type';
+    key loanPartner               : String  @mandatory  @Common.Label: 'Loan Partner';
+        status                    : String;
+        disbursementStatus        : String;
 
         //basic data
-        pledgedStatus                      : String;
+        pledgedStatus             : String;
         //analysis
-        purposeOfLoan                      : String;
-        arBillingJob                       : String;
+        purposeOfLoan             : String;
+        arBillingJob              : String;
         //conditions
-        commitCapital                      : String  @mandatory;
-        repaymentType                      : String;
+        commitCapital             : String  @mandatory;
+        repaymentType             : String;
 
         //term/fixed Period
-        fixedFrom                          : Date    @mandatory;
-        fixedUntil                         : Date    @mandatory;
-        include                            : Boolean;
+        fixedFrom                 : Date    @mandatory;
+        fixedUntil                : Date    @mandatory;
+        include                   : Boolean;
 
         //Interest Calculation
-        intCalMt                           : String  @mandatory;
-        contractToConditionAdjust          : Composition of many ConditionItemsAdjustLoan
-                                                 on contractToConditionAdjust.contractId = ID;
+        intCalMt                  : String  @mandatory;
+        contractToConditionAdjust : Composition of many ConditionItemsAdjustLoan
+                                        on contractToConditionAdjust.contractId = ID;
 }
 
 entity ConditionItems : managed {
@@ -173,6 +175,7 @@ entity ConditionItemsAdjust : managed {
 
 
 }
+
 entity ConditionItemsAdjustLoan : managed {
     key conditionId         : UUID;
         contractId          : UUID;
@@ -226,6 +229,7 @@ entity AmortizationSchedule {
 entity AmortizationSchedule2 {
 
     key ID                 : UUID;
+        contractId         : UUID;
         dueDate            : String;
         flowType           : String;
         name               : String;
@@ -343,6 +347,7 @@ entity LoanAmortizationNew {
 entity AmortizationSchedule2New {
 
     key ID                 : UUID;
+        contractId         : UUID;
         dueDate            : String;
         flowType           : String;
         name               : String;

@@ -1,5 +1,5 @@
 ID,companyCode,loanNumber,productType,loanType,loanPartner,status,disbursementStatus,pledgedStatus,purposeOfLoan,arBillingJob,commitCapital,repaymentType,fixedFrom,fixedUntil,include,intCalMt,commitCapital,fixedFrom,fixedFrom
-550e8400-e29b-41d4-a716-446655440000,C001,LN1001,Housing,Fixed,PartnerA,Active,Disbursed,Pledged,Home Purchase,Job123,100000,EMI,2025-01-01,2030-01-01,true,Monthly,1000,2025-01-01,2026-01-01,
+550e8400-e29b-41d4-a716-446655440000,C001,LN1001,Housing,Fixed,PartnerA,Active,Disbursed,Pledged,Home Purchase,Job123,100000,EMI,2025-01-01,2030-01-01,true,act/360,1000,2025-01-01,2026-01-01,
 550e8400-e29b-41d4-a716-446655440001,C002,LN1002,Vehicle,Floating,PartnerB,Pending,NotDisbursed,Unpledged,Car Loan,Job124,50000,Bullet,2025-02-01,2027-02-01,false,Quarterly
 550e8400-e29b-41d4-a716-446655440002,C003,LN1003,Education,Fixed,PartnerC,Closed,Disbursed,Pledged,College Fee,Job125,75000,EMI,2024-06-15,2028-06-15,true,Yearly
 550e8400-e29b-41d4-a716-446655440003,C004,LN1004,Business,Floating,PartnerD,Active,Disbursed,Unpledged,Working Capital,Job126,200000,EMI,2023-09-01,2026-09-01,true,Monthly
