@@ -5,6 +5,7 @@ sap.ui.define(
     ],
     function (PageController, JSONModel) {
         'use strict';
+        let contractId;
 
         return PageController.extend('adjustmentflow.ext.view.AdjustmentCashFlow', {
             /**
@@ -22,8 +23,9 @@ sap.ui.define(
 
                 // Regex to capture the UUID after "ID="
                 const match = url.match(/ID=([0-9a-fA-F-]+)/);
+                contractId = null;
 
-                let contractId = null;
+
                 if (match) {
                     contractId = match[1]; // "550e8400-e29b-41d4-a716-446655440000"
                 }
@@ -218,6 +220,63 @@ sap.ui.define(
 
 
 
+
+
+            },
+            onPostAdjustment: async function (oEvent) {
+                debugger;
+
+                let oldTableTotals = this.getModel("OldTableTotals").getData();
+                let newTableTotals = this.getModel("NewTableTotals").getData();
+
+                // Interest
+                let totalActInterest = oldTableTotals["Interest Receivable"] || 0;
+                let totalAdjInterest = newTableTotals["Interest Receivable"] || 0;
+                let calculatedInterest = 0;
+
+                console.log("totalActInterest", totalActInterest);
+                console.log("totalAdjInterest", totalAdjInterest);
+
+                if (totalActInterest || totalAdjInterest) {
+                    calculatedInterest = totalActInterest - totalAdjInterest;
+                }
+                calculatedInterest = calculatedInterest.toFixed(2);
+                console.log("calculatedInterest", calculatedInterest);
+
+
+                // Principal
+                let totalActPrincipal = oldTableTotals["Principal Receivable"] || 0;
+                let totalAdjPrincipal = newTableTotals["Principal Receivable"] || 0;
+                let calculatedPrincipal = 0;
+
+                console.log("totalActPrincipal", totalActPrincipal);
+                console.log("totalAdjPrincipal", totalAdjPrincipal);
+
+                if (totalActPrincipal || totalAdjPrincipal) {
+                    calculatedPrincipal = totalActPrincipal - totalAdjPrincipal;
+                }
+                calculatedPrincipal = calculatedPrincipal.toFixed(2);
+                console.log("calculatedPrincipal", calculatedPrincipal);
+
+                let oFunction = this.getModel().bindContext("/postAdjustment(...)");
+
+                oFunction.setParameter("contractId", contractId);
+                oFunction.setParameter("interest", calculatedInterest);
+                oFunction.setParameter("principal", calculatedPrincipal);
+                await oFunction.execute();
+
+                // ✅ Show MessageToast
+                sap.m.MessageToast.show(
+                    "Adjustment done:\n" +
+                    "Interest: " + calculatedInterest + "\n" +
+                    "Principal: " + calculatedPrincipal,
+                    {
+                        duration: 4000, // 4 seconds
+                        width: "20em",
+                        my: "center bottom",
+                        at: "center bottom"
+                    }
+                );
             }
 
 

@@ -12,6 +12,9 @@
                 <f:heading>
                     <Title text="{i18n>AdjustmentCashFlowTitle}"/>
                 </f:heading>
+                <f:actions>
+                    <Button text="Post Adjustment" type="Emphasized" press="onPostAdjustment"></Button>
+                </f:actions>
             </f:DynamicPageTitle>
         </f:title>
 
@@ -54,7 +57,7 @@
                     </Table>
 
                     <!-- Totals -->
-                         <VBox class="totalsSection" width="100%">
+                    <VBox class="totalsSection" width="100%">
                         <Label text="Total Loan disbursement: {OldTableTotals>/Loan disbursement}" visible="{= !!${OldTableTotals>/Loan disbursement} }" />
 
                         <Label text="Total Principal Receivable: {OldTableTotals>/Principal Receivable}" visible="{= !!${OldTableTotals>/Principal Receivable} }" />
@@ -101,7 +104,7 @@
                     </Table>
 
                     <!-- Totals -->
-                       <VBox class="totalsSection" width="100%">
+                    <VBox class="totalsSection" width="100%">
                         <Label id="newLoanDis" text="Total Loan disbursement: {NewTableTotals>/Loan disbursement}" visible="{= !!${NewTableTotals>/Loan disbursement} }" />
 
                         <Label id="newPrincipalRec" text="Total Principal Receivable: {NewTableTotals>/Principal Receivable}" visible="{= !!${NewTableTotals>/Principal Receivable} }" />

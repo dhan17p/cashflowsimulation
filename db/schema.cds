@@ -70,6 +70,7 @@ entity contract {
 
         //Interest Calculation
         intCalMt                           : String  @mandatory;
+        postAdjustmentFlag                 : Boolean;
         contractToCondition                : Composition of many ConditionItems
                                                  on contractToCondition.contractId = ID;
         // contractToConditionAdjust          : Association to many ConditionItemsAdjust
@@ -300,6 +301,7 @@ entity contractNew {
 
         //Interest Calculation
         intCalMt                           : String  @mandatory;
+        postAdjustmentFlag                 : Boolean;
         contractToCondition                : Composition of many ConditionItemsNew
                                                  on contractToCondition.contractId = ID;
         contractToLoanAmortization         : Association to many LoanAmortizationNew

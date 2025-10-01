@@ -1106,9 +1106,10 @@ module.exports = cds.service.impl(async function () {
 
             console.table(formattedSchedule);
 
+
             let formattedData = formattedSchedule.map(item => {
                 // safely get "Due Date" (with space in key)
-                let [day, month, year] = item["Due Date"].split("/");
+                // let [day, month, year] = item["Due Date"].split("/");
                 // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
                 function convertDateToUSFormat(dateStr) {
                     if (!dateStr) return null;
@@ -1158,14 +1159,65 @@ module.exports = cds.service.impl(async function () {
             //     ...obj,
             //     contractId: contractId
             // }));
+            // console.log('')
+            var contractData = await SELECT.from(Contract).where({ ID: contractId });
+            var postAdjustmentFlag = contractData[0].postAdjustmentFlag;
 
+            var aAmortTable = await SELECT.from(AmortizationSchedule2)
+                .where`contractId=${contractId} and (flowType = '0110A' or flowType = '0125A')`;
+            console.log("Ammmmmmmmmmmmmmmmmmmmmmm")
+
+            console.table(aAmortTable);
+
+            let combinedRows = [];
+
+            // Merge based on condition
+            if (postAdjustmentFlag && aAmortTable.length !== 0) {
+                combinedRows = [...aAmortTable, ...formattedData];
+            } else {
+                combinedRows = [...formattedData];
+            }
+
+            // Sort by calculationDate ascending (MM/DD/YYYY)
+            combinedRows.sort((a, b) => {
+                const parseDate = (dateStr) => {
+                    if (!dateStr) return new Date(0); // fallback for missing dates
+                    const [month, day, year] = dateStr.trim().split("/").map(Number);
+                    return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
+                };
+                return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+            });
+
+            // Reassign index based on sorted order
+            combinedRows.forEach((item, idx) => {
+                item.index = idx + 1; // index starts from 1
+            });
+            console.log("sorted Tableeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            console.table(combinedRows);
+
+            // Replace existing amortization schedule
             await DELETE.from(AmortizationSchedule2).where({ contractId: contractId });
-            await INSERT.into(AmortizationSchedule2).entries(formattedData);
+            await INSERT.into(AmortizationSchedule2).entries(combinedRows);
+
+
+
+            // console.log()
+
+            // // Push sorted rows to formattedSchedule
+            // if (postAdjustmentFlag && combinedRows.length !== 0) {
+            //     combinedRows.forEach(item => formattedSchedule.push(item));
+            // }
+
+
+
+            // await DELETE.from(AmortizationSchedule2).where({ contractId: contractId });
+            // await INSERT.into(AmortizationSchedule2).entries(combinedRows);
+
 
 
 
             var conditionItemData = await SELECT.from(ConditionItems).where({ contractId: contractId });
-            var contractData = await SELECT.from(Contract).where({ ID: contractId });
+
 
 
             var contractAjustDetails = await SELECT.from(contractAdjust).where({ ID: contractId });
@@ -1523,12 +1575,50 @@ module.exports = cds.service.impl(async function () {
             //     ...obj,
             //     contractId: contractId
             // }));
+            var contractData = await SELECT.from(contractNew).where({ ID: contractId });
+            var postAdjustmentFlag = contractData[0].postAdjustmentFlag;
 
-            await DELETE.from(AmortizationSchedule2New);
-            await INSERT.into(AmortizationSchedule2New).entries(formattedData);
+            var aAmortTable = await SELECT.from(AmortizationSchedule2New)
+                .where`contractId=${contractId} and (flowType = '0110A' or flowType = '0125A')`;
+            console.log("Ammmmmmmmmmmmmmmmmmmmmmm")
+
+            console.table(aAmortTable);
+
+            let combinedRows = [];
+
+            // Merge based on condition
+            if (postAdjustmentFlag && aAmortTable.length !== 0) {
+                combinedRows = [...aAmortTable, ...formattedData];
+            } else {
+                combinedRows = [...formattedData];
+            }
+
+            // Sort by calculationDate ascending (MM/DD/YYYY)
+            combinedRows.sort((a, b) => {
+                const parseDate = (dateStr) => {
+                    if (!dateStr) return new Date(0); // fallback for missing dates
+                    const [month, day, year] = dateStr.trim().split("/").map(Number);
+                    return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
+                };
+                return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+            });
+
+            // Reassign index based on sorted order
+            combinedRows.forEach((item, idx) => {
+                item.index = idx + 1; // index starts from 1
+            });
+            console.log("sorted Tableeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+            console.table(combinedRows);
+
+            // Replace existing amortization schedule
+            await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId });
+            await INSERT.into(AmortizationSchedule2New).entries(combinedRows);
+
+
+
 
             var conditionItemData = await SELECT.from(ConditionItemsNew).where({ contractId: contractId });
-            var contractData = await SELECT.from(contractNew).where({ ID: contractId });
+
 
 
             var contractAjustDetailsLoan = await SELECT.from(contractAdjustLoan).where({ ID: contractId });
@@ -1550,6 +1640,175 @@ module.exports = cds.service.impl(async function () {
         }
 
     });
+
+
+    this.on("postAdjustment", async (req) => {
+        debugger;
+        var { contractId, interest, principal } = req.data;
+        function getMonthDates() {
+            let today = new Date();
+
+            // Today's date
+            let day = String(today.getDate()).padStart(2, '0');
+            let month = String(today.getMonth() + 1).padStart(2, '0');
+            let year = today.getFullYear();
+            let currentDate = month + "/" + day + "/" + year; // MM/DD/YYYY
+
+            // First date of this month
+            let firstDateObj = new Date(today.getFullYear(), today.getMonth(), 1);
+            let firstDate = String(firstDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                String(firstDateObj.getDate()).padStart(2, '0') + "/" +
+                firstDateObj.getFullYear(); // MM/DD/YYYY
+
+            // Last date of this month
+            let lastDateObj = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            let lastDate = String(lastDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                String(lastDateObj.getDate()).padStart(2, '0') + "/" +
+                lastDateObj.getFullYear(); // MM/DD/YYYY
+
+            return {
+                currentDate,
+                firstDate,
+                lastDate
+            };
+        }
+
+        let dates = getMonthDates();
+        console.log("Today: " + dates.currentDate);
+        console.log("First Date: " + dates.firstDate);
+        console.log("Last Date: " + dates.lastDate);
+
+        let aData = [
+            {
+                flowType: "0110A",
+                calculationFrom: dates.firstDate,
+                dueDate: dates.currentDate,
+                calculationDate: dates.lastDate,
+                baseAmount: "",
+                percentageRate: "",
+                numberOfDays: "",
+                name: "Interest Receivable",
+                settlementAmount: interest,         // renamed
+                repaymentAmount: "",
+                principalRepayment: "",
+                interestAmount: "",
+                outstandingPrincipalEnd: "",
+                contractId: contractId,
+                settlementCurrency: "USD",
+                planActualRec: "S"
+            },
+            {
+                flowType: "0125A",
+                calculationFrom: dates.firstDate,
+                dueDate: dates.currentDate,
+                calculationDate: dates.lastDate,
+                baseAmount: "",
+                percentageRate: "",
+                numberOfDays: "",
+                name: "Principal Receivable",
+                settlementAmount: principal,         // renamed
+                repaymentAmount: "",
+                principalRepayment: "",
+                interestAmount: "",
+                outstandingPrincipalEnd: "",
+                contractId: contractId,
+                settlementCurrency: "USD",
+                planActualRec: "S"
+            }
+        ]
+        await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0125A', dueDate: dates.currentDate })
+        await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0110A', dueDate: dates.currentDate })
+        if (interest || principal || contractId) {
+            await INSERT.into(AmortizationSchedule2).entries(aData);
+            await UPDATE(Contract).set({ postAdjustmentFlag: true }).where({ ID: contractId })
+        }
+    })
+    this.on("postAdjustmentLoan", async (req) => {
+        debugger;
+        var { contractId, interest, principal } = req.data;
+        function getMonthDates() {
+            let today = new Date();
+
+            // Today's date
+            let day = String(today.getDate()).padStart(2, '0');
+            let month = String(today.getMonth() + 1).padStart(2, '0');
+            let year = today.getFullYear();
+            let currentDate = month + "/" + day + "/" + year; // MM/DD/YYYY
+
+            // First date of this month
+            let firstDateObj = new Date(today.getFullYear(), today.getMonth(), 1);
+            let firstDate = String(firstDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                String(firstDateObj.getDate()).padStart(2, '0') + "/" +
+                firstDateObj.getFullYear(); // MM/DD/YYYY
+
+            // Last date of this month
+            let lastDateObj = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            let lastDate = String(lastDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                String(lastDateObj.getDate()).padStart(2, '0') + "/" +
+                lastDateObj.getFullYear(); // MM/DD/YYYY
+
+            return {
+                currentDate,
+                firstDate,
+                lastDate
+            };
+        }
+
+        let dates = getMonthDates();
+        console.log("Today: " + dates.currentDate);
+        console.log("First Date: " + dates.firstDate);
+        console.log("Last Date: " + dates.lastDate);
+
+        let aData = [
+            {
+                flowType: "0110A",
+                calculationFrom: dates.firstDate,
+                dueDate: dates.currentDate,
+                calculationDate: dates.lastDate,
+                baseAmount: "",
+                percentageRate: "",
+                numberOfDays: "",
+                name: "Interest Receivable",
+                settlementAmount: interest,         // renamed
+                repaymentAmount: "",
+                principalRepayment: "",
+                interestAmount: "",
+                outstandingPrincipalEnd: "",
+                contractId: contractId,
+                settlementCurrency: "USD",
+                planActualRec: "S"
+            },
+            {
+                flowType: "0125A",
+                calculationFrom: dates.firstDate,
+                dueDate: dates.currentDate,
+                calculationDate: dates.lastDate,
+                baseAmount: "",
+                percentageRate: "",
+                numberOfDays: "",
+                name: "Principal Receivable",
+                settlementAmount: principal,         // renamed
+                repaymentAmount: "",
+                principalRepayment: "",
+                interestAmount: "",
+                outstandingPrincipalEnd: "",
+                contractId: contractId,
+                settlementCurrency: "USD",
+                planActualRec: "S"
+            }
+        ]
+        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0125A' ,dueDate: dates.currentDate})
+        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0110A',dueDate: dates.currentDate });
+        let odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId});
+        if (interest || principal || contractId) {
+            await INSERT.into(AmortizationSchedule2New).entries(aData);
+            await UPDATE(contractNew).set({ postAdjustmentFlag: true }).where({ ID: contractId })
+        }
+        odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId});
+        console.log(odata)
+    })
+
+
     this.on('loadAmortizationFuncAdjust', async (req) => {
 
 

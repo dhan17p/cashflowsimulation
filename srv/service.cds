@@ -194,4 +194,6 @@ service CashFlowService {
 
     function getcontractDetails(contractId: Contract:ID, isActiveEntity: String)     returns String;
     function getcontractDetailsLoan(contractId: Contract:ID, isActiveEntity: String) returns String;
+    function postAdjustment(contractId: Contract:ID,interest:String,principal:String) returns String;
+    function postAdjustmentLoan(contractId: Contract:ID,interest:String,principal:String) returns String;
 }
