@@ -1641,9 +1641,32 @@ module.exports = cds.service.impl(async function () {
                     .where`contractId=${contractId} and flowType = '0125A'`;
                 let oNewInput = oInputCashFlow;
 
-                function runTwoSchedules(input, newCommitCapital) {
-                    const today = moment().format("DD/MM/YYYY");
+                function getStartOfCurrentMonthFormatted() {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = today.getMonth(); // getMonth() returns 0-indexed month
 
+                    // Create a new Date object for the first day of the current month
+                    const firstDayOfMonth = new Date(year, month, 1);
+
+                    // Extract day, month, and year from the first day of the month
+                    let day = firstDayOfMonth.getDate();
+                    let formattedMonth = firstDayOfMonth.getMonth() + 1; // Add 1 because getMonth() is 0-indexed
+                    const formattedYear = firstDayOfMonth.getFullYear();
+
+                    // Add leading zeros if day or month is a single digit
+                    day = day < 10 ? '0' + day : day;
+                    formattedMonth = formattedMonth < 10 ? '0' + formattedMonth : formattedMonth;
+
+                    // Return the formatted date string
+                    return `${day}/${formattedMonth}/${formattedYear}`;
+                }
+
+        
+               
+
+                function runTwoSchedules(input, newCommitCapital) {
+                    const today = getStartOfCurrentMonthFormatted()
                     // --- First call: override endDate to today ---
                     const firstInput = {
                         ...input,
