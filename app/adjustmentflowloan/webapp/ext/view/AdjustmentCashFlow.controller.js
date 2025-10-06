@@ -307,7 +307,7 @@ sap.ui.define(
                 console.log("totalAdjInterest", totalAdjInterest);
 
                 if (totalActInterest || totalAdjInterest) {
-                    calculatedInterest = totalActInterest - totalAdjInterest;
+                    calculatedInterest = totalAdjInterest - totalActInterest;
                 }
                 calculatedInterest = calculatedInterest.toFixed(2);
                 console.log("calculatedInterest", calculatedInterest);
@@ -322,7 +322,7 @@ sap.ui.define(
                 console.log("totalAdjPrincipal", totalAdjPrincipal);
 
                 if (totalActPrincipal || totalAdjPrincipal) {
-                    calculatedPrincipal = totalActPrincipal - totalAdjPrincipal;
+                    calculatedPrincipal = totalAdjPrincipal - totalActPrincipal;
                 }
                 calculatedPrincipal = calculatedPrincipal.toFixed(2);
                 console.log("calculatedPrincipal", calculatedPrincipal);

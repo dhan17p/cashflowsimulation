@@ -55,7 +55,6 @@ sap.ui.define(
 
                 var oModel = new sap.ui.model.json.JSONModel(keyData);
                 this.getView().setModel(oModel, "keyData");
-
                 let oTable = this.getView().byId("ConditionTablepopscreen");
                 // oTable.refreshRows()
                 var oBinding = oTable.getBinding("rows");
@@ -68,9 +67,9 @@ sap.ui.define(
                     var oFilter = new sap.ui.model.Filter("contractId", sap.ui.model.FilterOperator.EQ, contractId);
                     var oSorter = new sap.ui.model.Sorter("index", false);
                     oBinding.sort(oSorter);
-                     oBinding.filter([oFilter]);
+                    oBinding.filter([oFilter]);
                     oBinding.refresh();
-                   
+
                 }
                 oTable.getModel().refresh(true);
 

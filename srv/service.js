@@ -1091,8 +1091,7 @@ module.exports = cds.service.impl(async function () {
                 datacontract = await SELECT.from(Contract.drafts).where({ ID: contractId });
             }
 
-
-            const formattedSchedule = calculateLoanScheduleFlexible({
+            let oInputCashFlow = {
                 commitCapital: Number(principal),
                 startDate: formatToDDMMYYYY(startDate),
                 endDate: formatToDDMMYYYY(endDate),
@@ -1102,7 +1101,10 @@ module.exports = cds.service.impl(async function () {
                 paymentFrequencyMonths: 1,
                 interestCalcMethod: datacontract[0].intCalMt,
                 inclusive: inclusiveIndicator == 'true' ? true : false
-            });
+            }
+
+
+            const formattedSchedule = calculateLoanScheduleFlexible(oInputCashFlow);
 
             console.table(formattedSchedule);
 
@@ -1118,13 +1120,55 @@ module.exports = cds.service.impl(async function () {
                     return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
                 }
 
-
+                // Get the last date of the month for the given due date
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                const calculationDateUS = getMonthLastDate(item["Calculation From"]);
                 return {
                     index: item.Index,
                     flowType: item.flowType,
                     calculationFrom: convertDateToUSFormat(item["Calculation From"]),
                     dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
-                    calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    calculationDate: calculationDateUS,
                     baseAmount: item["Outstanding Principal Start"],
                     percentageRate: item["Interest Rate (%)"],
                     numberOfDays: item.Days,
@@ -1169,23 +1213,255 @@ module.exports = cds.service.impl(async function () {
 
             console.table(aAmortTable);
 
+
             let combinedRows = [];
 
             // Merge based on condition
             if (postAdjustmentFlag && aAmortTable.length !== 0) {
-                combinedRows = [...aAmortTable, ...formattedData];
+
+                // Fetch the principal amortization schedule entries for the specified contract
+                // where the flow type is '0125A' (indicating principal repayment)
+                let oPrincipal = await SELECT.from(AmortizationSchedule2)
+                    .where`contractId=${contractId} and flowType = '0125A'`;
+                let oNewInput = oInputCashFlow;
+
+                function runTwoSchedules(input, newCommitCapital) {
+                    const today = moment().format("DD/MM/YYYY");
+
+                    // --- First call: override endDate to today ---
+                    const firstInput = {
+                        ...input,
+                        endDate: today
+                    };
+                    console.log("FirstInput", firstInput);
+                    const firstSchedule = calculateLoanScheduleFlexible(firstInput);
+
+
+                    // --- get commitCapital from last Interest Receivable row ---
+                    let commitCapital = Number(input.commitCapital); // fallback
+
+                    if (firstSchedule && firstSchedule.length > 0) {
+                        for (let i = firstSchedule.length - 1; i >= 0; i--) {
+                            if (firstSchedule[i].Name === "Interest Receivable") {
+                                commitCapital = Number(firstSchedule[i]["Outstanding Principal End"]);
+                                break; // stop at the first match found from bottom
+                            }
+                        }
+                    }
+
+                    let newPrincipal;
+                    let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
+
+                    if (newCommitCapitalP < 0) {
+                        newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    } else {
+                        newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    }
+
+                    console.log("SubPrincipal value", newCommitCapitalP);
+
+                    console.log("OLD Principal After Post Adjustment", commitCapital)
+                    console.log("New Principal After Post Adjustment", newPrincipal)
+
+                    // --- Second call: override startDate & commitCapital ---
+                    const secondInput = {
+                        ...input,
+                        startDate: today,
+                        commitCapital: newPrincipal,
+                    };
+                    console.log("SecondInput", secondInput);
+                    const secondSchedule = calculateLoanScheduleFlexible(secondInput);
+
+                    return { firstSchedule, secondSchedule };
+                }
+
+                const { firstSchedule, secondSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
+
+                console.log("First Schedule (endDate = today):");
+                console.table(firstSchedule);
+
+
+                let firstScheduleFormattedData = firstSchedule.map(item => {
+                    // safely get "Due Date" (with space in key)
+                    // let [day, month, year] = item["Due Date"].split("/");
+                    // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                    function convertDateToUSFormat(dateStr) {
+                        if (!dateStr) return null;
+                        let [day, month, year] = dateStr.split("/");
+                        let shortYear = year;
+                        return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                    }
+
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    const calculationDateUS = getMonthLastDate(item["Calculation From"]);
+                    return {
+                        index: item.Index,
+                        flowType: item.flowType,
+                        calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                        dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                        // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                        calculationDate: calculationDateUS,
+                        baseAmount: item["Outstanding Principal Start"],
+                        percentageRate: item["Interest Rate (%)"],
+                        numberOfDays: item.Days,
+                        name: item.Name,
+                        settlementAmount: item.Amount,         // renamed
+                        repaymentAmount: item["Repayment Amount"],
+                        principalRepayment: item["Principal Repayment"],
+                        interestAmount: item["Interest Amount"],
+                        outstandingPrincipalEnd: item["Outstanding Principal End"],
+                        contractId: contractId,
+                        settlementCurrency: "USD",
+                        planActualRec: item["Planned/Incurred Status"]
+                    };
+                });
+
+                secondSchedule.shift();
+                console.log("Second Schedule (new commitCapital, startDate = today):");
+                console.table(secondSchedule);
+
+                let secondScheduleFormattedData = secondSchedule.map(item => {
+                    // safely get "Due Date" (with space in key)
+                    // let [day, month, year] = item["Due Date"].split("/");
+                    // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                    function convertDateToUSFormat(dateStr) {
+                        if (!dateStr) return null;
+                        let [day, month, year] = dateStr.split("/");
+                        let shortYear = year;
+                        return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    function getMonthLastDate(dateStr) {
+                        // dateStr in dd/MM/yyyy
+                        const [day, month, year] = dateStr.split("/");
+                        const dt = new Date(`${year}-${month}-01`);
+                        const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                        const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                        const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                        const yyyy = lastDateObj.getFullYear();
+                        return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                    }
+                    const calculationDateUS = getMonthLastDate(item["Calculation From"]);
+
+                    return {
+                        index: item.Index,
+                        flowType: item.flowType,
+                        calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                        dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                        // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                        calculationDate: calculationDateUS,
+                        baseAmount: item["Outstanding Principal Start"],
+                        percentageRate: item["Interest Rate (%)"],
+                        numberOfDays: item.Days,
+                        name: item.Name,
+                        settlementAmount: item.Amount,         // renamed
+                        repaymentAmount: item["Repayment Amount"],
+                        principalRepayment: item["Principal Repayment"],
+                        interestAmount: item["Interest Amount"],
+                        outstandingPrincipalEnd: item["Outstanding Principal End"],
+                        contractId: contractId,
+                        settlementCurrency: "USD",
+                        planActualRec: item["Planned/Incurred Status"]
+                    };
+                });
+
+                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...secondScheduleFormattedData];
+
+                console.log("Combined Schedule:");
+                console.table(combinedSchedule);
+
+                combinedRows = combinedSchedule;
+                // combinedRows = [...aAmortTable, ...formattedData];
             } else {
                 combinedRows = [...formattedData];
             }
 
             // Sort by calculationDate ascending (MM/DD/YYYY)
+            // combinedRows.sort((a, b) => {
+            //     const parseDate = (dateStr) => {
+            //         if (!dateStr) return new Date(0); // fallback for missing dates
+            //         const [month, day, year] = dateStr.trim().split("/").map(Number);
+            //         return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
+            //     };
+            //     return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+            // });
+
+            // Sort by dueDate ascending (MM/DD/YYYY)
             combinedRows.sort((a, b) => {
                 const parseDate = (dateStr) => {
                     if (!dateStr) return new Date(0); // fallback for missing dates
                     const [month, day, year] = dateStr.trim().split("/").map(Number);
                     return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
                 };
-                return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+                return parseDate(a.dueDate) - parseDate(b.dueDate);
             });
 
             // Reassign index based on sorted order
@@ -1231,9 +1507,11 @@ module.exports = cds.service.impl(async function () {
 
             var conditionItemAdjust = await SELECT.from(ConditionItemsAdjust).where({ contractId: contractId });
 
-            if (conditionItemAdjust.length == 0) {
-                await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
-            }
+            // if (conditionItemAdjust.length == 0) {
+
+            await DELETE.from(ConditionItemsAdjust).where({ contractId: contractId })
+            await INSERT.into(ConditionItemsAdjust).entries(conditionItemData);
+            // }
 
 
             // await DELETE.from(ConditionItemsAdjust);
@@ -1504,7 +1782,7 @@ module.exports = cds.service.impl(async function () {
             }
 
 
-            let oInput = {
+            let oInputCashFlow = {
                 commitCapital: Number(principal),
                 startDate: formatToDDMMYYYY(startDate),
                 endDate: formatToDDMMYYYY(endDate),
@@ -1516,10 +1794,10 @@ module.exports = cds.service.impl(async function () {
                 inclusive: inclusiveIndicator == 'true' ? true : false
             }
 
-            console.log(oInput);
+            console.log(oInputCashFlow);
 
 
-            const formattedSchedule = calculateLoanScheduleFlexible(oInput);
+            const formattedSchedule = calculateLoanScheduleFlexible(oInputCashFlow);
 
             console.table(formattedSchedule);
 
@@ -1534,13 +1812,24 @@ module.exports = cds.service.impl(async function () {
                     return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
                 }
 
-
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                const calculationDateUS = getMonthLastDate(item["Calculation From"]);
                 return {
                     index: item.Index,
                     flowType: item.flowType,
                     calculationFrom: convertDateToUSFormat(item["Calculation From"]),
                     dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
-                    calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    calculationDate: calculationDateUS,
                     baseAmount: item["Outstanding Principal Start"],
                     percentageRate: item["Interest Rate (%)"],
                     numberOfDays: item.Days,
@@ -1588,7 +1877,166 @@ module.exports = cds.service.impl(async function () {
 
             // Merge based on condition
             if (postAdjustmentFlag && aAmortTable.length !== 0) {
-                combinedRows = [...aAmortTable, ...formattedData];
+
+                // Fetch the principal amortization schedule entries for the specified contract
+                // where the flow type is '0125A' (indicating principal repayment)
+                let oPrincipal = await SELECT.from(AmortizationSchedule2New)
+                    .where`contractId=${contractId} and flowType = '0125A'`;
+                let oNewInput = oInputCashFlow;
+
+                function runTwoSchedules(input, newCommitCapital) {
+                    const today = moment().format("DD/MM/YYYY");
+
+                    // --- First call: override endDate to today ---
+                    const firstInput = {
+                        ...input,
+                        endDate: today
+                    };
+                    console.log("FirstInput", firstInput);
+                    const firstSchedule = calculateLoanScheduleFlexible(firstInput);
+
+
+                    // --- get commitCapital from last Interest Receivable row ---
+                    let commitCapital = Number(input.commitCapital); // fallback
+
+                    if (firstSchedule && firstSchedule.length > 0) {
+                        for (let i = firstSchedule.length - 1; i >= 0; i--) {
+                            if (firstSchedule[i].Name === "Interest Receivable") {
+                                commitCapital = Number(firstSchedule[i]["Outstanding Principal End"]);
+                                break; // stop at the first match found from bottom
+                            }
+                        }
+                    }
+
+                    let newPrincipal;
+                    let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
+
+                    if (newCommitCapitalP < 0) {
+                        newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    } else {
+                        newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    }
+
+                    console.log("SubPrincipal value", newCommitCapitalP);
+
+                    console.log("OLD Principal After Post Adjustment", commitCapital)
+                    console.log("New Principal After Post Adjustment", newPrincipal)
+
+                    // --- Second call: override startDate & commitCapital ---
+                    const secondInput = {
+                        ...input,
+                        startDate: today,
+                        commitCapital: newPrincipal,
+                    };
+                    console.log("SecondInput", secondInput);
+                    const secondSchedule = calculateLoanScheduleFlexible(secondInput);
+
+                    return { firstSchedule, secondSchedule };
+                }
+
+                const { firstSchedule, secondSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
+
+                console.log("First Schedule (endDate = today):");
+                console.table(firstSchedule);
+
+
+                let firstScheduleFormattedData = firstSchedule.map(item => {
+                    // safely get "Due Date" (with space in key)
+                    // let [day, month, year] = item["Due Date"].split("/");
+                    // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                    function convertDateToUSFormat(dateStr) {
+                        if (!dateStr) return null;
+                        let [day, month, year] = dateStr.split("/");
+                        let shortYear = year;
+                        return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                    }
+
+                     function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                const calculationDateUS = getMonthLastDate(item["Calculation From"]);
+                    return {
+                        index: item.Index,
+                        flowType: item.flowType,
+                        calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                        dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                        // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                        calculationDate: calculationDateUS,
+                        baseAmount: item["Outstanding Principal Start"],
+                        percentageRate: item["Interest Rate (%)"],
+                        numberOfDays: item.Days,
+                        name: item.Name,
+                        settlementAmount: item.Amount,         // renamed
+                        repaymentAmount: item["Repayment Amount"],
+                        principalRepayment: item["Principal Repayment"],
+                        interestAmount: item["Interest Amount"],
+                        outstandingPrincipalEnd: item["Outstanding Principal End"],
+                        contractId: contractId,
+                        settlementCurrency: "USD",
+                        planActualRec: item["Planned/Incurred Status"]
+                    };
+                });
+
+                secondSchedule.shift();
+                console.log("Second Schedule (new commitCapital, startDate = today):");
+                console.table(secondSchedule);
+
+                let secondScheduleFormattedData = secondSchedule.map(item => {
+                    // safely get "Due Date" (with space in key)
+                    // let [day, month, year] = item["Due Date"].split("/");
+                    // let formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+                    function convertDateToUSFormat(dateStr) {
+                        if (!dateStr) return null;
+                        let [day, month, year] = dateStr.split("/");
+                        let shortYear = year;
+                        return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
+                    }
+
+                     function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                const calculationDateUS = getMonthLastDate(item["Calculation From"]);
+                    return {
+                        index: item.Index,
+                        flowType: item.flowType,
+                        calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                        dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
+                        // calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                        calculationDate: calculationDateUS,
+                        baseAmount: item["Outstanding Principal Start"],
+                        percentageRate: item["Interest Rate (%)"],
+                        numberOfDays: item.Days,
+                        name: item.Name,
+                        settlementAmount: item.Amount,         // renamed
+                        repaymentAmount: item["Repayment Amount"],
+                        principalRepayment: item["Principal Repayment"],
+                        interestAmount: item["Interest Amount"],
+                        outstandingPrincipalEnd: item["Outstanding Principal End"],
+                        contractId: contractId,
+                        settlementCurrency: "USD",
+                        planActualRec: item["Planned/Incurred Status"]
+                    };
+                });
+
+                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...secondScheduleFormattedData];
+                console.log("Combined Schedule:");
+                console.table(combinedSchedule);
+
+                combinedRows = combinedSchedule;
             } else {
                 combinedRows = [...formattedData];
             }
@@ -1629,9 +2077,10 @@ module.exports = cds.service.impl(async function () {
             // await DELETE.from(contractAdjustLoan);
             // await INSERT.into(contractAdjustLoan).entries(contractData);
             var conditionItemAdjust = await SELECT.from(ConditionItemsAdjustLoan).where({ contractId: contractId });
-            if (conditionItemAdjust.length == 0) {
-                await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
-            }
+            // if (conditionItemAdjust.length == 0) {
+            await DELETE.from(ConditionItemsAdjustLoan).where({ contractId: contractId })
+            await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
+            // }
             // await DELETE.from(ConditionItemsAdjustLoan);
             // await INSERT.into(ConditionItemsAdjustLoan).entries(conditionItemData);
             // return result;
@@ -1644,83 +2093,214 @@ module.exports = cds.service.impl(async function () {
 
     this.on("postAdjustment", async (req) => {
         debugger;
-        var { contractId, interest, principal } = req.data;
-        function getMonthDates() {
-            let today = new Date();
 
-            // Today's date
-            let day = String(today.getDate()).padStart(2, '0');
-            let month = String(today.getMonth() + 1).padStart(2, '0');
-            let year = today.getFullYear();
-            let currentDate = month + "/" + day + "/" + year; // MM/DD/YYYY
+        try {
 
-            // First date of this month
-            let firstDateObj = new Date(today.getFullYear(), today.getMonth(), 1);
-            let firstDate = String(firstDateObj.getMonth() + 1).padStart(2, '0') + "/" +
-                String(firstDateObj.getDate()).padStart(2, '0') + "/" +
-                firstDateObj.getFullYear(); // MM/DD/YYYY
 
-            // Last date of this month
-            let lastDateObj = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            let lastDate = String(lastDateObj.getMonth() + 1).padStart(2, '0') + "/" +
-                String(lastDateObj.getDate()).padStart(2, '0') + "/" +
-                lastDateObj.getFullYear(); // MM/DD/YYYY
+            var { contractId, interest, principal } = req.data;
+            function getMonthDates() {
+                let today = new Date();
 
-            return {
-                currentDate,
-                firstDate,
-                lastDate
-            };
-        }
+                // Today's date
+                let day = String(today.getDate()).padStart(2, '0');
+                let month = String(today.getMonth() + 1).padStart(2, '0');
+                let year = today.getFullYear();
+                let currentDate = month + "/" + day + "/" + year; // MM/DD/YYYY
 
-        let dates = getMonthDates();
-        console.log("Today: " + dates.currentDate);
-        console.log("First Date: " + dates.firstDate);
-        console.log("Last Date: " + dates.lastDate);
+                // First date of this month
+                let firstDateObj = new Date(today.getFullYear(), today.getMonth(), 1);
+                let firstDate = String(firstDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                    String(firstDateObj.getDate()).padStart(2, '0') + "/" +
+                    firstDateObj.getFullYear(); // MM/DD/YYYY
 
-        let aData = [
-            {
-                flowType: "0110A",
-                calculationFrom: dates.firstDate,
-                dueDate: dates.currentDate,
-                calculationDate: dates.lastDate,
-                baseAmount: "",
-                percentageRate: "",
-                numberOfDays: "",
-                name: "Interest Receivable",
-                settlementAmount: interest,         // renamed
-                repaymentAmount: "",
-                principalRepayment: "",
-                interestAmount: "",
-                outstandingPrincipalEnd: "",
-                contractId: contractId,
-                settlementCurrency: "USD",
-                planActualRec: "S"
-            },
-            {
-                flowType: "0125A",
-                calculationFrom: dates.firstDate,
-                dueDate: dates.currentDate,
-                calculationDate: dates.lastDate,
-                baseAmount: "",
-                percentageRate: "",
-                numberOfDays: "",
-                name: "Principal Receivable",
-                settlementAmount: principal,         // renamed
-                repaymentAmount: "",
-                principalRepayment: "",
-                interestAmount: "",
-                outstandingPrincipalEnd: "",
-                contractId: contractId,
-                settlementCurrency: "USD",
-                planActualRec: "S"
+                // Last date of this month
+                let lastDateObj = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                let lastDate = String(lastDateObj.getMonth() + 1).padStart(2, '0') + "/" +
+                    String(lastDateObj.getDate()).padStart(2, '0') + "/" +
+                    lastDateObj.getFullYear(); // MM/DD/YYYY
+
+                return {
+                    currentDate,
+                    firstDate,
+                    lastDate
+                };
             }
-        ]
-        await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0125A', dueDate: dates.currentDate })
-        await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0110A', dueDate: dates.currentDate })
-        if (interest || principal || contractId) {
-            await INSERT.into(AmortizationSchedule2).entries(aData);
-            await UPDATE(Contract).set({ postAdjustmentFlag: true }).where({ ID: contractId })
+
+            let dates = getMonthDates();
+            console.log("Today: " + dates.currentDate);
+            console.log("First Date: " + dates.firstDate);
+            console.log("Last Date: " + dates.lastDate);
+
+            // let aData = [
+            //     {
+            //         flowType: "0110A",
+            //         calculationFrom: dates.firstDate,
+            //         dueDate: dates.currentDate,
+            //         calculationDate: dates.lastDate,
+            //         baseAmount: "",
+            //         percentageRate: "",
+            //         numberOfDays: "",
+            //         name: "Interest Receivable Adjustment",
+            //         settlementAmount: interest,         // renamed
+            //         repaymentAmount: "",
+            //         principalRepayment: "",
+            //         interestAmount: "",
+            //         outstandingPrincipalEnd: "",
+            //         contractId: contractId,
+            //         settlementCurrency: "USD",
+            //         planActualRec: "S"
+            //     },
+            //     {
+            //         flowType: "0125A",
+            //         calculationFrom: dates.firstDate,
+            //         dueDate: dates.currentDate,
+            //         calculationDate: dates.lastDate,
+            //         baseAmount: "",
+            //         percentageRate: "",
+            //         numberOfDays: "",
+            //         name: "Principal Receivable Adjustment",
+            //         settlementAmount: principal,         // renamed
+            //         repaymentAmount: "",
+            //         principalRepayment: "",
+            //         interestAmount: "",
+            //         outstandingPrincipalEnd: "",
+            //         contractId: contractId,
+            //         settlementCurrency: "USD",
+            //         planActualRec: "S"
+            //     }
+            // ]
+            let aData = [
+                {
+                    flowType: "0110A",
+                    calculationFrom: dates.currentDate,   // keep first day of month
+                    dueDate: dates.currentDate,         // today
+                    calculationDate: dates.currentDate, // <-- changed from lastDate to currentDate
+                    baseAmount: "",
+                    percentageRate: "",
+                    numberOfDays: "",
+                    name: "Interest Receivable Adjustment",
+                    settlementAmount: interest,
+                    repaymentAmount: "",
+                    principalRepayment: "",
+                    interestAmount: "",
+                    outstandingPrincipalEnd: "",
+                    contractId: contractId,
+                    settlementCurrency: "USD",
+                    planActualRec: "S"
+                },
+                {
+                    flowType: "0125A",
+                    calculationFrom: dates.currentDate,
+                    dueDate: dates.currentDate,
+                    calculationDate: dates.currentDate, // <-- changed here too
+                    baseAmount: "",
+                    percentageRate: "",
+                    numberOfDays: "",
+                    name: "Principal Receivable Adjustment",
+                    settlementAmount: principal,
+                    repaymentAmount: "",
+                    principalRepayment: "",
+                    interestAmount: "",
+                    outstandingPrincipalEnd: "",
+                    contractId: contractId,
+                    settlementCurrency: "USD",
+                    planActualRec: "S"
+                }
+            ]
+
+
+            // async function buildContractData(contractId) {
+            //     // Fetch rows from DB
+
+            //     var data = await SELECT.from(ConditionItems).where({ contractId: contractId });
+
+            //     const result = {
+            //         interestPeriods: [],
+            //         repaymentChanges: [],
+            //         finalRepaymentDate: null
+            //     };
+
+            //     data.forEach(oData => {
+            //         switch (oData.conditionTypeText) {
+            //             case "Nominal Interest Fixed":
+            //                 result.interestPeriods.push({
+            //                     start: formatDate(oData.effectiveFrom),
+            //                     rate: parseFloat(oData.percentage) / 100 || 0,
+            //                     firstduedate: formatDate(oData.dueDate),
+            //                     firstCaldate: formatDate(oData.calculationDate),
+            //                     freqinmonths: Number(oData.frequencyInMonths)
+
+            //                 });
+            //                 break;
+
+            //             case "Annuity repayment":
+            //                 result.repaymentChanges.push({
+            //                     start: formatDate(oData.effectiveFrom),
+            //                     amount: parseFloat(oData.conditionAmt) || 0,
+            //                     firstduedate: formatDate(oData.dueDate),
+            //                     firstCaldate: formatDate(oData.calculationDate),
+            //                     freqinmonths: Number(oData.frequencyInMonths)
+            //                 });
+            //                 break;
+
+            //             case "Final Repayment":
+            //                 result.finalRepaymentDate = formatDate(oData.effectiveFrom);
+            //                 break;
+            //         }
+            //     });
+
+            //     return result;
+            // }
+            // var data_items = await buildContractData(contractId);
+            // console.log("backend data", data_items)
+
+
+            // function formatDate(dateValue) {
+            //     if (!dateValue) return null;
+
+            //     const oDate = new Date(dateValue);
+            //     if (isNaN(oDate.getTime())) return null;
+
+            //     const dd = String(oDate.getDate()).padStart(2, "0");
+            //     const mm = String(oDate.getMonth() + 1).padStart(2, "0");
+            //     const yyyy = oDate.getFullYear();
+            //     return `${dd}/${mm}/${yyyy}`;
+            // }
+
+            // function formatToDDMMYYYY(dateStr) {
+            //     if (!dateStr) return dateStr;
+            //     const [year, month, day] = dateStr.split("-");
+            //     return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+            // }
+
+            // var datacontract;
+            // datacontract = await SELECT.from(Contract).where({ ID: contractId });
+
+            // let newPrincipal = Number(datacontract[0].fixedUntil)
+
+            // let oInput = {
+            //     commitCapital: Number(datacontract[0].commitCapital),
+            //     startDate: formatToDDMMYYYY(datacontract[0].fixedFrom),
+            //     endDate: formatToDDMMYYYY(datacontract[0].fixedUntil),
+            //     interestPeriods: data_items.interestPeriods,
+            //     repaymentChanges: data_items.repaymentChanges,
+            //     finalRepaymentDate: data_items.finalRepaymentDate,
+            //     paymentFrequencyMonths: 1,
+            //     interestCalcMethod: datacontract[0].intCalMt,
+            //     inclusive: datacontract[0].include
+            // }
+
+            // console.log("OInput", oInput);
+
+            await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0125A', dueDate: dates.currentDate })
+            await DELETE.from(AmortizationSchedule2).where({ contractId: contractId, flowType: '0110A', dueDate: dates.currentDate })
+            if (interest || principal || contractId) {
+                await INSERT.into(AmortizationSchedule2).entries(aData);
+                await UPDATE(Contract).set({ postAdjustmentFlag: true }).where({ ID: contractId })
+            }
+
+        } catch (error) {
+            console.log("Error", error);
         }
     })
     this.on("postAdjustmentLoan", async (req) => {
@@ -1762,14 +2342,14 @@ module.exports = cds.service.impl(async function () {
         let aData = [
             {
                 flowType: "0110A",
-                calculationFrom: dates.firstDate,
-                dueDate: dates.currentDate,
-                calculationDate: dates.lastDate,
+                calculationFrom: dates.currentDate,   // keep first day of month
+                dueDate: dates.currentDate,         // today
+                calculationDate: dates.currentDate, // <-- changed from lastDate to currentDate
                 baseAmount: "",
                 percentageRate: "",
                 numberOfDays: "",
-                name: "Interest Receivable",
-                settlementAmount: interest,         // renamed
+                name: "Interest Receivable Adjustment",
+                settlementAmount: interest,
                 repaymentAmount: "",
                 principalRepayment: "",
                 interestAmount: "",
@@ -1780,14 +2360,14 @@ module.exports = cds.service.impl(async function () {
             },
             {
                 flowType: "0125A",
-                calculationFrom: dates.firstDate,
+                calculationFrom: dates.currentDate,
                 dueDate: dates.currentDate,
-                calculationDate: dates.lastDate,
+                calculationDate: dates.currentDate, // <-- changed here too
                 baseAmount: "",
                 percentageRate: "",
                 numberOfDays: "",
-                name: "Principal Receivable",
-                settlementAmount: principal,         // renamed
+                name: "Principal Receivable Adjustment",
+                settlementAmount: principal,
                 repaymentAmount: "",
                 principalRepayment: "",
                 interestAmount: "",
@@ -1797,14 +2377,15 @@ module.exports = cds.service.impl(async function () {
                 planActualRec: "S"
             }
         ]
-        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0125A' ,dueDate: dates.currentDate})
-        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0110A',dueDate: dates.currentDate });
-        let odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId});
+
+        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0125A', dueDate: dates.currentDate })
+        await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId, flowType: '0110A', dueDate: dates.currentDate });
+        let odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId });
         if (interest || principal || contractId) {
             await INSERT.into(AmortizationSchedule2New).entries(aData);
             await UPDATE(contractNew).set({ postAdjustmentFlag: true }).where({ ID: contractId })
         }
-        odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId});
+        odata = await SELECT.from(AmortizationSchedule2New).where({ contractId: contractId });
         console.log(odata)
     })
 
@@ -1942,13 +2523,24 @@ module.exports = cds.service.impl(async function () {
                     return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
                 }
 
-
+                function getMonthLastDate(dateStr) {
+                    // dateStr in dd/MM/yyyy
+                    const [day, month, year] = dateStr.split("/");
+                    const dt = new Date(`${year}-${month}-01`);
+                    const lastDateObj = new Date(dt.getFullYear(), dt.getMonth() + 1, 0);
+                    const dd = String(lastDateObj.getDate()).padStart(2, "0");
+                    const mm = String(lastDateObj.getMonth() + 1).padStart(2, "0");
+                    const yyyy = lastDateObj.getFullYear();
+                    return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
+                }
+                const calculationDateUS = getMonthLastDate(item["Calculation From"]);
                 return {
                     index: item.Index,
                     flowType: item.flowType,
                     calculationFrom: convertDateToUSFormat(item["Calculation From"]),
                     dueDate: convertDateToUSFormat(item["Due Date"]),           // normalized field
                     calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                    // calculationDate: calculationDateUS,
                     baseAmount: item["Outstanding Principal Start"],
                     percentageRate: item["Interest Rate (%)"],
                     numberOfDays: item.Days,

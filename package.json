@@ -40,7 +40,7 @@
   "cds": {
     "requires": {
       "auth": "dummy",
-      "db":"hana"
+      "db" : "hana"
     }
   },
   "sapux": [
