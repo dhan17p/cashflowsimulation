@@ -1662,8 +1662,8 @@ module.exports = cds.service.impl(async function () {
                     return `${day}/${formattedMonth}/${formattedYear}`;
                 }
 
-        
-               
+
+
 
                 function runTwoSchedules(input, newCommitCapital) {
                     const today = getStartOfCurrentMonthFormatted()
@@ -1688,16 +1688,33 @@ module.exports = cds.service.impl(async function () {
                         }
                     }
 
+                    // let newPrincipal;
+                    // let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
+
+                    // if (newCommitCapitalP < 0) {
+                    //     newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    // } else {
+                    //     newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    // }
+
+                    let len = firstSchedule.length;
+                    let newCommit = Number(firstSchedule[len - 1]['Outstanding Principal End']);
                     let newPrincipal;
                     let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
 
+                    // if (newCommitCapitalP < 0) {
+                    //     newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    // } else {
+                    //     newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    // }
                     if (newCommitCapitalP < 0) {
-                        newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                        newPrincipal = newCommit + Math.abs(newCommitCapitalP);
                     } else {
-                        newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                        newPrincipal = newCommit - newCommitCapitalP;  // subtract when positive
                     }
 
                     console.log("SubPrincipal value", newCommitCapitalP);
+
 
                     console.log("OLD Principal After Post Adjustment", commitCapital)
                     console.log("New Principal After Post Adjustment", newPrincipal)
@@ -1842,42 +1859,91 @@ module.exports = cds.service.impl(async function () {
 
 
 
-                function adjustFirstFourInterests() {
-                    const [part0, part1] = splitCalculationFrom(lastInterestFromAmort.calculationFrom);
+                function daysDifference(date1, date2) {
+                    const d1 = new Date(date1);
+                    const d2 = new Date(date2);
 
-                    // Take only first 4 entries
-                    const seondtwo = secondScheduleFormattedData.slice(0, 2);
-                    const len = firstScheduleFormattedData.length;
-                    const firsttwo = firstScheduleFormattedData.slice(len - 2)
+                    // difference in milliseconds
+                    const diffTime = d1 - d2;
 
+                    // convert to days
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-
-                    // Find Interest Receivable entries
-
-                    var first = firsttwo.filter(e => e.name === "Interest Receivable");
-                    var second = seondtwo.filter(e => e.name === "Interest Receivable");
-                    const oneDayInterest = first[0].settlementAmount / first[0].numberOfDays;
-                    const oneDayInterestsec = second[0].settlementAmount / second[0].numberOfDays;
-
-
-                    first[0].settlementAmount = parseFloat((oneDayInterest * part0).toFixed(2))
-                    first[0].interestAmount = parseFloat(first[0].settlementAmount.toFixed(2));
-                    first[0].numberOfDays = part0;
-
-                    second[0].settlementAmount = parseFloat((oneDayInterestsec * part1).toFixed(2))
-                    second[0].interestAmount = parseFloat(second[0].settlementAmount.toFixed(2));
-                    second[0].numberOfDays = part1;
-                    final = [...first, ...second]
-                    return final;
+                    return diffDays;
                 }
 
-                var newchangedentries = adjustFirstFourInterests();
-                console.log("new tableleeeeeeeeeeeeeeeeeeeeee");
+                const currDate = aAmortTable[0].dueDate;
+                const startDate = secondScheduleFormattedData[0].calculationFrom;
+                // Convert to Date object
+                const [mm, dd, yyyy] = currDate.split("/").map(Number);
+                const dateObj = new Date(yyyy, mm - 1, dd);
+
+                // Subtract one day
+                dateObj.setDate(dateObj.getDate() - 1);
+
+                // Format as MM/DD/YYYY
+                const prevDate = `${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}/${dateObj.getFullYear()}`;
+
+
+                // let [month, day, year] = currDate.split("/").map(Number);
+
+                // let dateObj = new Date(year, month - 1, day);
+                // dateObj.setDate(dateObj.getDate() + 1);
+
+                // let nextDay = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                // console.log(nextDay); // Output: "10/07/2025"
+
+
+                const startDays = daysDifference(currDate, startDate);
+                const remDays = secondScheduleFormattedData[0].numberOfDays - startDays;
+                console.log()
+                function adjustFirstFourInterests() {
+                    const part0 = startDays;
+                    const part1 = remDays;
+
+                    // Take first Interest Receivable entry from second schedule
+                    const interestRow = secondScheduleFormattedData.find(e => e.name === "Interest Receivable");
+                    if (!interestRow) return [];
+
+                    const oneDayInterestSecond = interestRow.settlementAmount / interestRow.numberOfDays;
+
+                    // Deep copy to avoid mutating the same object
+                    const currDue = secondScheduleFormattedData[0].dueDate;
+                    const firstRow = formattedData.find(item =>
+                        item.dueDate === currDue && item.name === "Interest Receivable"
+                    );
+
+                    const oneDayInterestFirst = firstRow.interestAmount / firstRow.numberOfDays;
+                    console.log("first", firstRow);
+                    const second = { ...interestRow };
+                    const first = { ...interestRow };
+
+                    // --- First part ---
+                    first.settlementAmount = parseFloat((oneDayInterestFirst * part0).toFixed(2));
+                    first.interestAmount = second.settlementAmount;
+                    first.outstandingPrincipalEnd = firstRow.outstandingPrincipalEnd;
+                    first.baseAmount = firstRow.baseAmount;
+                    first.numberOfDays = part0;
+                    first.calculationDate = prevDate;
+
+                    // --- Second part ---
+                    second.settlementAmount = parseFloat((oneDayInterestSecond * part1).toFixed(2));
+                    second.interestAmount = second.settlementAmount;
+                    second.numberOfDays = part1;
+                    second.calculationFrom = currDate;
+
+                    return [first, second];
+                }
+
+
+                const newchangedentries = adjustFirstFourInterests();
                 console.table(newchangedentries);
-                var len = firstScheduleFormattedData.length;
-                firstScheduleFormattedData[len - 2] = newchangedentries[0];
-                secondScheduleFormattedData[0] = newchangedentries[1];
-                // secondScheduleFormattedData = adjustFirstFourInterests(secondScheduleFormattedData, lastInterestFromAmort);
+                const adjustabelData = newchangedentries[0].settlementAmount + newchangedentries[1].settlementAmount;
+
+                secondScheduleFormattedData[1].settlementAmount = secondScheduleFormattedData[1].repaymentAmount - adjustabelData;;
+                // Replace first entry in second schedule
+                secondScheduleFormattedData.splice(0, 1, newchangedentries[0], newchangedentries[1]);
+
 
 
 
@@ -2324,6 +2390,7 @@ module.exports = cds.service.impl(async function () {
             let combinedRows = [];
 
             // Merge based on condition
+            // Merge based on condition
             if (postAdjustmentFlag && aAmortTable.length !== 0) {
 
                 // Fetch the principal amortization schedule entries for the specified contract
@@ -2332,9 +2399,32 @@ module.exports = cds.service.impl(async function () {
                     .where`contractId=${contractId} and flowType = '0125A'`;
                 let oNewInput = oInputCashFlow;
 
-                function runTwoSchedules(input, newCommitCapital) {
-                    const today = moment().format("DD/MM/YYYY");
+                function getStartOfCurrentMonthFormatted() {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = today.getMonth(); // getMonth() returns 0-indexed month
 
+                    // Create a new Date object for the first day of the current month
+                    const firstDayOfMonth = new Date(year, month, 1);
+
+                    // Extract day, month, and year from the first day of the month
+                    let day = firstDayOfMonth.getDate();
+                    let formattedMonth = firstDayOfMonth.getMonth() + 1; // Add 1 because getMonth() is 0-indexed
+                    const formattedYear = firstDayOfMonth.getFullYear();
+
+                    // Add leading zeros if day or month is a single digit
+                    day = day < 10 ? '0' + day : day;
+                    formattedMonth = formattedMonth < 10 ? '0' + formattedMonth : formattedMonth;
+
+                    // Return the formatted date string
+                    return `${day}/${formattedMonth}/${formattedYear}`;
+                }
+
+
+
+
+                function runTwoSchedules(input, newCommitCapital) {
+                    const today = getStartOfCurrentMonthFormatted()
                     // --- First call: override endDate to today ---
                     const firstInput = {
                         ...input,
@@ -2356,16 +2446,33 @@ module.exports = cds.service.impl(async function () {
                         }
                     }
 
+                    // let newPrincipal;
+                    // let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
+
+                    // if (newCommitCapitalP < 0) {
+                    //     newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    // } else {
+                    //     newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    // }
+
+                    let len = firstSchedule.length;
+                    let newCommit = Number(firstSchedule[len - 1]['Outstanding Principal End']);
                     let newPrincipal;
                     let newCommitCapitalP = Number(newCommitCapital); // ensure it's number too
 
+                    // if (newCommitCapitalP < 0) {
+                    //     newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                    // } else {
+                    //     newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                    // }
                     if (newCommitCapitalP < 0) {
-                        newPrincipal = commitCapital + Math.abs(newCommitCapitalP);
+                        newPrincipal = newCommit + Math.abs(newCommitCapitalP);
                     } else {
-                        newPrincipal = commitCapital - newCommitCapitalP;  // subtract when positive
+                        newPrincipal = newCommit - newCommitCapitalP;  // subtract when positive
                     }
 
                     console.log("SubPrincipal value", newCommitCapitalP);
+
 
                     console.log("OLD Principal After Post Adjustment", commitCapital)
                     console.log("New Principal After Post Adjustment", newPrincipal)
@@ -2398,7 +2505,6 @@ module.exports = cds.service.impl(async function () {
                         let shortYear = year;
                         return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
                     }
-
                     function getMonthLastDate(dateStr) {
                         // dateStr in dd/MM/yyyy
                         const [day, month, year] = dateStr.split("/");
@@ -2446,7 +2552,6 @@ module.exports = cds.service.impl(async function () {
                         let shortYear = year;
                         return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${shortYear}`;
                     }
-
                     function getMonthLastDate(dateStr) {
                         // dateStr in dd/MM/yyyy
                         const [day, month, year] = dateStr.split("/");
@@ -2458,6 +2563,7 @@ module.exports = cds.service.impl(async function () {
                         return `${mm}/${dd}/${yyyy}`; // US format MM/DD/YYYY
                     }
                     const calculationDateUS = getMonthLastDate(item["Calculation From"]);
+
                     return {
                         index: item.Index,
                         flowType: item.flowType,
@@ -2479,24 +2585,156 @@ module.exports = cds.service.impl(async function () {
                         planActualRec: item["Planned/Incurred Status"]
                     };
                 });
+                const lastInterestFromAmort = [...aAmortTable]
+                    .reverse()
+                    .find(item => item.name === "Interest Receivable Adjustment");
+
+                if (lastInterestFromAmort) {
+                    console.log("💡 Last Interest Receivable calculation:", lastInterestFromAmort);
+                }
+                var calcfrom = lastInterestFromAmort.calculationFrom;
+                function splitCalculationFrom(calcfrom) {
+                    const [dayStr, monthStr, yearStr] = calcfrom.split("/"); // "DD/MM/YYYY"
+                    const day = parseInt(dayStr, 10);
+                    const month = parseInt(monthStr, 10);
+                    const year = parseInt(yearStr, 10);
+
+                    // First part = day - 1
+                    const firstPart = day - 1;
+
+                    // Second part = total days in month - first part
+                    const totalDaysInMonth = new Date(year, month, 0).getDate();
+                    const secondPart = totalDaysInMonth - firstPart;
+
+                    return [firstPart, secondPart];
+                }
+
+                // Example usage:
+                var calcfrom = lastInterestFromAmort.calculationFrom; // "10/06/2023"
+                var parts = splitCalculationFrom(calcfrom);
+
+                console.log(parts); //
+
+
+
+                function daysDifference(date1, date2) {
+                    const d1 = new Date(date1);
+                    const d2 = new Date(date2);
+
+                    // difference in milliseconds
+                    const diffTime = d1 - d2;
+
+                    // convert to days
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                    return diffDays;
+                }
+
+                const currDate = aAmortTable[0].dueDate;
+                const startDate = secondScheduleFormattedData[0].calculationFrom;
+                // Convert to Date object
+                const [mm, dd, yyyy] = currDate.split("/").map(Number);
+                const dateObj = new Date(yyyy, mm - 1, dd);
+
+                // Subtract one day
+                dateObj.setDate(dateObj.getDate() - 1);
+
+                // Format as MM/DD/YYYY
+                const prevDate = `${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}/${dateObj.getFullYear()}`;
+
+
+                // let [month, day, year] = currDate.split("/").map(Number);
+
+                // let dateObj = new Date(year, month - 1, day);
+                // dateObj.setDate(dateObj.getDate() + 1);
+
+                // let nextDay = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                // console.log(nextDay); // Output: "10/07/2025"
+
+
+                const startDays = daysDifference(currDate, startDate);
+                const remDays = secondScheduleFormattedData[0].numberOfDays - startDays;
+                console.log()
+                function adjustFirstFourInterests() {
+                    const part0 = startDays;
+                    const part1 = remDays;
+
+                    // Take first Interest Receivable entry from second schedule
+                    const interestRow = secondScheduleFormattedData.find(e => e.name === "Interest Receivable");
+                    if (!interestRow) return [];
+
+                    const oneDayInterestSecond = interestRow.settlementAmount / interestRow.numberOfDays;
+
+                    // Deep copy to avoid mutating the same object
+                    const currDue = secondScheduleFormattedData[0].dueDate;
+                    const firstRow = formattedData.find(item =>
+                        item.dueDate === currDue && item.name === "Interest Receivable"
+                    );
+
+                    const oneDayInterestFirst = firstRow.interestAmount / firstRow.numberOfDays;
+                    console.log("first", firstRow);
+                    const second = { ...interestRow };
+                    const first = { ...interestRow };
+
+                    // --- First part ---
+                    first.settlementAmount = parseFloat((oneDayInterestFirst * part0).toFixed(2));
+                    first.interestAmount = second.settlementAmount;
+                    first.outstandingPrincipalEnd = firstRow.outstandingPrincipalEnd;
+                    first.baseAmount = firstRow.baseAmount;
+                    first.numberOfDays = part0;
+                    first.calculationDate = prevDate;
+
+                    // --- Second part ---
+                    second.settlementAmount = parseFloat((oneDayInterestSecond * part1).toFixed(2));
+                    second.interestAmount = second.settlementAmount;
+                    second.numberOfDays = part1;
+                    second.calculationFrom = currDate;
+
+                    return [first, second];
+                }
+
+
+                const newchangedentries = adjustFirstFourInterests();
+                console.table(newchangedentries);
+                const adjustabelData = newchangedentries[0].settlementAmount + newchangedentries[1].settlementAmount;
+
+                secondScheduleFormattedData[1].settlementAmount = secondScheduleFormattedData[1].repaymentAmount - adjustabelData;;
+                // Replace first entry in second schedule
+                secondScheduleFormattedData.splice(0, 1, newchangedentries[0], newchangedentries[1]);
+
+
+
+
 
                 const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...secondScheduleFormattedData];
+
                 console.log("Combined Schedule:");
                 console.table(combinedSchedule);
 
                 combinedRows = combinedSchedule;
+                // combinedRows = [...aAmortTable, ...formattedData];
             } else {
                 combinedRows = [...formattedData];
             }
 
             // Sort by calculationDate ascending (MM/DD/YYYY)
+            // combinedRows.sort((a, b) => {
+            //     const parseDate = (dateStr) => {
+            //         if (!dateStr) return new Date(0); // fallback for missing dates
+            //         const [month, day, year] = dateStr.trim().split("/").map(Number);
+            //         return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
+            //     };
+            //     return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+            // });
+
+            // Sort by dueDate ascending (MM/DD/YYYY)
             combinedRows.sort((a, b) => {
                 const parseDate = (dateStr) => {
                     if (!dateStr) return new Date(0); // fallback for missing dates
                     const [month, day, year] = dateStr.trim().split("/").map(Number);
                     return new Date(year, month - 1, day); // correct parsing for MM/DD/YYYY
                 };
-                return parseDate(a.calculationDate) - parseDate(b.calculationDate);
+                return parseDate(a.dueDate) - parseDate(b.dueDate);
             });
 
             // Reassign index based on sorted order
@@ -2505,6 +2743,20 @@ module.exports = cds.service.impl(async function () {
             });
             console.log("sorted Tableeeeeeeeeeeeeeeeeeeeeeeeeeeee");
             console.table(combinedRows);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             // Replace existing amortization schedule
             await DELETE.from(AmortizationSchedule2New).where({ contractId: contractId });
@@ -3842,7 +4094,7 @@ module.exports = cds.service.impl(async function () {
                 calcDate = getLastDayOfMonth(effDate.getFullYear(), effDate.getMonth() + 1);
             }
             dueDate = code === "LM"
-                ? getNextWorkingDay(new Date(calcDate.getTime() + 86400000)) // next day
+                ? new Date(calcDate.getFullYear(), calcDate.getMonth() + 1, 1) // Start of next month
                 : calcDate;
         }
 

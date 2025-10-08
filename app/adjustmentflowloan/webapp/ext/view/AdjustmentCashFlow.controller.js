@@ -1,9 +1,10 @@
 sap.ui.define(
     [
         'sap/fe/core/PageController',
-        'sap/ui/model/json/JSONModel'
+        'sap/ui/model/json/JSONModel',
+            	"sap/ui/export/Spreadsheet",
     ],
-    function (PageController, JSONModel) {
+    function (PageController, JSONModel,Spreadsheet) {
         'use strict';
         let contractId;
 
@@ -346,6 +347,46 @@ sap.ui.define(
                         at: "center bottom"
                     }
                 );
+            },
+               onExportTables: function () {
+                // Export both tables separately
+                this._exportTableModel("OldTableAdjustScreen", "Actual_Cashflow.xlsx");
+                this._exportTableModel("NewTableAdjustScreen", "Adjusted_Cashflow.xlsx");
+            },
+            _exportTableModel: function (sModelName, sFileName) {
+                const oModel = this.getView().getModel(sModelName);
+
+                if (!oModel) {
+                    sap.m.MessageToast.show("Model not found: " + sModelName);
+                    return;
+                }
+
+                const aRows = oModel.getProperty("/rows");
+                if (!aRows || aRows.length === 0) {
+                    sap.m.MessageToast.show("No data available for " + sModelName);
+                    return;
+                }
+
+                const aColumns = [
+                    { label: "Flow Type", property: "flowType" },
+                    { label: "Name", property: "name" },
+                    { label: "Due Date", property: "dueDate" },
+                    { label: "Amount", property: "amount", type: "number", scale: 2 }
+                ];
+
+                const oSettings = {
+                    workbook: { columns: aColumns },
+                    dataSource: aRows,
+                    fileName: sFileName,
+                    worker: false
+                };
+
+                const oSheet = new Spreadsheet(oSettings);
+                oSheet.build().then(() => {
+                    MessageToast.show(sFileName + " exported successfully");
+                }).finally(() => {
+                    oSheet.destroy();
+                });
             }
             /**
              * Similar to onAfterRendering, but this hook is invoked before the controller's View is re-rendered

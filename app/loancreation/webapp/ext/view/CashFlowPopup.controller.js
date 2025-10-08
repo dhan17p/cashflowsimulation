@@ -1,8 +1,9 @@
 sap.ui.define(
     [
-        'sap/fe/core/PageController'
+        'sap/fe/core/PageController',
+        	"sap/ui/export/Spreadsheet",
     ],
-    function (PageController) {
+    function (PageController,Spreadsheet) {
         'use strict';
 
         return PageController.extend('loancreation.ext.view.CashFlowPopup', {
@@ -52,7 +53,7 @@ sap.ui.define(
 
                 var key = oEvent.getParameter("arguments").key;
                 var keyData = parseKeyString(key);
-                   var contractId = keyData.ID;
+                var contractId = keyData.ID;
 
                 var oModel = new sap.ui.model.json.JSONModel(keyData);
                 this.getView().setModel(oModel, "keyData");
@@ -65,16 +66,69 @@ sap.ui.define(
 
                 if (oBinding) {
                     // Create a sorter on the "index" field (ascending)
-                    
+
                     var oFilter = new sap.ui.model.Filter("contractId", sap.ui.model.FilterOperator.EQ, contractId);
                     var oSorter = new sap.ui.model.Sorter("index", false);
-                    oBinding.sort(oSorter); 
+                    oBinding.sort(oSorter);
                     oBinding.filter([oFilter]);
                     oBinding.refresh();
                 }
                 oTable.getModel().refresh(true);
 
             },
+            onExportToExcel: async function () {
+                debugger
+                const oTable = this.byId("ConditionTablepopscreen");
+                const oBinding = oTable.getBinding("rows");
+
+                if (!oBinding) {
+                    sap.m.MessageToast.show("Table binding not found.");
+                    return;
+                }
+
+                try {
+                    // 🔹 Request all contexts from the binding
+                    const aContexts = await oBinding.requestContexts(0, Infinity);
+                    if (!aContexts.length) {
+                        sap.m.MessageToast.show("No data available to export.");
+                        return;
+                    }
+
+                    // 🔹 Extract raw data objects
+                    const aTableData = aContexts.map(oContext => oContext.getObject());
+
+                    // 🔹 Define columns
+                    const aColumns = [
+                        { label: "Due Date", property: "dueDate" },
+                        { label: "Flow Type", property: "flowType" },
+                        { label: "Name", property: "name" },
+                        { label: "Plan/Actual Rec", property: "planActualRec" },
+                        { label: "Settlement Amount", property: "settlementAmount" },
+                        { label: "Base Amount", property: "baseAmount" },
+                        { label: "Percentage Rate", property: "percentageRate" },
+                        { label: "Calculation From", property: "calculationFrom" },
+                        { label: "Calculation Date", property: "calculationDate" },
+                        { label: "Number of Days", property: "numberOfDays" }
+                    ];
+
+                    // 🔹 Spreadsheet settings
+                    const oSettings = {
+                        workbook: { columns: aColumns },
+                        dataSource: aTableData,
+                        fileName: "CashFlow_Export.xlsx"
+                    };
+
+                    // 🔹 Create and export Excel
+                    const oSpreadsheet = new Spreadsheet(oSettings);
+                    await oSpreadsheet.build();
+                    sap.m.MessageToast.show("Export completed successfully.");
+                    oSpreadsheet.destroy();
+
+                } catch (err) {
+                    console.error("Export error:", err);
+                    sap.m.MessageToast.show("Error while exporting data.");
+                }
+            }
 
             /**
              * Similar to onAfterRendering, but this hook is invoked before the controller's View is re-rendered

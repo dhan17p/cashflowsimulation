@@ -31,6 +31,10 @@
                     <Text text="{keyData>/loanType}" class="valueText"/>
                 </f:content>
             </f:SimpleForm> -->
+            <Toolbar design="Transparent" style="margin:0;padding:0;">
+                <ToolbarSpacer />
+                <Button text="Export to Excel" type="Emphasized" icon="sap-icon://excel-attachment" press=".onExportToExcel"/>
+            </Toolbar>
             <f:Form id="FormCashfloppop" class="FormCashflowpop" editable="false">
                 <f:layout>
                     <f:ColumnLayout columnsM="2" columnsL="3" columnsXL="4" />
