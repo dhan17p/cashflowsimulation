@@ -13,7 +13,7 @@
                     <Title text="{i18n>AdjustmentCashFlowTitle}"/>
                 </f:heading>
                 <f:actions>
-                    <Button text="Post Adjustment" type="Emphasized" press="onPostAdjustment"></Button>
+                    <Button text="Show Adjustment" type="Emphasized" press="onPostAdjustment"></Button>
                       <Button text="Export Tables" type="Transparent" press=".onExportTables" icon="sap-icon://excel-attachment" />
                 </f:actions>
             </f:DynamicPageTitle>

@@ -2,9 +2,9 @@ sap.ui.define(
     [
         'sap/fe/core/PageController',
         'sap/ui/model/json/JSONModel',
-            	"sap/ui/export/Spreadsheet",
+        "sap/ui/export/Spreadsheet",
     ],
-    function (PageController, JSONModel,Spreadsheet) {
+    function (PageController, JSONModel, Spreadsheet) {
         'use strict';
         let contractId;
 
@@ -333,22 +333,69 @@ sap.ui.define(
                 oFunction.setParameter("contractId", contractId);
                 oFunction.setParameter("interest", calculatedInterest);
                 oFunction.setParameter("principal", calculatedPrincipal);
-                await oFunction.execute();
+                // await oFunction.execute();
 
-                // ✅ Show MessageToast
-                sap.m.MessageToast.show(
-                    "Adjustment done:\n" +
-                    "Interest: " + calculatedInterest + "\n" +
-                    "Principal: " + calculatedPrincipal,
-                    {
-                        duration: 4000, // 4 seconds
-                        width: "20em",
-                        my: "center bottom",
-                        at: "center bottom"
+                // // ✅ Show MessageToast
+                // sap.m.MessageToast.show(
+                //     "Adjustment done:\n" +
+                //     "Interest: " + calculatedInterest + "\n" +
+                //     "Principal: " + calculatedPrincipal,
+                //     {
+                //         duration: 4000, // 4 seconds
+                //         width: "20em",
+                //         my: "center bottom",
+                //         at: "center bottom"
+                //     }
+                // );
+
+                let oDialog = new sap.m.Dialog({
+                    title: "Confirm Adjustment",
+                    type: "Message",
+                    content: new sap.m.VBox({
+                        items: [
+                            new sap.m.Text({ text: "Please confirm the adjustment details:" }),
+                            new sap.m.Text({ text: " " }),
+                            new sap.m.Text({ text: "Interest Adjustment: " + calculatedInterest }),
+                            new sap.m.Text({ text: "Principal Adjustment: " + calculatedPrincipal })
+                        ]
+                    }),
+                    buttons: [
+                        new sap.m.Button({
+                            text: "Post Adjustment",
+                            type: "Accept",              // ✅ Green color
+                            icon: "sap-icon://accept",   // ✔ icon
+                            tooltip: "Confirm adjustment",
+                            press: async function () {
+                                try {
+                                    await oFunction.execute(); // execute function
+                                    sap.m.MessageToast.show("Adjustment successfully executed!");
+                                } catch (err) {
+                                    sap.m.MessageBox.error("Error executing adjustment: " + err.message);
+                                } finally {
+                                    oDialog.close();
+                                }
+                            }
+                        }),
+                        new sap.m.Button({
+                            text: "Cancel",
+                            type: "Reject",              // ❌ Red color
+                            icon: "sap-icon://decline",  // ✖ icon
+                            tooltip: "Cancel adjustment",
+                            press: function () {
+                                oDialog.close(); // just close
+                            }
+                        })
+                    ],
+                    afterClose: function () {
+                        oDialog.destroy(); // cleanup
                     }
-                );
+                });
+
+                oDialog.addStyleClass("sapUiContentPadding"); // Adds padding inside dialog
+                oDialog.open();
+
             },
-               onExportTables: function () {
+            onExportTables: function () {
                 // Export both tables separately
                 this._exportTableModel("OldTableAdjustScreen", "Actual_Cashflow.xlsx");
                 this._exportTableModel("NewTableAdjustScreen", "Adjusted_Cashflow.xlsx");

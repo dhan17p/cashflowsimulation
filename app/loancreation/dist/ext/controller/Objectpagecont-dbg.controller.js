@@ -360,12 +360,25 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				}
 			},
 			editFlow: {
+				onAfterCreate: function () {
+					debugger;
+					return Promise.resolve(); // always returns a promise
+				},
+
+				onBeforeCreate: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("loancreation::contractNewObjectPage--fe::CustomAction::calcualtecashflow").setEnabled(false)
+					return Promise.resolve();
+				},
+
 				onBeforeEdit: function () {
 					debugger
 					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(false)
 
 				},
 				onAfterSave: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("loancreation::contractNewObjectPage--fe::CustomAction::calcualtecashflow").setEnabled(true)
 					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(true)
 
 				},

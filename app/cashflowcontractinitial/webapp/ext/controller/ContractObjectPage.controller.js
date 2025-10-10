@@ -362,12 +362,23 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				}
 			},
 			editFlow: {
+
+				onBeforeCreate: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::calCashFlow").setEnabled(false)
+					return Promise.resolve();
+				},
 				onBeforeEdit: function () {
 					debugger
 					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(false)
 				},
+				onAfterDiscard: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::calCashFlow").setEnabled(true);
+				},
 				onAfterSave: function () {
 					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(true)
+					sap.ui.core.Element.getElementById("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::calCashFlow").setEnabled(true)
 
 				},
 				// This function is called after the save action is completed.
