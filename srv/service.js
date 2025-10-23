@@ -1641,38 +1641,35 @@ module.exports = cds.service.impl(async function () {
                     .where`contractId=${contractId} and flowType = '0125A'`;
                 let oNewInput = oInputCashFlow;
 
-                function getStartOfCurrentMonthFormatted() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = today.getMonth(); // getMonth() returns 0-indexed month
+                function getStartOfCurrentMonthFormatted(baseDate) {
+                    const date = new Date(baseDate);
+                    const year = date.getFullYear();
+                    const month = date.getMonth(); // 0-indexed
 
-                    // Create a new Date object for the first day of the current month
+                    // First day of that month
                     const firstDayOfMonth = new Date(year, month, 1);
 
-                    // Extract day, month, and year from the first day of the month
                     let day = firstDayOfMonth.getDate();
-                    let formattedMonth = firstDayOfMonth.getMonth() + 1; // Add 1 because getMonth() is 0-indexed
+                    let formattedMonth = firstDayOfMonth.getMonth() + 1;
                     const formattedYear = firstDayOfMonth.getFullYear();
 
-                    // Add leading zeros if day or month is a single digit
+                    // Add leading zeros
                     day = day < 10 ? '0' + day : day;
                     formattedMonth = formattedMonth < 10 ? '0' + formattedMonth : formattedMonth;
 
-                    // Return the formatted date string
                     return `${day}/${formattedMonth}/${formattedYear}`;
                 }
 
-                function getStartOfNextMonthFormatted() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = today.getMonth(); // 0-indexed
+                function getStartOfNextMonthFormatted(baseDate) {
+                    const date = new Date(baseDate);
+                    const year = date.getFullYear();
+                    const month = date.getMonth(); // 0-indexed
 
-                    // Create a date for the first day of the next month
-                    // If month = 11 (December), JS automatically rolls over to next year
+                    // First day of next month
                     const firstDayOfNextMonth = new Date(year, month + 1, 1);
 
                     let day = firstDayOfNextMonth.getDate();
-                    let formattedMonth = firstDayOfNextMonth.getMonth() + 1; // 0-indexed
+                    let formattedMonth = firstDayOfNextMonth.getMonth() + 1;
                     const formattedYear = firstDayOfNextMonth.getFullYear();
 
                     // Add leading zeros
@@ -1681,18 +1678,15 @@ module.exports = cds.service.impl(async function () {
 
                     return `${day}/${formattedMonth}/${formattedYear}`;
                 }
-                function daysSinceStartOfMonth() {
-                    const today = new Date(); // today
-                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // first day of current month
 
-                    // Calculate difference in milliseconds
-                    const diffInMs = today - startOfMonth;
-
-                    // Convert milliseconds to days
+                function daysSinceStartOfMonth(baseDate) {
+                    const date = new Date(baseDate); // use provided date
+                    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                    const diffInMs = date - startOfMonth;
                     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-                    return diffInDays;
+                    return diffInDays; // 0-based difference
                 }
+
 
                 function filterFormattedDataByDate(dueDate) {
                     // Convert DD/MM/YYYY → MM/DD/YYYY
@@ -1704,30 +1698,37 @@ module.exports = cds.service.impl(async function () {
                         item => item.dueDate === formattedDate && item.name === 'Interest Receivable'
                     );
                 }
-                function calculateMid(midSchedule) {
+
+
+                function calculateMid(midSchedule, baseDate) {
                     const midIntrest1 = { ...midSchedule[1] };
                     const midIntrest2 = { ...midSchedule[1] };
                     const midPrincipal = { ...midSchedule[2] };
 
-                    const today = new Date();
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const yyyy = today.getFullYear();
+                    // Use baseDate instead of system date
+                    const date = new Date(baseDate);
+
+                    // Format baseDate to dd/MM/yyyy
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
                     const currentDateStr = `${dd}/${mm}/${yyyy}`;
 
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(today.getDate() + 1);
+                    // Tomorrow based on baseDate
+                    const tomorrow = new Date(date);
+                    tomorrow.setDate(date.getDate() + 1);
                     const tdd = String(tomorrow.getDate()).padStart(2, '0');
                     const tmm = String(tomorrow.getMonth() + 1).padStart(2, '0');
                     const tyyyy = tomorrow.getFullYear();
                     const tomorrowStr = `${tdd}/${tmm}/${tyyyy}`;
 
+                    // Filter and extract first-row data
                     const firstRow = filterFormattedDataByDate(midIntrest1['Due Date']);
-
                     const firstRowInterest = parseFloat(firstRow[0]?.interestAmount || 0);
                     const firstRowDays = parseFloat(firstRow[0]?.numberOfDays || 1);
 
-                    const currDay = daysSinceStartOfMonth();
+                    // Use baseDate in daysSinceStartOfMonth
+                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // +1 for 1-based day count
                     const remDays = parseFloat(midIntrest1.Days || 1) - currDay;
 
                     // --- Interest 1 ---
@@ -1741,8 +1742,7 @@ module.exports = cds.service.impl(async function () {
                     // --- Interest 2 ---
                     const midInterestAmount = parseFloat(midIntrest2['Interest Amount'] || 0);
                     const midInterestDays = parseFloat(midIntrest2.Days || 1);
-                    const Intrest2 = parseFloat((((midInterestAmount / midInterestDays * remDays))).toFixed(2));
-
+                    const Intrest2 = parseFloat(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
                     midIntrest2.Amount = Intrest2;
                     midIntrest2['Interest Amount'] = Intrest2;
                     midIntrest2['Calculation From'] = tomorrowStr;
@@ -1754,19 +1754,24 @@ module.exports = cds.service.impl(async function () {
                     midPrincipal.Amount = newOutstanding;
                     midPrincipal['Principal Repayment'] = newOutstanding;
                     midPrincipal['Outstanding Principal End'] = parseFloat((midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2));
+
                     midIntrest2.Index += 1;
                     midPrincipal.Index += 1;
                     midIntrest1.Days = currDay;
                     midIntrest2.Days = remDays;
+
                     return [midIntrest1, midIntrest2, midPrincipal];
                 }
 
 
 
 
+
                 function runTwoSchedules(input, newCommitCapital) {
-                    const today = getStartOfCurrentMonthFormatted()
-                    const nextStart = getStartOfNextMonthFormatted();
+
+                    const baseDate = oPrincipal[0].calculationFrom; // oPrincipal[0].calculationFrom
+                    const today = getStartOfCurrentMonthFormatted(baseDate);
+                    const nextStart = getStartOfNextMonthFormatted(baseDate);
                     // --- First call: override endDate to today ---
                     const firstInput = {
                         ...input,
@@ -1830,7 +1835,7 @@ module.exports = cds.service.impl(async function () {
                     // console.log("middle", midSchedule);
 
                     // Copy rows from midSchedule
-                    const newMid = calculateMid(midSchedule);
+                    const newMid = calculateMid(midSchedule, baseDate);
                     const secondPrinciple = newMid[2]['Outstanding Principal End'];
                     // Keep the first element, replace the rest with midData
                     midSchedule = [midSchedule[0], ...newMid];
@@ -2477,38 +2482,35 @@ module.exports = cds.service.impl(async function () {
                 let oNewInput = oInputCashFlow;
 
 
-                function getStartOfCurrentMonthFormatted() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = today.getMonth(); // getMonth() returns 0-indexed month
+                function getStartOfCurrentMonthFormatted(baseDate) {
+                    const date = new Date(baseDate);
+                    const year = date.getFullYear();
+                    const month = date.getMonth(); // 0-indexed
 
-                    // Create a new Date object for the first day of the current month
+                    // First day of that month
                     const firstDayOfMonth = new Date(year, month, 1);
 
-                    // Extract day, month, and year from the first day of the month
                     let day = firstDayOfMonth.getDate();
-                    let formattedMonth = firstDayOfMonth.getMonth() + 1; // Add 1 because getMonth() is 0-indexed
+                    let formattedMonth = firstDayOfMonth.getMonth() + 1;
                     const formattedYear = firstDayOfMonth.getFullYear();
 
-                    // Add leading zeros if day or month is a single digit
+                    // Add leading zeros
                     day = day < 10 ? '0' + day : day;
                     formattedMonth = formattedMonth < 10 ? '0' + formattedMonth : formattedMonth;
 
-                    // Return the formatted date string
                     return `${day}/${formattedMonth}/${formattedYear}`;
                 }
 
-                function getStartOfNextMonthFormatted() {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = today.getMonth(); // 0-indexed
+                function getStartOfNextMonthFormatted(baseDate) {
+                    const date = new Date(baseDate);
+                    const year = date.getFullYear();
+                    const month = date.getMonth(); // 0-indexed
 
-                    // Create a date for the first day of the next month
-                    // If month = 11 (December), JS automatically rolls over to next year
+                    // First day of next month
                     const firstDayOfNextMonth = new Date(year, month + 1, 1);
 
                     let day = firstDayOfNextMonth.getDate();
-                    let formattedMonth = firstDayOfNextMonth.getMonth() + 1; // 0-indexed
+                    let formattedMonth = firstDayOfNextMonth.getMonth() + 1;
                     const formattedYear = firstDayOfNextMonth.getFullYear();
 
                     // Add leading zeros
@@ -2517,18 +2519,15 @@ module.exports = cds.service.impl(async function () {
 
                     return `${day}/${formattedMonth}/${formattedYear}`;
                 }
-                function daysSinceStartOfMonth() {
-                    const today = new Date(); // today
-                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1); // first day of current month
 
-                    // Calculate difference in milliseconds
-                    const diffInMs = today - startOfMonth;
-
-                    // Convert milliseconds to days
+                function daysSinceStartOfMonth(baseDate) {
+                    const date = new Date(baseDate); // use provided date
+                    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                    const diffInMs = date - startOfMonth;
                     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-                    return diffInDays;
+                    return diffInDays; // 0-based difference
                 }
+
 
                 function filterFormattedDataByDate(dueDate) {
                     // Convert DD/MM/YYYY → MM/DD/YYYY
@@ -2540,30 +2539,37 @@ module.exports = cds.service.impl(async function () {
                         item => item.dueDate === formattedDate && item.name === 'Interest Receivable'
                     );
                 }
-                function calculateMid(midSchedule) {
+
+
+                function calculateMid(midSchedule, baseDate) {
                     const midIntrest1 = { ...midSchedule[1] };
                     const midIntrest2 = { ...midSchedule[1] };
                     const midPrincipal = { ...midSchedule[2] };
 
-                    const today = new Date();
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const yyyy = today.getFullYear();
+                    // Use baseDate instead of system date
+                    const date = new Date(baseDate);
+
+                    // Format baseDate to dd/MM/yyyy
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
                     const currentDateStr = `${dd}/${mm}/${yyyy}`;
 
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(today.getDate() + 1);
+                    // Tomorrow based on baseDate
+                    const tomorrow = new Date(date);
+                    tomorrow.setDate(date.getDate() + 1);
                     const tdd = String(tomorrow.getDate()).padStart(2, '0');
                     const tmm = String(tomorrow.getMonth() + 1).padStart(2, '0');
                     const tyyyy = tomorrow.getFullYear();
                     const tomorrowStr = `${tdd}/${tmm}/${tyyyy}`;
 
+                    // Filter and extract first-row data
                     const firstRow = filterFormattedDataByDate(midIntrest1['Due Date']);
-
                     const firstRowInterest = parseFloat(firstRow[0]?.interestAmount || 0);
                     const firstRowDays = parseFloat(firstRow[0]?.numberOfDays || 1);
 
-                    const currDay = daysSinceStartOfMonth();
+                    // Use baseDate in daysSinceStartOfMonth
+                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // +1 for 1-based day count
                     const remDays = parseFloat(midIntrest1.Days || 1) - currDay;
 
                     // --- Interest 1 ---
@@ -2577,8 +2583,7 @@ module.exports = cds.service.impl(async function () {
                     // --- Interest 2 ---
                     const midInterestAmount = parseFloat(midIntrest2['Interest Amount'] || 0);
                     const midInterestDays = parseFloat(midIntrest2.Days || 1);
-                    const Intrest2 = parseFloat((((midInterestAmount / midInterestDays * remDays))).toFixed(2));
-
+                    const Intrest2 = parseFloat(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
                     midIntrest2.Amount = Intrest2;
                     midIntrest2['Interest Amount'] = Intrest2;
                     midIntrest2['Calculation From'] = tomorrowStr;
@@ -2590,20 +2595,24 @@ module.exports = cds.service.impl(async function () {
                     midPrincipal.Amount = newOutstanding;
                     midPrincipal['Principal Repayment'] = newOutstanding;
                     midPrincipal['Outstanding Principal End'] = parseFloat((midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2));
+
                     midIntrest2.Index += 1;
                     midPrincipal.Index += 1;
                     midIntrest1.Days = currDay;
                     midIntrest2.Days = remDays;
-                    console.log(midIntrest1, midIntrest2, midPrincipal);
+
                     return [midIntrest1, midIntrest2, midPrincipal];
                 }
 
 
 
 
+
                 function runTwoSchedules(input, newCommitCapital) {
-                    const today = getStartOfCurrentMonthFormatted()
-                    const nextStart = getStartOfNextMonthFormatted();
+
+                    const baseDate = oPrincipal[0].calculationFrom; // oPrincipal[0].calculationFrom
+                    const today = getStartOfCurrentMonthFormatted(baseDate);
+                    const nextStart = getStartOfNextMonthFormatted(baseDate);
                     // --- First call: override endDate to today ---
                     const firstInput = {
                         ...input,
@@ -2667,7 +2676,7 @@ module.exports = cds.service.impl(async function () {
                     // console.log("middle", midSchedule);
 
                     // Copy rows from midSchedule
-                    const newMid = calculateMid(midSchedule);
+                    const newMid = calculateMid(midSchedule, baseDate);
                     const secondPrinciple = newMid[2]['Outstanding Principal End'];
                     // Keep the first element, replace the rest with midData
                     midSchedule = [midSchedule[0], ...newMid];
@@ -2682,12 +2691,17 @@ module.exports = cds.service.impl(async function () {
                         startDate: nextStart,
                         commitCapital: secondPrinciple,
                     };
+                    // const secondInput = {
+                    //     ...input,
+                    //     startDate: today,
+                    //     commitCapital: newPrincipal,
+                    // };
                     console.log("SecondInput", secondInput);
                     const secondSchedule = calculateLoanScheduleFlexible(secondInput);
 
                     return { firstSchedule, secondSchedule, midSchedule };
+                    // return { firstSchedule, secondSchedule };
                 }
-
                 const { firstSchedule, secondSchedule, midSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
 
                 console.log("First Schedule (endDate = today):");
@@ -2851,7 +2865,7 @@ module.exports = cds.service.impl(async function () {
                 console.log(parts); //
 
 
-                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...midScheduleFormattedData,...secondScheduleFormattedData];
+                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...midScheduleFormattedData, ...secondScheduleFormattedData];
 
                 console.log("Combined Schedule:");
                 console.table(combinedSchedule);
