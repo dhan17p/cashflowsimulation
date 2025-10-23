@@ -370,7 +370,10 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 					sap.ui.core.Element.getElementById("loancreation::contractNewObjectPage--fe::CustomAction::calcualtecashflow").setEnabled(false)
 					return Promise.resolve();
 				},
-
+				onAfterDiscard: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("loancreation::contractNewObjectPage--fe::CustomAction::calcualtecashflow").setEnabled(true);
+				},
 				onBeforeEdit: function () {
 					debugger
 					sap.ui.getCore().byId("loancreation::contractNewObjectPage--fe::CustomAction::adjustmentpaymentloan").setVisible(false)

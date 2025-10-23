@@ -1840,25 +1840,25 @@ module.exports = cds.service.impl(async function () {
 
 
                     // --- Second call: override startDate & commitCapital ---
-                    // const secondInput = {
-                    //     ...input,
-                    //     startDate: nextStart,
-                    //     commitCapital: secondPrinciple,
-                    // };
                     const secondInput = {
                         ...input,
-                        startDate: today,
-                        commitCapital: newPrincipal,
+                        startDate: nextStart,
+                        commitCapital: secondPrinciple,
                     };
+                    // const secondInput = {
+                    //     ...input,
+                    //     startDate: today,
+                    //     commitCapital: newPrincipal,
+                    // };
                     console.log("SecondInput", secondInput);
                     const secondSchedule = calculateLoanScheduleFlexible(secondInput);
 
-                    // return { firstSchedule, secondSchedule, midSchedule };
-                    return { firstSchedule, secondSchedule };
+                    return { firstSchedule, secondSchedule, midSchedule };
+                    // return { firstSchedule, secondSchedule };
                 }
 
-                // const { firstSchedule, secondSchedule, midSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
-                const { firstSchedule, secondSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
+                const { firstSchedule, secondSchedule, midSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
+                // const { firstSchedule, secondSchedule } = runTwoSchedules(oNewInput, oPrincipal[0].settlementAmount);
 
                 console.log("First Schedule (endDate = today):");
                 console.table(firstSchedule);
@@ -1907,41 +1907,41 @@ module.exports = cds.service.impl(async function () {
                     };
                 });
 
-                // midSchedule.shift();
-                // function formatSchedule(schedule) {
-                //     function convertDateToUSFormat(dateStr) {
-                //         if (!dateStr) return null;
-                //         const [day, month, year] = dateStr.split("/");
-                //         return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${year}`;
-                //     }
+                midSchedule.shift();
+                function formatSchedule(schedule) {
+                    function convertDateToUSFormat(dateStr) {
+                        if (!dateStr) return null;
+                        const [day, month, year] = dateStr.split("/");
+                        return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${year}`;
+                    }
 
 
 
-                //     return schedule.map(item => {
-                //         return {
-                //             index: item.Index,
-                //             flowType: item.flowType,
-                //             calculationFrom: convertDateToUSFormat(item["Calculation From"]),
-                //             dueDate: convertDateToUSFormat(item["Due Date"]),
-                //             calculationDate: convertDateToUSFormat(item["Calculation Date"]),
-                //             baseAmount: item["Outstanding Principal Start"],
-                //             percentageRate: item["Interest Rate (%)"],
-                //             numberOfDays: item.Days,
-                //             name: item.Name,
-                //             settlementAmount: item.Amount,
-                //             repaymentAmount: item["Repayment Amount"],
-                //             principalRepayment: item["Principal Repayment"],
-                //             interestAmount: item["Interest Amount"],
-                //             outstandingPrincipalEnd: item["Outstanding Principal End"],
-                //             contractId: contractId,  // global variable used here
-                //             settlementCurrency: "USD",
-                //             planActualRec: item["Planned/Incurred Status"]
-                //         };
-                //     });
-                // }
+                    return schedule.map(item => {
+                        return {
+                            index: item.Index,
+                            flowType: item.flowType,
+                            calculationFrom: convertDateToUSFormat(item["Calculation From"]),
+                            dueDate: convertDateToUSFormat(item["Due Date"]),
+                            calculationDate: convertDateToUSFormat(item["Calculation Date"]),
+                            baseAmount: item["Outstanding Principal Start"],
+                            percentageRate: item["Interest Rate (%)"],
+                            numberOfDays: item.Days,
+                            name: item.Name,
+                            settlementAmount: item.Amount,
+                            repaymentAmount: item["Repayment Amount"],
+                            principalRepayment: item["Principal Repayment"],
+                            interestAmount: item["Interest Amount"],
+                            outstandingPrincipalEnd: item["Outstanding Principal End"],
+                            contractId: contractId,  // global variable used here
+                            settlementCurrency: "USD",
+                            planActualRec: item["Planned/Incurred Status"]
+                        };
+                    });
+                }
 
                 // Usage
-                // const midScheduleFormattedData = formatSchedule(midSchedule);
+                const midScheduleFormattedData = formatSchedule(midSchedule);
 
 
                 secondSchedule.shift();
@@ -2023,97 +2023,8 @@ module.exports = cds.service.impl(async function () {
 
 
 
-                function daysDifference(date1, date2) {
-                    const d1 = new Date(date1);
-                    const d2 = new Date(date2);
-
-                    // difference in milliseconds
-                    const diffTime = d1 - d2;
-
-                    // convert to days
-                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-                    return diffDays;
-                }
-
-                const currDate = aAmortTable[0].dueDate;
-                const startDate = secondScheduleFormattedData[0].calculationFrom;
-                // Convert to Date object
-                const [mm, dd, yyyy] = currDate.split("/").map(Number);
-                const dateObj = new Date(yyyy, mm - 1, dd);
-
-                // Subtract one day
-                dateObj.setDate(dateObj.getDate() - 1);
-
-                // Format as MM/DD/YYYY
-                const prevDate = `${String(dateObj.getMonth() + 1).padStart(2, "0")}/${String(dateObj.getDate()).padStart(2, "0")}/${dateObj.getFullYear()}`;
-
-
-                // let [month, day, year] = currDate.split("/").map(Number);
-
-                // let dateObj = new Date(year, month - 1, day);
-                // dateObj.setDate(dateObj.getDate() + 1);
-
-                // let nextDay = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
-                // console.log(nextDay); // Output: "10/07/2025"
-
-
-                const startDays = daysDifference(currDate, startDate);
-                const remDays = secondScheduleFormattedData[0].numberOfDays - startDays;
-                console.log()
-                function adjustFirstFourInterests() {
-                    const part0 = startDays;
-                    const part1 = remDays;
-
-                    // Take first Interest Receivable entry from second schedule
-                    const interestRow = secondScheduleFormattedData.find(e => e.name === "Interest Receivable");
-                    if (!interestRow) return [];
-
-                    const oneDayInterestSecond = interestRow.settlementAmount / interestRow.numberOfDays;
-
-                    // Deep copy to avoid mutating the same object
-                    const currDue = secondScheduleFormattedData[0].dueDate;
-                    const firstRow = formattedData.find(item =>
-                        item.dueDate === currDue && item.name === "Interest Receivable"
-                    );
-
-                    const oneDayInterestFirst = firstRow.interestAmount / firstRow.numberOfDays;
-                    console.log("first", firstRow);
-                    const second = { ...interestRow };
-                    const first = { ...interestRow };
-
-                    // --- First part ---
-                    first.settlementAmount = parseFloat((oneDayInterestFirst * part0).toFixed(2));
-                    first.interestAmount = second.settlementAmount;
-                    first.outstandingPrincipalEnd = firstRow.outstandingPrincipalEnd;
-                    first.baseAmount = firstRow.baseAmount;
-                    first.numberOfDays = part0;
-                    first.calculationDate = prevDate;
-
-                    // --- Second part ---
-                    second.settlementAmount = parseFloat((oneDayInterestSecond * part1).toFixed(2));
-                    second.interestAmount = second.settlementAmount;
-                    second.numberOfDays = part1;
-                    second.calculationFrom = currDate;
-
-                    return [first, second];
-                }
-
-
-                const newchangedentries = adjustFirstFourInterests();
-                console.table(newchangedentries);
-                const adjustabelData = newchangedentries[0].settlementAmount + newchangedentries[1].settlementAmount;
-                console.log(secondScheduleFormattedData[1].settlementAmount, "old data");
-                secondScheduleFormattedData[1].settlementAmount = secondScheduleFormattedData[1].repaymentAmount - adjustabelData;;
-                console.log(secondScheduleFormattedData[1].settlementAmount, "new data");
-                // Replace first entry in second schedule
-                secondScheduleFormattedData.splice(0, 1, newchangedentries[0], newchangedentries[1]);
-
-
-
-
-                // const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...midScheduleFormattedData, ...secondScheduleFormattedData];
-                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable,  ...secondScheduleFormattedData];
+                const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable, ...midScheduleFormattedData, ...secondScheduleFormattedData];
+                // const combinedSchedule = [...firstScheduleFormattedData, ...aAmortTable,  ...secondScheduleFormattedData];
 
                 console.log("Combined Schedule:");
                 console.table(combinedSchedule);

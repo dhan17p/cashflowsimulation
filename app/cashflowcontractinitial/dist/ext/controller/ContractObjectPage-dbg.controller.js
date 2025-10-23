@@ -362,7 +362,7 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				}
 			},
 			editFlow: {
-				
+
 				onBeforeCreate: function () {
 					debugger;
 					sap.ui.core.Element.getElementById("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::calCashFlow").setEnabled(false)
@@ -371,6 +371,10 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 				onBeforeEdit: function () {
 					debugger
 					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(false)
+				},
+				onAfterDiscard: function () {
+					debugger;
+					sap.ui.core.Element.getElementById("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::calCashFlow").setEnabled(true);
 				},
 				onAfterSave: function () {
 					sap.ui.getCore().byId("cashflowcontractinitial::ContractObjectPage--fe::CustomAction::adjustmentpayment").setVisible(true)
