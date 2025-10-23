@@ -1705,16 +1705,21 @@ module.exports = cds.service.impl(async function () {
                     const midIntrest2 = { ...midSchedule[1] };
                     const midPrincipal = { ...midSchedule[2] };
 
-                    // Use baseDate instead of system date
+                    // --- Parse baseDate safely (supports both DD/MM/YYYY and YYYY-MM-DD)
+                    let [day, month, year] = baseDate.includes('/') ? baseDate.split('/') : baseDate.split('-');
+                    if (year.length === 2 || year.length === 4) {
+                        // ensure numeric ordering
+                        baseDate = `${month}/${day}/${year}`;
+                    }
                     const date = new Date(baseDate);
 
-                    // Format baseDate to dd/MM/yyyy
+                    // --- Format baseDate to dd/MM/yyyy
                     const dd = String(date.getDate()).padStart(2, '0');
                     const mm = String(date.getMonth() + 1).padStart(2, '0');
                     const yyyy = date.getFullYear();
                     const currentDateStr = `${dd}/${mm}/${yyyy}`;
 
-                    // Tomorrow based on baseDate
+                    // --- Tomorrow (next day)
                     const tomorrow = new Date(date);
                     tomorrow.setDate(date.getDate() + 1);
                     const tdd = String(tomorrow.getDate()).padStart(2, '0');
@@ -1722,46 +1727,54 @@ module.exports = cds.service.impl(async function () {
                     const tyyyy = tomorrow.getFullYear();
                     const tomorrowStr = `${tdd}/${tmm}/${tyyyy}`;
 
-                    // Filter and extract first-row data
+                    // --- Filter and extract first-row data
                     const firstRow = filterFormattedDataByDate(midIntrest1['Due Date']);
-                    const firstRowInterest = parseFloat(firstRow[0]?.interestAmount || 0);
-                    const firstRowDays = parseFloat(firstRow[0]?.numberOfDays || 1);
+                    const firstRowData = firstRow[0] || {};
+                    const firstRowInterest = Number(firstRowData.interestAmount) || 0;
+                    const firstRowDays = Number(firstRowData.numberOfDays) || 1;
+                    const outstandingEnd = Number(firstRowData.outstandingPrincipalEnd) || 0;
 
-                    // Use baseDate in daysSinceStartOfMonth
-                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // +1 for 1-based day count
-                    const remDays = parseFloat(midIntrest1.Days || 1) - currDay;
+                    // --- Days split logic (corrected)
+                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // 1-based
+                    const totalDays = Number(midIntrest1.Days) || 30;    // fallback to 30
+                    const usedDays = currDay;                            // include baseDate
+                    const remDays = totalDays - usedDays;                // remaining after baseDate
 
                     // --- Interest 1 ---
-                    const Intrest1 = parseFloat(((firstRowInterest / firstRowDays) * currDay).toFixed(2));
+                    const Intrest1 = Number(((firstRowInterest / firstRowDays) * usedDays).toFixed(2));
                     midIntrest1.Amount = Intrest1;
                     midIntrest1['Interest Amount'] = Intrest1;
                     midIntrest1['Calculation Date'] = currentDateStr;
-                    midIntrest1['Outstanding Principal Start'] = parseFloat((firstRow[0].outstandingPrincipalEnd || 0).toFixed(2));
-                    midIntrest1['Outstanding Principal End'] = parseFloat((firstRow[0].outstandingPrincipalEnd || 0).toFixed(2));
+                    midIntrest1['Outstanding Principal Start'] = outstandingEnd;
+                    midIntrest1['Outstanding Principal End'] = outstandingEnd;
+                    midIntrest1.Days = usedDays; // ← 11 if baseDate is 10th
 
                     // --- Interest 2 ---
-                    const midInterestAmount = parseFloat(midIntrest2['Interest Amount'] || 0);
-                    const midInterestDays = parseFloat(midIntrest2.Days || 1);
-                    const Intrest2 = parseFloat(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
+                    const midInterestAmount = Number(midIntrest2['Interest Amount']) || 0;
+                    const midInterestDays = Number(midIntrest2.Days) || totalDays;
+                    const Intrest2 = Number(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
+
                     midIntrest2.Amount = Intrest2;
                     midIntrest2['Interest Amount'] = Intrest2;
                     midIntrest2['Calculation From'] = tomorrowStr;
+                    midIntrest2.Days = remDays; // ← remaining days (19 for 30-day month)
 
                     // --- Principal ---
-                    const repaymentAmount = parseFloat(midPrincipal['Repayment Amount'] || 0);
-                    const newOutstanding = parseFloat((repaymentAmount - (Intrest1 + Intrest2)).toFixed(2));
+                    const repaymentAmount = Number(midPrincipal['Repayment Amount']) || 0;
+                    const newOutstanding = Number((repaymentAmount - (Intrest1 + Intrest2)).toFixed(2));
 
                     midPrincipal.Amount = newOutstanding;
                     midPrincipal['Principal Repayment'] = newOutstanding;
-                    midPrincipal['Outstanding Principal End'] = parseFloat((midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2));
+                    midPrincipal['Outstanding Principal End'] = Number(
+                        (midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2)
+                    );
 
                     midIntrest2.Index += 1;
                     midPrincipal.Index += 1;
-                    midIntrest1.Days = currDay;
-                    midIntrest2.Days = remDays;
 
                     return [midIntrest1, midIntrest2, midPrincipal];
                 }
+
 
 
 
@@ -2546,16 +2559,21 @@ module.exports = cds.service.impl(async function () {
                     const midIntrest2 = { ...midSchedule[1] };
                     const midPrincipal = { ...midSchedule[2] };
 
-                    // Use baseDate instead of system date
+                    // --- Parse baseDate safely (supports both DD/MM/YYYY and YYYY-MM-DD)
+                    let [day, month, year] = baseDate.includes('/') ? baseDate.split('/') : baseDate.split('-');
+                    if (year.length === 2 || year.length === 4) {
+                        // ensure numeric ordering
+                        baseDate = `${month}/${day}/${year}`;
+                    }
                     const date = new Date(baseDate);
 
-                    // Format baseDate to dd/MM/yyyy
+                    // --- Format baseDate to dd/MM/yyyy
                     const dd = String(date.getDate()).padStart(2, '0');
                     const mm = String(date.getMonth() + 1).padStart(2, '0');
                     const yyyy = date.getFullYear();
                     const currentDateStr = `${dd}/${mm}/${yyyy}`;
 
-                    // Tomorrow based on baseDate
+                    // --- Tomorrow (next day)
                     const tomorrow = new Date(date);
                     tomorrow.setDate(date.getDate() + 1);
                     const tdd = String(tomorrow.getDate()).padStart(2, '0');
@@ -2563,46 +2581,54 @@ module.exports = cds.service.impl(async function () {
                     const tyyyy = tomorrow.getFullYear();
                     const tomorrowStr = `${tdd}/${tmm}/${tyyyy}`;
 
-                    // Filter and extract first-row data
+                    // --- Filter and extract first-row data
                     const firstRow = filterFormattedDataByDate(midIntrest1['Due Date']);
-                    const firstRowInterest = parseFloat(firstRow[0]?.interestAmount || 0);
-                    const firstRowDays = parseFloat(firstRow[0]?.numberOfDays || 1);
+                    const firstRowData = firstRow[0] || {};
+                    const firstRowInterest = Number(firstRowData.interestAmount) || 0;
+                    const firstRowDays = Number(firstRowData.numberOfDays) || 1;
+                    const outstandingEnd = Number(firstRowData.outstandingPrincipalEnd) || 0;
 
-                    // Use baseDate in daysSinceStartOfMonth
-                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // +1 for 1-based day count
-                    const remDays = parseFloat(midIntrest1.Days || 1) - currDay;
+                    // --- Days split logic (corrected)
+                    const currDay = daysSinceStartOfMonth(baseDate) + 1; // 1-based
+                    const totalDays = Number(midIntrest1.Days) || 30;    // fallback to 30
+                    const usedDays = currDay;                            // include baseDate
+                    const remDays = totalDays - usedDays;                // remaining after baseDate
 
                     // --- Interest 1 ---
-                    const Intrest1 = parseFloat(((firstRowInterest / firstRowDays) * currDay).toFixed(2));
+                    const Intrest1 = Number(((firstRowInterest / firstRowDays) * usedDays).toFixed(2));
                     midIntrest1.Amount = Intrest1;
                     midIntrest1['Interest Amount'] = Intrest1;
                     midIntrest1['Calculation Date'] = currentDateStr;
-                    midIntrest1['Outstanding Principal Start'] = parseFloat((firstRow[0].outstandingPrincipalEnd || 0).toFixed(2));
-                    midIntrest1['Outstanding Principal End'] = parseFloat((firstRow[0].outstandingPrincipalEnd || 0).toFixed(2));
+                    midIntrest1['Outstanding Principal Start'] = outstandingEnd;
+                    midIntrest1['Outstanding Principal End'] = outstandingEnd;
+                    midIntrest1.Days = usedDays; // ← 11 if baseDate is 10th
 
                     // --- Interest 2 ---
-                    const midInterestAmount = parseFloat(midIntrest2['Interest Amount'] || 0);
-                    const midInterestDays = parseFloat(midIntrest2.Days || 1);
-                    const Intrest2 = parseFloat(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
+                    const midInterestAmount = Number(midIntrest2['Interest Amount']) || 0;
+                    const midInterestDays = Number(midIntrest2.Days) || totalDays;
+                    const Intrest2 = Number(((midInterestAmount / midInterestDays) * remDays).toFixed(2));
+
                     midIntrest2.Amount = Intrest2;
                     midIntrest2['Interest Amount'] = Intrest2;
                     midIntrest2['Calculation From'] = tomorrowStr;
+                    midIntrest2.Days = remDays; // ← remaining days (19 for 30-day month)
 
                     // --- Principal ---
-                    const repaymentAmount = parseFloat(midPrincipal['Repayment Amount'] || 0);
-                    const newOutstanding = parseFloat((repaymentAmount - (Intrest1 + Intrest2)).toFixed(2));
+                    const repaymentAmount = Number(midPrincipal['Repayment Amount']) || 0;
+                    const newOutstanding = Number((repaymentAmount - (Intrest1 + Intrest2)).toFixed(2));
 
                     midPrincipal.Amount = newOutstanding;
                     midPrincipal['Principal Repayment'] = newOutstanding;
-                    midPrincipal['Outstanding Principal End'] = parseFloat((midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2));
+                    midPrincipal['Outstanding Principal End'] = Number(
+                        (midIntrest2['Outstanding Principal End'] - newOutstanding).toFixed(2)
+                    );
 
                     midIntrest2.Index += 1;
                     midPrincipal.Index += 1;
-                    midIntrest1.Days = currDay;
-                    midIntrest2.Days = remDays;
 
                     return [midIntrest1, midIntrest2, midPrincipal];
                 }
+
 
 
 
